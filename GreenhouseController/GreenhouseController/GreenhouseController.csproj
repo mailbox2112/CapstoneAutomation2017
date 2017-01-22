@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="ArduinoControlSender.cs" />
     <Compile Include="DataReceiver.cs" />
+    <Compile Include="GreenhouseActionSolver.cs" />
     <Compile Include="GreenhouseCommands.cs" />
     <Compile Include="GreenhouseController.cs" />
     <Compile Include="GreenhouseState.cs" />
