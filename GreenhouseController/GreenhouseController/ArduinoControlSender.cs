@@ -9,31 +9,32 @@ namespace GreenhouseController
 {
     class ArduinoControlSender : IDisposable
     {
-        //private SerialPort _output;
+        private SerialPort _output;
         public ArduinoControlSender()
         {
             // TODO: construct!
-            //_output = new SerialPort("/dev/ttyAM0", 9600, Parity.None, 32, StopBits.One);
+            _output = new SerialPort("/dev/ttyAMA0", 115200, Parity.None, 8, StopBits.One);
         }
 
         public void Dispose()
         {
             // TODO: close sockets and stuff here!
-            //_output.Close();
+            _output.Close();
         }
 
         public void SendCommands(List<GreenhouseCommands> _commandsToSend)
         {
+            byte[] buffer = new byte[8];
             try
             {
                 // TODO: send specified commands to arduino
-                //_output.Open();
+                _output.Open();
                 foreach(GreenhouseCommands command in _commandsToSend)
                 {
                     try
                     {
                         Console.WriteLine($"Attempting to send command {command}");
-                        //_output.Write(command.ToString());
+                        _output.Write(command.ToString());
                         Console.WriteLine($"Commmand {command} sent successfully");
                     }
                     catch(Exception ex)
@@ -43,8 +44,9 @@ namespace GreenhouseController
                     try
                     {
                         // TODO: read response from arduino
-                        //_output.Read()
+                        int response = _output.Read(buffer, 0, 8);
                         Console.WriteLine($"Command {command} executed successfully");
+                        Console.WriteLine($"{response}");
                     }
                     catch (Exception ex)
                     {
