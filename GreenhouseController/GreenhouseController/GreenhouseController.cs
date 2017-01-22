@@ -14,6 +14,7 @@ namespace GreenhouseController
             // TODO: get real flag that greenhouse is running!
             bool greenhouseOperational = true;
             bool actionInProgress = false;
+            List<GreenhouseCommands> greenhouseActions = new List<GreenhouseCommands>();
             GreenhouseState[] currentAction;
             while (greenhouseOperational)
             {
@@ -29,13 +30,17 @@ namespace GreenhouseController
                 if(currentAction != null)
                 {
                     actionInProgress = true;
+                    using (GreenhouseActionSolver solver = new GreenhouseActionSolver())
+                    {
+                         greenhouseActions = solver.DetermineGreenhouseAction(currentAction);
+                    }
                     using (ArduinoControlSender sender = new ArduinoControlSender())
                     {
                         try
                         {
-                            sender.SendCommands(currentAction);
+                            sender.SendCommands(greenhouseActions);
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Console.WriteLine(ex);
                         }
@@ -43,7 +48,7 @@ namespace GreenhouseController
                 }
                 else
                 {
-                    Thread.Sleep(300000);
+                    Thread.Sleep(3000);
                 }
                 // TODO: implement some way to know when action is done
             }
