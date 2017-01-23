@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,14 +13,12 @@ namespace GreenhouseController
         static void Main(string[] args)
         {
             // TODO: get real flag that greenhouse is running!
-            bool greenhouseOperational = true;
-            var buffer = new Queue<byte[]>();
-            while (greenhouseOperational)
-            {
-                // TODO: implement some way to know when action is done
-                GreenhouseDataConsumer.Instance.ReceiveGreenhouseDataAsync(buffer);
-                GreenhouseDataProducer.Instance.RequestAndReceiveGreenhouseData(buffer);
-            }
+            var buffer = new BlockingCollection<byte[]>();
+            Task produce = new Task(() => GreenhouseDataProducer.Instance.RequestAndReceiveGreenhouseData(buffer));
+            Task consume = new Task(() => GreenhouseDataConsumer.Instance.ReceiveGreenhouseDataAsync(buffer));
+            produce.Start();
+            consume.Start();
+            Task.WaitAll(produce, consume);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -46,17 +47,20 @@ namespace GreenhouseController
             }
         }
 
-        public async void ReceiveGreenhouseDataAsync(Queue<byte[]> source)
+        public void ReceiveGreenhouseDataAsync(BlockingCollection<byte[]> source)
         {
-            while(source.Count != 0)
+            while (true)
             {
-                _data = source.Dequeue();
-                lock (_lock)
+                try
                 {
+                    source.TryTake(out _data);
                     AssessGreenhouseState(_data);
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
             }
-            // TODO: assess fake data and act appropriately!
         }
 
         public GreenhouseState[] AssessGreenhouseState(byte[] data)

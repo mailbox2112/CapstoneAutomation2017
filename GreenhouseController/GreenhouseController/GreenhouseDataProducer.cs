@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -18,6 +19,7 @@ namespace GreenhouseController
         private Socket _cloudConnection;
         private IPEndPoint _cloudEndpoint;
         private IPAddress _cloudIp;
+        
 
         /// <summary>
         /// Private constructor for singleton pattern
@@ -58,36 +60,38 @@ namespace GreenhouseController
         /// <summary>
         /// Request greenhouse data from the server
         /// </summary>
-        public async void RequestAndReceiveGreenhouseData(Queue<byte[]> target)
+        public void RequestAndReceiveGreenhouseData(BlockingCollection<byte[]> target)
         {
-            try
+            while (true)
             {
-                //Console.WriteLine("Attempting to connect to server...");
-                //_cloudConnection.Connect(_cloudEndpoint);
-                //Console.WriteLine("Successfully connected to server.");
+                try
+                {
+                    //Console.WriteLine("Attempting to connect to server...");
+                    //_cloudConnection.Connect(_cloudEndpoint);
+                    //Console.WriteLine("Successfully connected to server.");
 
-                // TODO: send actual command packet!
-                byte[] buffer = new byte[1024];
+                    // TODO: send actual command packet!
+                    byte[] buffer = new byte[1];
 
-                Random rand = new Random();
+                    Random rand = new Random();
 
-                rand.NextBytes(buffer);
-                // TODO: get actual data
-                //Console.WriteLine("Attempting to receive greenhouse data...");
-                //_cloudConnection.Receive(buffer, SocketFlags.None);
-                //Console.WriteLine("Successfully received greenhouse data.");
+                    rand.NextBytes(buffer);
+                    // TODO: get actual data
+                    //Console.WriteLine("Attempting to receive greenhouse data...");
+                    //_cloudConnection.Receive(buffer, SocketFlags.None);
+                    //Console.WriteLine("Successfully received greenhouse data.");
 
-                target.Enqueue(buffer);
-                //_cloudConnection.Dispose();
-                Thread.Sleep(3000);
-                
+                    target.TryAdd(buffer);
+                    //_cloudConnection.Dispose();
+                    Thread.Sleep(3000);
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                    //_cloudConnection.Dispose();
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                //_cloudConnection.Dispose();
-            }
-            
         }
     }
 }
