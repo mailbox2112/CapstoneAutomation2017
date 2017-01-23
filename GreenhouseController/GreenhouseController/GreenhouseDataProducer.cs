@@ -16,9 +16,9 @@ namespace GreenhouseController
         private static volatile GreenhouseDataProducer instance;
         private static object syncRoot = new Object();
 
-        private Socket _cloudConnection;
-        private IPEndPoint _cloudEndpoint;
-        private IPAddress _cloudIp;
+        private Socket _dataProviderConnection;
+        private IPEndPoint _dataProviderEndpoint;
+        private IPAddress _dataProviderIp;
         
 
         /// <summary>
@@ -29,9 +29,9 @@ namespace GreenhouseController
         private GreenhouseDataProducer(IPAddress hostAddress, IPEndPoint hostEndpoint)
         {
             Console.WriteLine("Constructing data producer...");
-            _cloudIp = hostAddress;
-            _cloudEndpoint = hostEndpoint;
-            _cloudConnection = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            _dataProviderIp = hostAddress;
+            _dataProviderEndpoint = hostEndpoint;
+            _dataProviderConnection = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             Console.WriteLine("Data producer constructed.");
         }
 
@@ -67,7 +67,7 @@ namespace GreenhouseController
                 try
                 {
                     //Console.WriteLine("Attempting to connect to server...");
-                    //_cloudConnection.Connect(_cloudEndpoint);
+                    //_dataProviderConnection.Connect(_dataProviderEndpoint);
                     //Console.WriteLine("Successfully connected to server.");
 
                     // TODO: send actual command packet!
@@ -78,11 +78,11 @@ namespace GreenhouseController
                     rand.NextBytes(buffer);
                     // TODO: get actual data
                     //Console.WriteLine("Attempting to receive greenhouse data...");
-                    //_cloudConnection.Receive(buffer, SocketFlags.None);
+                    //_dataProviderConnection.Receive(buffer, SocketFlags.None);
                     //Console.WriteLine("Successfully received greenhouse data.");
 
                     target.TryAdd(buffer);
-                    //_cloudConnection.Dispose();
+                    //_dataProviderConnection.Dispose();
                     Thread.Sleep(3000);
 
                 }

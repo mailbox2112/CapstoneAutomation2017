@@ -12,7 +12,6 @@ namespace GreenhouseController
     {
         static void Main(string[] args)
         {
-            // TODO: get real flag that greenhouse is running!
             var buffer = new BlockingCollection<byte[]>();
             Task produce = new Task(() => GreenhouseDataProducer.Instance.RequestAndReceiveGreenhouseData(buffer));
             Task consume = new Task(() => GreenhouseDataConsumer.Instance.ReceiveGreenhouseDataAsync(buffer));
