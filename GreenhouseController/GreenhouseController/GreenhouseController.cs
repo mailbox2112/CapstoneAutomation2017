@@ -13,44 +13,12 @@ namespace GreenhouseController
         {
             // TODO: get real flag that greenhouse is running!
             bool greenhouseOperational = true;
-            bool actionInProgress = false;
-            List<GreenhouseCommands> greenhouseActions = new List<GreenhouseCommands>();
-            GreenhouseState[] currentAction;
+            var buffer = new Queue<byte[]>();
             while (greenhouseOperational)
             {
-                byte[] data = DataReceiver.Instance.RequestAndReceiveGreenhouseData();
-                if(actionInProgress == false)
-                {
-                    currentAction = GreenhouseStateAnalyzer.Instance.AssessGreenhouseState(data);
-                }
-                else
-                {
-                    currentAction = null;
-                }
-                if(currentAction != null)
-                {
-                    actionInProgress = true;
-                    using (GreenhouseActionSolver solver = new GreenhouseActionSolver())
-                    {
-                         greenhouseActions = solver.DetermineGreenhouseAction(currentAction);
-                    }
-                    using (ArduinoControlSender sender = new ArduinoControlSender())
-                    {
-                        try
-                        {
-                            sender.SendCommands(greenhouseActions);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex);
-                        }
-                    }
-                }
-                else
-                {
-                    Thread.Sleep(3000);
-                }
                 // TODO: implement some way to know when action is done
+                GreenhouseDataConsumer.Instance.ReceiveGreenhouseDataAsync(buffer);
+                GreenhouseDataProducer.Instance.RequestAndReceiveGreenhouseData(buffer);
             }
         }
     }
