@@ -18,7 +18,7 @@ namespace ConsoleApplication1
         {
 
             TcpListener serverListener = new TcpListener(IPAddress.Parse("127.0.0.1"), 8888);
-            int requestCount = 0;
+            
             TcpClient client = default(TcpClient);
             serverListener.Start();
             Console.WriteLine(" >> Server Started");
