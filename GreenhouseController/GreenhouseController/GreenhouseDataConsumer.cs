@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,7 +61,8 @@ namespace GreenhouseController
                     try
                     {
                         source.TryTake(out _data);
-                        SendDataToAnalyzer(_data);
+                        var _deserializedData = JsonConvert.DeserializeObject<Packet>(Encoding.ASCII.GetString(_data));
+                        SendDataToAnalyzer(_deserializedData);
                     }
                     catch (Exception ex)
                     {
@@ -75,11 +77,11 @@ namespace GreenhouseController
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public void SendDataToAnalyzer(byte[] data)
+        public void SendDataToAnalyzer(Packet data)
         {
             if(data != null)
             {
-                Console.WriteLine(data);
+                Console.Write($"Greenhouse Zone: {data.zone}\nTemperature: {data.temperature}\nHumidity: {data.humidity} \nLight Intensity: {data.light}\n");
                 GreenhouseDataAnalyzer analyze = new GreenhouseDataAnalyzer();
                 Task.Run(() => analyze.InterpretStateData(data));
             }

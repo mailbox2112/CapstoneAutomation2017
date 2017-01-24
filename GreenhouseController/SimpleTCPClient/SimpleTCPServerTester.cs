@@ -5,36 +5,38 @@ using System.Text;
 using System.Net.Sockets;
 using System.Threading;
 using System.Net;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ConsoleApplication1
 {
     // Adapted from:
     // http://csharp.net-informations.com/communications/csharp-client-socket.htm
-    class Program
+    class SimpleTCPServerTest
     {
         static void Main(string[] args)
         {
 
-            TcpListener serverSocket = new TcpListener(IPAddress.Parse("127.0.0.1"),8888);
+            TcpListener serverListener = new TcpListener(IPAddress.Parse("127.0.0.1"), 8888);
             int requestCount = 0;
-            TcpClient clientSocket = default(TcpClient);
-            serverSocket.Start();
+            TcpClient client = default(TcpClient);
+            serverListener.Start();
             Console.WriteLine(" >> Server Started");
-            clientSocket = serverSocket.AcceptTcpClient();
+            client = serverListener.AcceptTcpClient();
             Console.WriteLine(" >> Accept connection from client");
-            requestCount = 0;
 
             while ((true))
             {
                 try
                 {
-                    requestCount = requestCount + 1;
-                    NetworkStream networkStream = clientSocket.GetStream();
+                    JsonSpoof jSpoof = new JsonSpoof();
+                    NetworkStream networkStream = client.GetStream();
                     byte[] bytesFrom = new byte[10025];
-                    Byte[] sendBytes = Encoding.ASCII.GetBytes("hello");
+                    string json = jSpoof.SpoofGreenhouseData();
+                    byte[] sendBytes = Encoding.ASCII.GetBytes(json);
                     networkStream.Write(sendBytes, 0, sendBytes.Length);
                     networkStream.Flush();
-                    Console.WriteLine(" >> " + "hello");
+                    Console.WriteLine(" >> " + $"{json}");
                     Thread.Sleep(3000);
                 }
                 catch (Exception ex)
@@ -42,11 +44,48 @@ namespace ConsoleApplication1
                     Console.WriteLine(ex.ToString());
                 }
             }
-            clientSocket.Close();
-            serverSocket.Stop();
+            client.Close();
+            serverListener.Stop();
             Console.WriteLine(" >> exit");
             Console.ReadLine();
         }
 
+        public class JsonSpoof
+        {
+            public class Packet
+            {
+                public int zone;
+                public double temperature;
+                public double humidity;
+                public double light;
+            }
+
+
+            public JsonSpoof() { }
+            public string SpoofGreenhouseData()
+            {
+                int zoneMin = 1;
+                int zoneMax = 5;
+                int tempMin = 0;
+                int tempMax = 120;
+                int humidMin = 0;
+                int humidMax = 100;
+                int lightMin = 0;
+                int lightMax = 98000;
+                Random rand = new Random();
+
+                Packet pack = new Packet()
+                {
+                    zone = rand.Next(zoneMin, zoneMax),
+                    temperature = rand.Next(tempMin, tempMax),
+                    humidity = rand.Next(humidMin, humidMax),
+                    light = rand.Next(lightMin, lightMax)
+                };
+
+                string spoofData = JsonConvert.SerializeObject(pack);
+
+                return spoofData;
+            }
+        }
     }
 }

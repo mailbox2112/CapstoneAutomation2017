@@ -13,7 +13,7 @@ namespace GreenhouseController
 
         }
 
-        public void InterpretStateData(byte[] data)
+        public void InterpretStateData(Packet data)
         {
 
         }

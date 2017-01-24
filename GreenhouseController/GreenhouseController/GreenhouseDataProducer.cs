@@ -16,10 +16,11 @@ namespace GreenhouseController
         private static volatile GreenhouseDataProducer instance;
         private static object syncRoot = new Object();
 
-        private Socket _dataProviderConnection;
-        private IPEndPoint _dataProviderEndpoint;
-        private IPAddress _dataProviderIp;
+        //private Socket _dataProviderConnection;
+        //private IPEndPoint _dataProviderEndpoint;
+        //private IPAddress _dataProviderIp;
         private NetworkStream _dataStream;
+        private TcpClient _client;
         
 
         /// <summary>
@@ -36,9 +37,9 @@ namespace GreenhouseController
             //_dataProviderConnection.Connect(hostEndpoint);
             //_dataStream = new NetworkStream(_dataProviderConnection);
 
-            TcpClient client = new TcpClient();
-            client.Connect("127.0.0.1", 8888);
-            _dataStream = client.GetStream();
+            _client = new TcpClient();
+            _client.Connect("127.0.0.1", 8888);
+            _dataStream = _client.GetStream();
             Console.WriteLine("Data producer constructed.");
         }
 
@@ -87,16 +88,19 @@ namespace GreenhouseController
                     //Console.WriteLine("Attempting to receive greenhouse data...");
                     //_dataProviderConnection.Receive(buffer, SocketFlags.None);
                     //Console.WriteLine("Successfully received greenhouse data.");
-
+                    
+                    _dataStream.Read(buffer, 0, buffer.Length);
+                    
                     target.TryAdd(buffer);
                     //_dataProviderConnection.Dispose();
-                    Thread.Sleep(30000);
+                    Thread.Sleep(3000);
 
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex);
                     //_cloudConnection.Dispose();
+                    _dataStream.Dispose();
                 }
             }
         }

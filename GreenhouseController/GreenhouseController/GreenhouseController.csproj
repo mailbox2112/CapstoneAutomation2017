@@ -58,6 +58,7 @@
     <Compile Include="GreenhouseController.cs" />
     <Compile Include="GreenhouseState.cs" />
     <Compile Include="GreenhouseDataConsumer.cs" />
+    <Compile Include="Packet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
