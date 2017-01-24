@@ -8,12 +8,13 @@ namespace GreenhouseController
 {
     class GreenhouseDataAnalyzer
     {
+
         public GreenhouseDataAnalyzer()
         {
 
         }
 
-        public void InterpretStateData(Packet data)
+        public void InterpretStateData(List<Packet> data)
         {
 
         }

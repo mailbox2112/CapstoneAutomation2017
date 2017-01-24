@@ -14,6 +14,7 @@ namespace GreenhouseController
         private static object _syncRoot = new Object();
         private object _lock = new object();
         private byte[] _data;
+        private List<Packet> _zoneInformation;
 
         /// <summary>
         /// Private constructor for singleton pattern
@@ -24,6 +25,7 @@ namespace GreenhouseController
         {
             Console.WriteLine("Constructing greenhouse data analyzer...");
             Console.WriteLine("Greenhouse data analyzer constructed.");
+            _zoneInformation = new List<Packet>();
         }
 
         /// <summary>
@@ -79,11 +81,20 @@ namespace GreenhouseController
         /// <returns></returns>
         public void SendDataToAnalyzer(Packet data)
         {
+            // TODO: Add error control! What if we get a packet from a zone we already have, and the values are different?!
             if(data != null)
             {
                 Console.Write($"Greenhouse Zone: {data.zone}\nTemperature: {data.temperature}\nHumidity: {data.humidity} \nLight Intensity: {data.light}\n");
                 GreenhouseDataAnalyzer analyze = new GreenhouseDataAnalyzer();
-                Task.Run(() => analyze.InterpretStateData(data));
+                if (_zoneInformation.Count != 5)
+                {
+                    _zoneInformation.Add(data);
+                }
+                else
+                {
+                    Task.Run(() => analyze.InterpretStateData(_zoneInformation));
+                    _zoneInformation.Clear();
+                }
             }
         }
     }

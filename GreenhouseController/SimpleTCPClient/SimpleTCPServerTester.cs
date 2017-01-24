@@ -32,12 +32,17 @@ namespace ConsoleApplication1
                     JsonSpoof jSpoof = new JsonSpoof();
                     NetworkStream networkStream = client.GetStream();
                     byte[] bytesFrom = new byte[10025];
-                    string json = jSpoof.SpoofGreenhouseData();
-                    byte[] sendBytes = Encoding.ASCII.GetBytes(json);
-                    networkStream.Write(sendBytes, 0, sendBytes.Length);
-                    networkStream.Flush();
-                    Console.WriteLine(" >> " + $"{json}");
-                    Thread.Sleep(3000);
+                    int[] zones = new int[5] { 1, 2, 3, 4, 5 };
+                    foreach (int zone in zones)
+                    {
+                        string json = jSpoof.SpoofGreenhouseData(zone);
+                        byte[] sendBytes = Encoding.ASCII.GetBytes(json);
+                        networkStream.Write(sendBytes, 0, sendBytes.Length);
+                        networkStream.Flush();
+                        Console.WriteLine(" >> " + $"{json}");
+
+                        Thread.Sleep(3000);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -62,10 +67,8 @@ namespace ConsoleApplication1
 
 
             public JsonSpoof() { }
-            public string SpoofGreenhouseData()
+            public string SpoofGreenhouseData(int zone)
             {
-                int zoneMin = 1;
-                int zoneMax = 5;
                 int tempMin = 0;
                 int tempMax = 120;
                 int humidMin = 0;
@@ -76,7 +79,7 @@ namespace ConsoleApplication1
 
                 Packet pack = new Packet()
                 {
-                    zone = rand.Next(zoneMin, zoneMax),
+                    zone = zone,
                     temperature = rand.Next(tempMin, tempMax),
                     humidity = rand.Next(humidMin, humidMax),
                     light = rand.Next(lightMin, lightMax)

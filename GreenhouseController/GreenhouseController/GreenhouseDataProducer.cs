@@ -75,11 +75,20 @@ namespace GreenhouseController
                 try
                 {
                     //Console.WriteLine("Attempting to connect to server...");
-                    
+
                     //Console.WriteLine("Successfully connected to server.");
 
                     // TODO: send actual command packet!
-                    byte[] buffer = new byte[10025];
+                    if (_dataStream.DataAvailable)
+                    {
+                        byte[] buffer = new byte[10025];
+                        _dataStream.ReadAsync(buffer, 0, buffer.Length);
+
+                        target.TryAdd(buffer);
+
+                        Thread.Sleep(3000);
+                    }
+
 
                     //Random rand = new Random();
 
@@ -88,13 +97,9 @@ namespace GreenhouseController
                     //Console.WriteLine("Attempting to receive greenhouse data...");
                     //_dataProviderConnection.Receive(buffer, SocketFlags.None);
                     //Console.WriteLine("Successfully received greenhouse data.");
-                    
-                    _dataStream.Read(buffer, 0, buffer.Length);
-                    
-                    target.TryAdd(buffer);
-                    //_dataProviderConnection.Dispose();
-                    Thread.Sleep(3000);
 
+
+                    //_dataProviderConnection.Dispose();
                 }
                 catch (Exception ex)
                 {
