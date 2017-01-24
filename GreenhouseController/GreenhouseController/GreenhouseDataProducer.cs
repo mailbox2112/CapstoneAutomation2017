@@ -19,6 +19,7 @@ namespace GreenhouseController
         private Socket _dataProviderConnection;
         private IPEndPoint _dataProviderEndpoint;
         private IPAddress _dataProviderIp;
+        private NetworkStream _dataStream;
         
 
         /// <summary>
@@ -29,9 +30,15 @@ namespace GreenhouseController
         private GreenhouseDataProducer(IPAddress hostAddress, IPEndPoint hostEndpoint)
         {
             Console.WriteLine("Constructing data producer...");
-            _dataProviderIp = hostAddress;
-            _dataProviderEndpoint = hostEndpoint;
-            _dataProviderConnection = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            //_dataProviderIp = hostAddress;
+            //_dataProviderEndpoint = hostEndpoint;
+            //_dataProviderConnection = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            //_dataProviderConnection.Connect(hostEndpoint);
+            //_dataStream = new NetworkStream(_dataProviderConnection);
+
+            TcpClient client = new TcpClient();
+            client.Connect("127.0.0.1", 8888);
+            _dataStream = client.GetStream();
             Console.WriteLine("Data producer constructed.");
         }
 
@@ -49,7 +56,7 @@ namespace GreenhouseController
                         if (instance == null)
                         {
                             // TODO: put actual network locations in here!
-                            instance = new GreenhouseDataProducer(null, null);
+                            instance = new GreenhouseDataProducer(IPAddress.Parse("127.0.0.1"), new IPEndPoint(IPAddress.Parse("127.0.0.1"), 80));
                         }
                     }
                 }
@@ -67,15 +74,15 @@ namespace GreenhouseController
                 try
                 {
                     //Console.WriteLine("Attempting to connect to server...");
-                    //_dataProviderConnection.Connect(_dataProviderEndpoint);
+                    
                     //Console.WriteLine("Successfully connected to server.");
 
                     // TODO: send actual command packet!
-                    byte[] buffer = new byte[1];
+                    byte[] buffer = new byte[10025];
 
-                    Random rand = new Random();
+                    //Random rand = new Random();
 
-                    rand.NextBytes(buffer);
+                    //rand.NextBytes(buffer);
                     // TODO: get actual data
                     //Console.WriteLine("Attempting to receive greenhouse data...");
                     //_dataProviderConnection.Receive(buffer, SocketFlags.None);
@@ -83,7 +90,7 @@ namespace GreenhouseController
 
                     target.TryAdd(buffer);
                     //_dataProviderConnection.Dispose();
-                    Thread.Sleep(3000);
+                    Thread.Sleep(30000);
 
                 }
                 catch (Exception ex)

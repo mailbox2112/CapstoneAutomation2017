@@ -14,7 +14,7 @@ namespace GreenhouseController
         {
             var buffer = new BlockingCollection<byte[]>();
             Task produce = new Task(() => GreenhouseDataProducer.Instance.RequestAndReceiveGreenhouseData(buffer));
-            Task consume = new Task(() => GreenhouseDataConsumer.Instance.ReceiveGreenhouseDataAsync(buffer));
+            Task consume = new Task(() => GreenhouseDataConsumer.Instance.ReceiveGreenhouseData(buffer));
             produce.Start();
             consume.Start();
             Task.WaitAll(produce, consume);

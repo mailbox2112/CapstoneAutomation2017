@@ -47,29 +47,42 @@ namespace GreenhouseController
             }
         }
 
-        public void ReceiveGreenhouseDataAsync(BlockingCollection<byte[]> source)
+        /// <summary>
+        /// Takes in a BlockingCollection and removes data. Sends data to be assessed elsewhere
+        /// </summary>
+        /// <param name="source"></param>
+        public void ReceiveGreenhouseData(BlockingCollection<byte[]> source)
         {
             while (true)
             {
-                try
+                if (source.Count != 0)
                 {
-                    source.TryTake(out _data);
-                    AssessGreenhouseState(_data);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
+                    try
+                    {
+                        source.TryTake(out _data);
+                        SendDataToAnalyzer(_data);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
                 }
             }
         }
 
-        public GreenhouseState[] AssessGreenhouseState(byte[] data)
+        /// <summary>
+        /// Sends the data off to be analyzed
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public void SendDataToAnalyzer(byte[] data)
         {
             if(data != null)
             {
                 Console.WriteLine(data);
+                GreenhouseDataAnalyzer analyze = new GreenhouseDataAnalyzer();
+                Task.Run(() => analyze.InterpretStateData(data));
             }
-            return null;
         }
     }
 }
