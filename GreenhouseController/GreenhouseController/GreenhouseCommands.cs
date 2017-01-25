@@ -16,6 +16,8 @@ namespace GreenhouseController
         OPEN_SHADES,
         CLOSE_SHADES,
         OPEN_VENTS,
-        CLOSE_VENTS
+        CLOSE_VENTS,
+        WATER_ON,
+        WATER_OFF
     }
 }
