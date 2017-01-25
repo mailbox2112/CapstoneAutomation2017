@@ -53,7 +53,6 @@
     <Compile Include="ArduinoControlSender.cs" />
     <Compile Include="GreenhouseDataAnalyzer.cs" />
     <Compile Include="GreenhouseDataProducer.cs" />
-    <Compile Include="GreenhouseActionSolver.cs" />
     <Compile Include="GreenhouseCommands.cs" />
     <Compile Include="GreenhouseController.cs" />
     <Compile Include="GreenhouseState.cs" />

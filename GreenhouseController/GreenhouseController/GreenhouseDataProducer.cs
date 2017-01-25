@@ -26,8 +26,8 @@ namespace GreenhouseController
         /// <summary>
         /// Private constructor for singleton pattern
         /// </summary>
-        /// <param name="hostEndpoint"></param>
-        /// <param name="hostAddress"></param>
+        /// <param name="hostEndpoint">Endpoint to be reached</param>
+        /// <param name="hostAddress">IP address we're trying to connect to</param>
         private GreenhouseDataProducer(IPAddress hostAddress, IPEndPoint hostEndpoint)
         {
             Console.WriteLine("Constructing data producer...");
@@ -40,7 +40,7 @@ namespace GreenhouseController
             _client = new TcpClient();
             _client.Connect("127.0.0.1", 8888);
             _dataStream = _client.GetStream();
-            Console.WriteLine("Data producer constructed.");
+            Console.WriteLine("Data producer constructed.\n");
         }
 
         /// <summary>

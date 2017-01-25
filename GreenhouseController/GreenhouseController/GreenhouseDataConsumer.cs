@@ -19,13 +19,11 @@ namespace GreenhouseController
         /// <summary>
         /// Private constructor for singleton pattern
         /// </summary>
-        /// <param name="hostEndpoint"></param>
-        /// <param name="hostAddress"></param>
         private GreenhouseDataConsumer()
         {
             Console.WriteLine("Constructing greenhouse data analyzer...");
-            Console.WriteLine("Greenhouse data analyzer constructed.");
             _zoneInformation = new List<Packet>();
+            Console.WriteLine("Greenhouse data analyzer constructed.");
         }
 
         /// <summary>
@@ -53,7 +51,7 @@ namespace GreenhouseController
         /// <summary>
         /// Takes in a BlockingCollection and removes data. Sends data to be assessed elsewhere
         /// </summary>
-        /// <param name="source"></param>
+        /// <param name="source">Blocking collection used to hold data for producer consumer pattern</param>
         public void ReceiveGreenhouseData(BlockingCollection<byte[]> source)
         {
             while (true)
@@ -63,8 +61,8 @@ namespace GreenhouseController
                     try
                     {
                         source.TryTake(out _data);
-                        var _deserializedData = JsonConvert.DeserializeObject<Packet>(Encoding.ASCII.GetString(_data));
-                        SendDataToAnalyzer(_deserializedData);
+                        var deserializedData = JsonConvert.DeserializeObject<Packet>(Encoding.ASCII.GetString(_data));
+                        SendDataToAnalyzer(deserializedData);
                     }
                     catch (Exception ex)
                     {
@@ -77,23 +75,25 @@ namespace GreenhouseController
         /// <summary>
         /// Sends the data off to be analyzed
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">Packet object representing the data contained in JSON sent over TCP</param>
         /// <returns></returns>
         public void SendDataToAnalyzer(Packet data)
         {
             // TODO: Add error control! What if we get a packet from a zone we already have, and the values are different?!
             if(data != null)
             {
-                Console.Write($"Greenhouse Zone: {data.zone}\nTemperature: {data.temperature}\nHumidity: {data.humidity} \nLight Intensity: {data.light}\n");
+                //Console.Write($"Greenhouse Zone: {data.zone}\nTemperature: {data.temperature}\nHumidity: {data.humidity} \nLight Intensity: {data.light}\n");
                 GreenhouseDataAnalyzer analyze = new GreenhouseDataAnalyzer();
                 if (_zoneInformation.Count != 5)
                 {
                     _zoneInformation.Add(data);
-                }
-                else
-                {
-                    Task.Run(() => analyze.InterpretStateData(_zoneInformation));
-                    _zoneInformation.Clear();
+                    if(_zoneInformation.Count == 5)
+                    {
+                        Packet[] tempZoneInfo = new Packet[5];
+                        _zoneInformation.CopyTo(tempZoneInfo);
+                        Task.Run(() => analyze.InterpretStateData(tempZoneInfo));
+                        _zoneInformation.Clear();
+                    }
                 }
             }
         }
