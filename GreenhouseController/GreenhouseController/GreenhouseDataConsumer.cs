@@ -10,7 +10,7 @@ namespace GreenhouseController
 {
     class GreenhouseDataConsumer
     {
-        private static volatile GreenhouseDataConsumer instance;
+        private static volatile GreenhouseDataConsumer _instance;
         private static object _syncRoot = new Object();
         private object _lock = new object();
         private byte[] _data;
@@ -33,18 +33,18 @@ namespace GreenhouseController
         {
             get
             {
-                if (instance == null)
+                if (_instance == null)
                 {
                     lock (_syncRoot)
                     {
-                        if (instance == null)
+                        if (_instance == null)
                         {
                             // TODO: add whatever parameters get passed into construction!
-                            instance = new GreenhouseDataConsumer();
+                            _instance = new GreenhouseDataConsumer();
                         }
                     }
                 }
-                return instance;
+                return _instance;
             }
         }
 

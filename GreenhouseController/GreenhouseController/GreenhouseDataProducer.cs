@@ -13,7 +13,7 @@ namespace GreenhouseController
 {
     class GreenhouseDataProducer
     {
-        private static volatile GreenhouseDataProducer instance;
+        private static volatile GreenhouseDataProducer _instance;
         private static object syncRoot = new Object();
 
         //private Socket _dataProviderConnection;
@@ -50,18 +50,18 @@ namespace GreenhouseController
         {
             get
             {
-                if (instance == null)
+                if (_instance == null)
                 {
                     lock(syncRoot)
                     {
-                        if (instance == null)
+                        if (_instance == null)
                         {
                             // TODO: put actual network locations in here!
-                            instance = new GreenhouseDataProducer(IPAddress.Parse("127.0.0.1"), new IPEndPoint(IPAddress.Parse("127.0.0.1"), 80));
+                            _instance = new GreenhouseDataProducer(IPAddress.Parse("127.0.0.1"), new IPEndPoint(IPAddress.Parse("127.0.0.1"), 80));
                         }
                     }
                 }
-                return instance;
+                return _instance;
             }
         }
 
