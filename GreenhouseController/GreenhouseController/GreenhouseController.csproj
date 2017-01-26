@@ -51,13 +51,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArduinoControlSender.cs" />
+    <Compile Include="DataEventArgs.cs" />
+    <Compile Include="DataPackets.cs" />
     <Compile Include="GreenhouseDataAnalyzer.cs" />
     <Compile Include="GreenhouseDataProducer.cs" />
     <Compile Include="GreenhouseCommands.cs" />
     <Compile Include="GreenhouseController.cs" />
     <Compile Include="GreenhouseState.cs" />
     <Compile Include="GreenhouseDataConsumer.cs" />
-    <Compile Include="Packets.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -14,14 +14,11 @@ namespace GreenhouseController
     class GreenhouseDataProducer
     {
         private static volatile GreenhouseDataProducer _instance;
-        private static object syncRoot = new Object();
-
-        //private Socket _dataProviderConnection;
-        //private IPEndPoint _dataProviderEndpoint;
-        //private IPAddress _dataProviderIp;
+        private static object syncRoot = new object();
+        
         private NetworkStream _dataStream;
         private TcpClient _client;
-        
+        public event EventHandler<DataEventArgs> ItemInQueue;
 
         /// <summary>
         /// Private constructor for singleton pattern
@@ -31,16 +28,12 @@ namespace GreenhouseController
         private GreenhouseDataProducer(IPAddress hostAddress, IPEndPoint hostEndpoint)
         {
             Console.WriteLine("Constructing data producer...");
-            //_dataProviderIp = hostAddress;
-            //_dataProviderEndpoint = hostEndpoint;
-            //_dataProviderConnection = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            //_dataProviderConnection.Connect(hostEndpoint);
-            //_dataStream = new NetworkStream(_dataProviderConnection);
 
             _client = new TcpClient();
             _client.Connect("127.0.0.1", 8888);
             _dataStream = _client.GetStream();
             Console.WriteLine("Data producer constructed.\n");
+            
         }
 
         /// <summary>
@@ -74,39 +67,22 @@ namespace GreenhouseController
             {
                 try
                 {
-                    //Console.WriteLine("Attempting to connect to server...");
-
-                    //Console.WriteLine("Successfully connected to server.");
-
-                    // TODO: send actual command packet!
                     if (_dataStream.DataAvailable)
                     {
                         byte[] buffer = new byte[10025];
                         _dataStream.ReadAsync(buffer, 0, buffer.Length);
 
                         target.TryAdd(buffer);
-
-                        Thread.Sleep(3000);
+                        EventHandler<DataEventArgs> handler = ItemInQueue;
+                        handler(this, new DataEventArgs() { buffer = target });
                     }
-
-
-                    //Random rand = new Random();
-
-                    //rand.NextBytes(buffer);
-                    // TODO: get actual data
-                    //Console.WriteLine("Attempting to receive greenhouse data...");
-                    //_dataProviderConnection.Receive(buffer, SocketFlags.None);
-                    //Console.WriteLine("Successfully received greenhouse data.");
-
-
-                    //_dataProviderConnection.Dispose();
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex);
-                    //_cloudConnection.Dispose();
                     _dataStream.Dispose();
                 }
+                Thread.Sleep(1000);
             }
         }
     }

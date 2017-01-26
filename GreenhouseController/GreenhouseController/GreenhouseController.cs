@@ -13,11 +13,13 @@ namespace GreenhouseController
         static void Main(string[] args)
         {
             var buffer = new BlockingCollection<byte[]>();
-            Task produce = new Task(() => GreenhouseDataProducer.Instance.RequestAndReceiveGreenhouseData(buffer));
-            Task consume = new Task(() => GreenhouseDataConsumer.Instance.ReceiveGreenhouseData(buffer));
-            produce.Start();
-            consume.Start();
-            Task.WaitAll(produce, consume);
+            GreenhouseDataProducer.Instance.ItemInQueue += ItemInQueue;
+            Task.WaitAll(Task.Run(new Action(() => GreenhouseDataProducer.Instance.RequestAndReceiveGreenhouseData(buffer))));
+        }
+
+        static void ItemInQueue(object sender, DataEventArgs e)
+        {
+            Task.Run(() => GreenhouseDataConsumer.Instance.ReceiveGreenhouseData(e.buffer));
         }
     }
 }

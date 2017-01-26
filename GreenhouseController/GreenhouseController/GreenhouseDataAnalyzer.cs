@@ -85,7 +85,7 @@ namespace GreenhouseController
         /// <returns></returns>
         private List<GreenhouseCommands> DecideAppropriateAction()
         {
-            // TODO: implement light and humidity
+            // TODO: implement light and humidity, plus greenhouse state stuff
             List<GreenhouseCommands> commands = new List<GreenhouseCommands>();
             if(_avgTemp <= _tempLimits[1])
             {

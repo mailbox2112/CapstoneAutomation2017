@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GreenhouseController
@@ -11,8 +12,7 @@ namespace GreenhouseController
     class GreenhouseDataConsumer
     {
         private static volatile GreenhouseDataConsumer _instance;
-        private static object _syncRoot = new Object();
-        private object _lock = new object();
+        private static object _syncRoot = new object();
         private byte[] _data;
         private List<DataPacket> _zoneInformation;
 
@@ -23,7 +23,7 @@ namespace GreenhouseController
         {
             Console.WriteLine("Constructing greenhouse data analyzer...");
             _zoneInformation = new List<DataPacket>();
-            Console.WriteLine("Greenhouse data analyzer constructed.");
+            Console.WriteLine("Greenhouse data analyzer constructed.\n");
         }
 
         /// <summary>
@@ -54,21 +54,19 @@ namespace GreenhouseController
         /// <param name="source">Blocking collection used to hold data for producer consumer pattern</param>
         public void ReceiveGreenhouseData(BlockingCollection<byte[]> source)
         {
-            while (true)
+            try
             {
-                if (source.Count != 0)
+                source.TryTake(out _data);
+                var deserializedData = JsonConvert.DeserializeObject<DataPacket>(Encoding.ASCII.GetString(_data));
+                _zoneInformation.Add(deserializedData);
+                if(_zoneInformation.Count == 5)
                 {
-                    try
-                    {
-                        source.TryTake(out _data);
-                        var deserializedData = JsonConvert.DeserializeObject<DataPacket>(Encoding.ASCII.GetString(_data));
-                        SendDataToAnalyzer(deserializedData);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex);
-                    }
+                    SendDataToAnalyzer(_zoneInformation);
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
             }
         }
 
@@ -77,25 +75,15 @@ namespace GreenhouseController
         /// </summary>
         /// <param name="data">Packet object representing the data contained in JSON sent over TCP</param>
         /// <returns></returns>
-        public void SendDataToAnalyzer(DataPacket data)
+        public void SendDataToAnalyzer(List<DataPacket> data)
         {
+            DataPacket[] tempZoneInfo = new DataPacket[5];
+            data.CopyTo(tempZoneInfo);
+            data.Clear();
             // TODO: Add error control! What if we get a packet from a zone we already have, and the values are different?!
-            if(data != null)
-            {
-                //Console.Write($"Greenhouse Zone: {data.zone}\nTemperature: {data.temperature}\nHumidity: {data.humidity} \nLight Intensity: {data.light}\n");
-                GreenhouseDataAnalyzer analyze = new GreenhouseDataAnalyzer();
-                if (_zoneInformation.Count != 5)
-                {
-                    _zoneInformation.Add(data);
-                    if(_zoneInformation.Count == 5)
-                    {
-                        DataPacket[] tempZoneInfo = new DataPacket[5];
-                        _zoneInformation.CopyTo(tempZoneInfo);
-                        Task.Run(() => analyze.InterpretStateData(tempZoneInfo));
-                        _zoneInformation.Clear();
-                    }
-                }
-            }
+            
+            GreenhouseDataAnalyzer analyze = new GreenhouseDataAnalyzer();
+            Task.Run(() => analyze.InterpretStateData(tempZoneInfo));
         }
     }
 }
