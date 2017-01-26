@@ -1,0 +1,89 @@
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace GreenhouseController
+{
+    class GreenhouseDataConsumer
+    {
+        private static volatile GreenhouseDataConsumer _instance;
+        private static object _syncRoot = new object();
+        private byte[] _data;
+        private List<DataPacket> _zoneInformation;
+
+        /// <summary>
+        /// Private constructor for singleton pattern
+        /// </summary>
+        private GreenhouseDataConsumer()
+        {
+            Console.WriteLine("Constructing greenhouse data analyzer...");
+            _zoneInformation = new List<DataPacket>();
+            Console.WriteLine("Greenhouse data analyzer constructed.\n");
+        }
+
+        /// <summary>
+        /// Instance property, used for singleton pattern
+        /// </summary>
+        public static GreenhouseDataConsumer Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    lock (_syncRoot)
+                    {
+                        if (_instance == null)
+                        {
+                            // TODO: add whatever parameters get passed into construction!
+                            _instance = new GreenhouseDataConsumer();
+                        }
+                    }
+                }
+                return _instance;
+            }
+        }
+
+        /// <summary>
+        /// Takes in a BlockingCollection and removes data. Sends data to be assessed elsewhere
+        /// </summary>
+        /// <param name="source">Blocking collection used to hold data for producer consumer pattern</param>
+        public void ReceiveGreenhouseData(BlockingCollection<byte[]> source)
+        {
+            try
+            {
+                source.TryTake(out _data);
+                var deserializedData = JsonConvert.DeserializeObject<DataPacket>(Encoding.ASCII.GetString(_data));
+                _zoneInformation.Add(deserializedData);
+                if(_zoneInformation.Count == 5)
+                {
+                    SendDataToAnalyzer(_zoneInformation);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
+
+        /// <summary>
+        /// Sends the data off to be analyzed
+        /// </summary>
+        /// <param name="data">Packet object representing the data contained in JSON sent over TCP</param>
+        /// <returns></returns>
+        public void SendDataToAnalyzer(List<DataPacket> data)
+        {
+            DataPacket[] tempZoneInfo = new DataPacket[5];
+            data.CopyTo(tempZoneInfo);
+            data.Clear();
+            // TODO: Add error control! What if we get a packet from a zone we already have, and the values are different?!
+            
+            GreenhouseDataAnalyzer analyze = new GreenhouseDataAnalyzer();
+            Task.Run(() => analyze.InterpretStateData(tempZoneInfo));
+        }
+    }
+}

@@ -9,11 +9,11 @@ namespace GreenhouseController
 {
     class ArduinoControlSender : IDisposable
     {
-        //private SerialPort _output;
+        private SerialPort _output;
         public ArduinoControlSender()
         {
             // TODO: construct!
-            //_output = new SerialPort("/dev/ttyAM0", 9600, Parity.None, 32, StopBits.One);
+            //_output = new SerialPort("/dev/ttyAMA0", 115200, Parity.None, 8, StopBits.One);
         }
 
         public void Dispose()
@@ -22,40 +22,41 @@ namespace GreenhouseController
             //_output.Close();
         }
 
+        /// <summary>
+        /// Takes a list of commands to be sent to the arduino and sends them over the pi's serial port
+        /// </summary>
+        /// <param name="_commandsToSend">List of GreenhouseCommands from the enum</param>
         public void SendCommands(List<GreenhouseCommands> _commandsToSend)
         {
-            try
+            byte[] buffer = new byte[8];
+            
+            // TODO: send specified commands to arduino
+            //_output.Open();
+            foreach(GreenhouseCommands command in _commandsToSend)
             {
-                // TODO: send specified commands to arduino
-                //_output.Open();
-                foreach(GreenhouseCommands command in _commandsToSend)
+                try
                 {
-                    try
-                    {
-                        Console.WriteLine($"Attempting to send command {command}");
-                        //_output.Write(command.ToString());
-                        Console.WriteLine($"Commmand {command} sent successfully");
-                    }
-                    catch(Exception ex)
-                    {
-                        Console.WriteLine(ex);
-                    }
-                    try
-                    {
-                        // TODO: read response from arduino
-                        //_output.Read()
-                        Console.WriteLine($"Command {command} executed successfully");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex + $"\n Command {command} unsuccessful");
-                    }
+                    Console.WriteLine($"Attempting to send command {command}");
+                    //_output.Write(command.ToString());
+                    Console.WriteLine($"Commmand {command} sent successfully");
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+                try
+                {
+                    // TODO: read response from arduino
+                    //int response = _output.Read(buffer, 0, 8);
+                    Console.WriteLine($"Command {command} executed successfully\n");
+                    //Console.WriteLine($"{response}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex + $"\n Command {command} unsuccessful\n");
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
+
             Dispose();
         }
     }

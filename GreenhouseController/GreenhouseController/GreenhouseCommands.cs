@@ -11,11 +11,13 @@ namespace GreenhouseController
         WATER_PLANTS,
         HEAT_ON,
         HEAT_OFF,
-        COOL_ON,
-        COOL_OFF,
+        FAN_ON,
+        FAN_OFF,
         OPEN_SHADES,
         CLOSE_SHADES,
         OPEN_VENTS,
-        CLOSE_VENTS
+        CLOSE_VENTS,
+        WATER_ON,
+        WATER_OFF
     }
 }
