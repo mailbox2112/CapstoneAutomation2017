@@ -8,12 +8,15 @@ namespace GreenhouseController
 {
     enum GreenhouseState
     {
-        COLD,
-        HOT,
-        DRY,
-        HUMID,
-        PLANTS_OKAY,
-        PLANTS_DRY,
-        PLANTS_WET
+        HEATING,
+        COOLING,
+        LIGHTING,
+        HEATING_LIGHTING,
+        COOLING_LIGHTING,
+        HEATING_WATERING,
+        COOLING_WATERING,
+        LIGHTING_WATERING,
+        HEATING_LIGHTING_WATERING,
+        COOLING_LIGHTING_WAATERING,
     }
 }
