@@ -14,7 +14,7 @@ namespace GreenhouseController
         private static object _syncRoot = new Object();
         private object _lock = new object();
         private byte[] _data;
-        private List<Packet> _zoneInformation;
+        private List<DataPacket> _zoneInformation;
 
         /// <summary>
         /// Private constructor for singleton pattern
@@ -22,7 +22,7 @@ namespace GreenhouseController
         private GreenhouseDataConsumer()
         {
             Console.WriteLine("Constructing greenhouse data analyzer...");
-            _zoneInformation = new List<Packet>();
+            _zoneInformation = new List<DataPacket>();
             Console.WriteLine("Greenhouse data analyzer constructed.");
         }
 
@@ -61,7 +61,7 @@ namespace GreenhouseController
                     try
                     {
                         source.TryTake(out _data);
-                        var deserializedData = JsonConvert.DeserializeObject<Packet>(Encoding.ASCII.GetString(_data));
+                        var deserializedData = JsonConvert.DeserializeObject<DataPacket>(Encoding.ASCII.GetString(_data));
                         SendDataToAnalyzer(deserializedData);
                     }
                     catch (Exception ex)
@@ -77,7 +77,7 @@ namespace GreenhouseController
         /// </summary>
         /// <param name="data">Packet object representing the data contained in JSON sent over TCP</param>
         /// <returns></returns>
-        public void SendDataToAnalyzer(Packet data)
+        public void SendDataToAnalyzer(DataPacket data)
         {
             // TODO: Add error control! What if we get a packet from a zone we already have, and the values are different?!
             if(data != null)
@@ -89,7 +89,7 @@ namespace GreenhouseController
                     _zoneInformation.Add(data);
                     if(_zoneInformation.Count == 5)
                     {
-                        Packet[] tempZoneInfo = new Packet[5];
+                        DataPacket[] tempZoneInfo = new DataPacket[5];
                         _zoneInformation.CopyTo(tempZoneInfo);
                         Task.Run(() => analyze.InterpretStateData(tempZoneInfo));
                         _zoneInformation.Clear();

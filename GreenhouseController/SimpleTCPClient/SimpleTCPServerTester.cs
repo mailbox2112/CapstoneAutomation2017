@@ -24,13 +24,14 @@ namespace ConsoleApplication1
             Console.WriteLine(" >> Server Started");
             client = serverListener.AcceptTcpClient();
             Console.WriteLine(" >> Accept connection from client");
-
+            NetworkStream networkStream = client.GetStream();
+            
             while ((true))
             {
                 try
                 {
                     JsonSpoof jSpoof = new JsonSpoof();
-                    NetworkStream networkStream = client.GetStream();
+                    
                     byte[] bytesFrom = new byte[10025];
                     int[] zones = new int[5] { 1, 2, 3, 4, 5 };
                     foreach (int zone in zones)
@@ -63,9 +64,15 @@ namespace ConsoleApplication1
                 public double temperature;
                 public double humidity;
                 public double light;
+
+                public int tempHi;
+                public int tempLo;
+                public int lightHi;
+                public int lightLo;
+                public int humidHi;
+                public int humidLo;
             }
-
-
+            
             public JsonSpoof() { }
             public string SpoofGreenhouseData(int zone)
             {
@@ -82,7 +89,9 @@ namespace ConsoleApplication1
                     zone = zone,
                     temperature = rand.Next(tempMin, tempMax),
                     humidity = rand.Next(humidMin, humidMax),
-                    light = rand.Next(lightMin, lightMax)
+                    light = rand.Next(lightMin, lightMax),
+                    tempHi = 80,
+                    tempLo = 65
                 };
 
                 string spoofData = JsonConvert.SerializeObject(pack);

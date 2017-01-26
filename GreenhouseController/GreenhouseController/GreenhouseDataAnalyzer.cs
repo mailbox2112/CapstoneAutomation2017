@@ -33,11 +33,11 @@ namespace GreenhouseController
         /// Processes the data received from the packets and decides what actions are appropriate
         /// </summary>
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
-        public void InterpretStateData(Packet[] data)
+        public void InterpretStateData(DataPacket[] data)
         {
             GetGreenhouseAverages(data);
             Console.WriteLine($"Time: {_currentTime}\nAverage Temperature: {_avgTemp}\nAverage Humidity: {_avgHumid}\nAverage Light Intensity: {_avgLight}\n");
-            GetGreenhouseLimits();
+            GetGreenhouseLimits(data);
             _commandsToSend = DecideAppropriateAction();
             ArduinoControlSender sendCommands = new ArduinoControlSender();
             Task.Run(() => sendCommands.SendCommands(_commandsToSend));
@@ -47,9 +47,9 @@ namespace GreenhouseController
         /// Helper method for averaging greenhouse data
         /// </summary>
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
-        private void GetGreenhouseAverages(Packet[] data)
+        private void GetGreenhouseAverages(DataPacket[] data)
         {
-            foreach (Packet pack in data)
+            foreach (DataPacket pack in data)
             {
                 _avgTemp += pack.temperature;
                 _avgHumid += pack.humidity;
@@ -61,60 +61,20 @@ namespace GreenhouseController
         }
 
         /// <summary>
-        /// Helper method to get the greenhouse limits based on time of year and time of day
+        /// Helper method to get the greenhouse limits from packets
         /// </summary>
-        private void GetGreenhouseLimits()
+        private void GetGreenhouseLimits(DataPacket[] packet)
         {
-            // TODO: implement light and humidity
-            // Hour gets returned in 24 hour time
-            // Check if hour is between 7:00 and 16:00 and if so use daytime limits
-            if (_currentTime.Hour > 7 && _currentTime.Hour < 16)
+            // TODO: get light and humidity
+            foreach (DataPacket pack in packet)
             {
-                switch (_currentTime.Month)
+                if (_tempLimits[0] != pack.tempHi)
                 {
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                    case 11:
-                    case 12:
-                        _tempLimits[0] = 65;
-                        _tempLimits[1] = 70;
-                        break;
-                    case 5:
-                    case 6:
-                    case 7:
-                    case 8:
-                    case 9:
-                    case 10:
-                        _tempLimits[0] = 75;
-                        _tempLimits[1] = 85;
-                        break;
+                    _tempLimits[0] = pack.tempHi;
                 }
-            }
-            // Check if hour is between 16:00 and 7:00 and if so use nighttime limits
-            if ((_currentTime.Hour >= 16 && _currentTime.Hour < 24) || (_currentTime.Hour >= 0 && _currentTime.Hour <= 7))
-            {
-                switch (_currentTime.Month)
+                if (_tempLimits[1] != pack.tempLo)
                 {
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                    case 11:
-                    case 12:
-                        _tempLimits[0] = 55;
-                        _tempLimits[1] = 70;
-                        break;
-                    case 5:
-                    case 6:
-                    case 7:
-                    case 8:
-                    case 9:
-                    case 10:
-                        _tempLimits[0] = 60;
-                        _tempLimits[1] = 75;
-                        break;
+                    _tempLimits[1] = pack.tempLo;
                 }
             }
         }
@@ -127,7 +87,7 @@ namespace GreenhouseController
         {
             // TODO: implement light and humidity
             List<GreenhouseCommands> commands = new List<GreenhouseCommands>();
-            if(_avgTemp <= _tempLimits[0])
+            if(_avgTemp <= _tempLimits[1])
             {
                 commands.Add(GreenhouseCommands.FAN_OFF);
                 commands.Add(GreenhouseCommands.HEAT_ON);
