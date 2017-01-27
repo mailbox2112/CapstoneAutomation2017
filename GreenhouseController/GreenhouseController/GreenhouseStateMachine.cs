@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace GreenhouseController
 {
     /// <summary>
-    /// State machine implementation for our greenhouse. Needs to be a singleton so we're not saying we're in multiple states at once.
+    /// Nondeterministic State machine implementation for our greenhouse. Needs to be a singleton for persistence and preventing multiple changes to states.
     /// </summary>
     class GreenhouseStateMachine
     {
@@ -16,15 +16,21 @@ namespace GreenhouseController
         private static object _syncRoot = new object();
 
         // State machine property
-        public GreenhouseState CurrentState { get; set; }
+        public List<GreenhouseState> CurrentStates { get; set; }
 
         /// <summary>
         /// Private constructor for singleton. We always start the program in the WAITING state.
         /// </summary>
         private GreenhouseStateMachine()
         {
-            CurrentState = GreenhouseState.WAITING;
+            CurrentStates = new List<GreenhouseState> { GreenhouseState.WAITING };
         }
+
+        /// <summary>
+        /// Used to construct the singleton on program startup and set the current state
+        /// to waiting without creating a method that would ALWAYS set the state to waiting.
+        /// </summary>
+        public void Initialize() { }
 
         // Instance property for singleton
         public static GreenhouseStateMachine Instance
@@ -45,8 +51,5 @@ namespace GreenhouseController
                 return _instance;
             }
         }
-        
-
-        
     }
 }

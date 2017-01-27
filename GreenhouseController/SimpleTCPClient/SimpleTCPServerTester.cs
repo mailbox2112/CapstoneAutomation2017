@@ -69,8 +69,6 @@ namespace ConsoleApplication1
                 public int tempLo;
                 public int lightHi;
                 public int lightLo;
-                public int humidHi;
-                public int humidLo;
             }
             
             public JsonSpoof() { }

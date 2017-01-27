@@ -73,7 +73,7 @@ namespace GreenhouseController
 
                         target.TryAdd(buffer);
                         EventHandler<DataEventArgs> handler = ItemInQueue;
-                        handler(this, new DataEventArgs() { buffer = target });
+                        handler(this, new DataEventArgs() { Buffer = target });
                     }
                 }
                 catch (Exception ex)

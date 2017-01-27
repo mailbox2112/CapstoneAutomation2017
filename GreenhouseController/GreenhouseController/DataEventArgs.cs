@@ -9,6 +9,6 @@ namespace GreenhouseController
 {
     class DataEventArgs : EventArgs
     {
-        public BlockingCollection<byte[]> buffer { get; set; }
+        public BlockingCollection<byte[]> Buffer { get; set; }
     }
 }
