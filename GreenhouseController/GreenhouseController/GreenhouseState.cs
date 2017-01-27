@@ -16,7 +16,12 @@ namespace GreenhouseController
         COOLING,
         LIGHTING,
         WATERING,
-        VENTILATING,
-        SHADING
+        LIGHTING_WATERING,
+        HEATING_LIGHTING,
+        HEATING_WATERING,
+        HEATING_LIGHTING_WATERING,
+        COOLING_LIGHTING,
+        COOLING_WATERING,
+        COOLING_LIGHTING_WATERING
     }
 }

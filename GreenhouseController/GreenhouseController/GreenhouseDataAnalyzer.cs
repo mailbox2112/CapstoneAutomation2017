@@ -11,10 +11,11 @@ namespace GreenhouseController
         private double _avgTemp;
         private double _avgHumid;
         private double _avgLight;
+        private double _avgMoisture;
         private DateTime _currentTime;
         private double[] _tempLimits;
-        private double[] _lightLimits;
-        private double _humidLimit;
+        private double _lightLimit;
+        private double _moistureLimit;
         private List<GreenhouseCommands> _commandsToSend;
 
         public GreenhouseDataAnalyzer()
@@ -22,8 +23,10 @@ namespace GreenhouseController
             _avgTemp = new double();
             _avgLight = new double();
             _avgHumid = new double();
+            _avgMoisture = new double();
             _tempLimits = new double[2];
-            _lightLimits = new double[2];
+            _lightLimit = new double();
+            _moistureLimit = new double();
             _currentTime = DateTime.Now;
             _commandsToSend = new List<GreenhouseCommands>();
         }
@@ -86,127 +89,93 @@ namespace GreenhouseController
         {
             // TODO: implement light and humidity, plus greenhouse state stuff
             List<GreenhouseCommands> commands = new List<GreenhouseCommands>();
-
-            #region Temperature Logic
+            
             // Temp is too low
             if (_avgTemp <= _tempLimits[1])
             {
-                // Change the greenhouse states
-                if (GreenhouseStateMachine.Instance.CurrentStates.Contains(GreenhouseState.COOLING))
-                {
-                    GreenhouseStateMachine.Instance.CurrentStates.Remove(GreenhouseState.COOLING);
-                    GreenhouseStateMachine.Instance.CurrentStates.Add(GreenhouseState.HEATING);
-                    
-                    // Make sure that we don't keep the ventilation state going
-                    if (GreenhouseStateMachine.Instance.CurrentStates.Contains(GreenhouseState.VENTILATING))
-                    {
-                        GreenhouseStateMachine.Instance.CurrentStates.Remove(GreenhouseState.VENTILATING);
-                    }
-
-                    // Turn off any fans that might be on, close any open vents, retract shades, and turn on heaters
-                    commands.Add(GreenhouseCommands.FAN_OFF);
-                    commands.Add(GreenhouseCommands.HEAT_ON);
-                    commands.Add(GreenhouseCommands.CLOSE_VENTS);
-                    commands.Add(GreenhouseCommands.RETRACT_SHADES);
-                }
-                // Don't touch the states if one is already heating
-                else if (GreenhouseStateMachine.Instance.CurrentStates.Contains(GreenhouseState.HEATING))
-                {
-                    if (GreenhouseStateMachine.Instance.CurrentStates.Contains(GreenhouseState.VENTILATING))
-                    {
-                        GreenhouseStateMachine.Instance.CurrentStates.Remove(GreenhouseState.VENTILATING);
-                    }
-
-                    // Turn off any fans that might be on, close any open vents, retract shades, and turn on heaters
-                    commands.Add(GreenhouseCommands.HEAT_ON);
-                    commands.Add(GreenhouseCommands.CLOSE_VENTS);
-                    commands.Add(GreenhouseCommands.RETRACT_SHADES);
-                }
-                // Add the heating state if it doesn't contain the heating state but doesn't need any others removed
-                else
-                {
-                    GreenhouseStateMachine.Instance.CurrentStates.Add(GreenhouseState.HEATING);
-
-                    if (GreenhouseStateMachine.Instance.CurrentStates.Contains(GreenhouseState.VENTILATING))
-                    {
-                        GreenhouseStateMachine.Instance.CurrentStates.Remove(GreenhouseState.VENTILATING);
-                    }
-
-                    // Turn off any fans that might be on, close any open vents, retract shades, and turn on heaters
-                    commands.Add(GreenhouseCommands.HEAT_ON);
-                    commands.Add(GreenhouseCommands.CLOSE_VENTS);
-                    commands.Add(GreenhouseCommands.RETRACT_SHADES);
-                }
+                // Do stuff for temperature being too low
+                commands.Add(GreenhouseCommands.HEAT_ON);
+                commands.Add(GreenhouseCommands.CLOSE_VENTS);
+                commands.Add(GreenhouseCommands.RETRACT_SHADES);
             }
 
             // If the temp is too high
-            if (_avgTemp >= _tempLimits[0])
+            else if (_avgTemp >= _tempLimits[0])
             {
-                // Remove the heating state and add the cooling state if we need to
-                if (GreenhouseStateMachine.Instance.CurrentStates.Contains(GreenhouseState.HEATING))
-                {
-                    GreenhouseStateMachine.Instance.CurrentStates.Remove(GreenhouseState.HEATING);
-                    GreenhouseStateMachine.Instance.CurrentStates.Add(GreenhouseState.COOLING);
-
-                    // Since ventilation is its own state, make sure that we don't add the ventilation state twice
-                    if (!GreenhouseStateMachine.Instance.CurrentStates.Contains(GreenhouseState.VENTILATING))
-                    {
-                        GreenhouseStateMachine.Instance.CurrentStates.Add(GreenhouseState.VENTILATING);
-                    }
-                    
-                    // Commands to send when cooling. Open the vents, and turn on the fans
-                    commands.Add(GreenhouseCommands.HEAT_OFF);
-                    commands.Add(GreenhouseCommands.FAN_ON);
-                    commands.Add(GreenhouseCommands.OPEN_VENTS);
-                }
-                // Do nothing to the states if it contains cooling already
-                else if (GreenhouseStateMachine.Instance.CurrentStates.Contains(GreenhouseState.COOLING))
-                {
-                    // Since ventilation is its own state, make sure that we don't add the ventilation state twice
-                    if (!GreenhouseStateMachine.Instance.CurrentStates.Contains(GreenhouseState.VENTILATING))
-                    {
-                        GreenhouseStateMachine.Instance.CurrentStates.Add(GreenhouseState.VENTILATING);
-                    }
-
-                    // Open the vents, and turn on the fans
-                    commands.Add(GreenhouseCommands.FAN_ON);
-                    commands.Add(GreenhouseCommands.OPEN_VENTS);
-                }
-                // Add the cooling state if we need don't meet the previous two if statements
-                else
-                {
-                    // Open the vents, extend the shades, turn on the fans
-                    GreenhouseStateMachine.Instance.CurrentStates.Add(GreenhouseState.COOLING);
-
-                    // Since ventilation is its own state, make sure that we don't add the ventilation state twice
-                    if (!GreenhouseStateMachine.Instance.CurrentStates.Contains(GreenhouseState.VENTILATING))
-                    {
-                        GreenhouseStateMachine.Instance.CurrentStates.Add(GreenhouseState.VENTILATING);
-                    }
-
-                    // Open the vents, and turn on the fans
-                    commands.Add(GreenhouseCommands.FAN_ON);
-                    commands.Add(GreenhouseCommands.OPEN_VENTS);
-                }
+                // Do stuff for temperature being too high
+                commands.Add(GreenhouseCommands.OPEN_VENTS);
+                commands.Add(GreenhouseCommands.FAN_ON);
+                commands.Add(GreenhouseCommands.EXTEND_SHADES);
             }
 
             // If the temperature is juuuuuuuuuust right...
-            if (_avgTemp < _tempLimits[0] && _avgTemp > _tempLimits[1])
+            else if (_avgTemp < _tempLimits[0] && _avgTemp > _tempLimits[1])
             {
-                // Get rid of any states involving temperature regulation
-                GreenhouseStateMachine.Instance.CurrentStates.RemoveAll(x => x == GreenhouseState.COOLING || x == GreenhouseState.HEATING);
-
-                // Make sure the heaters and fans are off
+                // Do stuff for temperature being right
+                commands.Add(GreenhouseCommands.CLOSE_VENTS);
+                commands.Add(GreenhouseCommands.RETRACT_SHADES);
                 commands.Add(GreenhouseCommands.HEAT_OFF);
                 commands.Add(GreenhouseCommands.FAN_OFF);
             }
-            #endregion
             
-            // Print stuff out for debugging purposes
-            foreach (GreenhouseState state in GreenhouseStateMachine.Instance.CurrentStates)
+            if (_avgLight <= _lightLimit)
             {
-                Console.WriteLine($"State: {state.ToString()}");
+                // Do stuff for light level being too low
+                commands.Add(GreenhouseCommands.LIGHT_ON);
             }
+            else
+            {
+                // Light levels are okay
+                commands.Add(GreenhouseCommands.LIGHT_OFF);
+            }
+
+            if (_avgMoisture < _moistureLimit)
+            {
+                // Do watering stuff
+                commands.Add(GreenhouseCommands.WATER_ON);
+            }
+            else
+            {
+                commands.Add(GreenhouseCommands.WATER_OFF);
+            }
+
+            #region State Machine Decisions
+            // If the command is to heat
+            if (commands.Contains(GreenhouseCommands.HEAT_ON))
+            {
+                // and to light
+                if (commands.Contains(GreenhouseCommands.LIGHT_ON))
+                {
+                    // and to water
+                    if (commands.Contains(GreenhouseCommands.WATER_ON))
+                    {
+                        // state is HEATING LIGHTING WATERING
+                        GreenhouseStateMachine.Instance.CurrentState = GreenhouseState.HEATING_LIGHTING_WATERING;
+                    }
+                    // otherwise
+                    else
+                    {
+                        // state is HEATING LIGHTING
+                        GreenhouseStateMachine.Instance.CurrentState = GreenhouseState.HEATING_LIGHTING;
+                    }
+                }
+                // OR to water but NOT to light
+                else if (commands.Contains(GreenhouseCommands.WATER_ON) && !commands.Contains(GreenhouseCommands.LIGHT_OFF))
+                {
+                    // state is HEATING WATERING
+                    GreenhouseStateMachine.Instance.CurrentState = GreenhouseState.HEATING_WATERING;
+                }
+                // otherwise just heating
+                else
+                {
+                    GreenhouseStateMachine.Instance.CurrentState = GreenhouseState.HEATING;
+                }
+            }
+            #endregion
+
+            // Print stuff out for debugging purposes
+            Console.WriteLine($"State: {GreenhouseStateMachine.Instance.CurrentState.ToString()}");
+            
 
             return commands;
         }

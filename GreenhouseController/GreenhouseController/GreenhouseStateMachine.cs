@@ -16,14 +16,14 @@ namespace GreenhouseController
         private static object _syncRoot = new object();
 
         // State machine property
-        public List<GreenhouseState> CurrentStates { get; set; }
+        public GreenhouseState CurrentState { get; set; }
 
         /// <summary>
         /// Private constructor for singleton. We always start the program in the WAITING state.
         /// </summary>
         private GreenhouseStateMachine()
         {
-            CurrentStates = new List<GreenhouseState> { GreenhouseState.WAITING };
+            CurrentState = GreenhouseState.WAITING;
         }
 
         /// <summary>

@@ -18,6 +18,8 @@ namespace GreenhouseController
         OPEN_VENTS,
         CLOSE_VENTS,
         WATER_ON,
-        WATER_OFF
+        WATER_OFF,
+        LIGHT_ON,
+        LIGHT_OFF
     }
 }

@@ -14,10 +14,7 @@ namespace GreenhouseController
         {
             var buffer = new BlockingCollection<byte[]>();
             GreenhouseStateMachine.Instance.Initialize();
-            foreach (var item in GreenhouseStateMachine.Instance.CurrentStates)
-            {
-                Console.WriteLine($"State: {item.ToString()}");
-            };
+            Console.WriteLine($"State: {GreenhouseStateMachine.Instance.CurrentState.ToString()}");
             GreenhouseDataProducer.Instance.ItemInQueue += ItemInQueue;
             Task.WaitAll(Task.Run(new Action(() => GreenhouseDataProducer.Instance.RequestAndReceiveGreenhouseData(buffer))));
         }

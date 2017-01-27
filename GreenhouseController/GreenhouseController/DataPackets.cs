@@ -12,10 +12,11 @@ namespace GreenhouseController
         public double temperature;
         public double humidity;
         public double light;
+        public double moisture;
         
         public int tempHi;
         public int tempLo;
-        public int lightHi;
-        public int lightlo;
+        public int lightLim;
+        public int moistLim;
     }
 }

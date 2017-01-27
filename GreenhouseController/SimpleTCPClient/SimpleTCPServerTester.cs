@@ -64,11 +64,12 @@ namespace ConsoleApplication1
                 public double temperature;
                 public double humidity;
                 public double light;
+                public double moisture;
 
                 public int tempHi;
                 public int tempLo;
-                public int lightHi;
-                public int lightLo;
+                public int lightLim;
+                public int moistLim;
             }
             
             public JsonSpoof() { }
@@ -78,8 +79,8 @@ namespace ConsoleApplication1
                 int tempMax = 120;
                 int humidMin = 0;
                 int humidMax = 100;
-                int lightMin = 0;
-                int lightMax = 98000;
+                int lightLim = 50000;
+                int moistLim = 30;
                 Random rand = new Random();
 
                 Packet pack = new Packet()
@@ -87,9 +88,12 @@ namespace ConsoleApplication1
                     zone = zone,
                     temperature = rand.Next(tempMin, tempMax),
                     humidity = rand.Next(humidMin, humidMax),
-                    light = rand.Next(lightMin, lightMax),
+                    light = rand.Next(0, 100000),
+                    moisture = rand.Next(0, 100),
                     tempHi = 80,
-                    tempLo = 65
+                    tempLo = 65,
+                    lightLim = lightLim,
+                    moistLim = moistLim
                 };
 
                 string spoofData = JsonConvert.SerializeObject(pack);
