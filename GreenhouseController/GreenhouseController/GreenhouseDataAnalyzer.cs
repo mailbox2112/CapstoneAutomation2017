@@ -75,10 +75,6 @@ namespace GreenhouseController
                 {
                     _tempLimits[1] = pack.tempLo;
                 }
-                if (_humidLimit != pack.humidLim)
-                {
-                    _humidLimit = pack.humidLim;
-                }
             }
         }
 
