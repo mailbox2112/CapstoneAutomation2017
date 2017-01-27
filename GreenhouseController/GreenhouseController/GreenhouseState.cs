@@ -9,7 +9,7 @@ namespace GreenhouseController
     /// <summary>
     /// Enum of possible states that could be combined in our NFA
     /// </summary>
-    enum GreenhouseState
+    public enum GreenhouseState
     {
         WAITING,
         HEATING,

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    class GreenhouseDataAnalyzer
+    public class GreenhouseDataAnalyzer
     {
         private double _avgTemp;
         private double _avgHumid;
@@ -16,7 +16,7 @@ namespace GreenhouseController
         private double[] _tempLimits;
         private double _lightLimit;
         private double _moistureLimit;
-        private List<GreenhouseCommands> _commandsToSend;
+        private int _greenhouseStateValue;
 
         public GreenhouseDataAnalyzer()
         {
@@ -27,8 +27,8 @@ namespace GreenhouseController
             _tempLimits = new double[2];
             _lightLimit = new double();
             _moistureLimit = new double();
+            _greenhouseStateValue = 0;
             _currentTime = DateTime.Now;
-            _commandsToSend = new List<GreenhouseCommands>();
         }
 
         /// <summary>
@@ -37,12 +37,22 @@ namespace GreenhouseController
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
         public void InterpretStateData(DataPacket[] data)
         {
+            // Always reset the greenhouse state value before we start changing it
+            _greenhouseStateValue = 0;
+
+            // Get the averages of greenhouse readings
             GetGreenhouseAverages(data);
             Console.WriteLine($"Time: {_currentTime}\nAverage Temperature: {_avgTemp}\nAverage Humidity: {_avgHumid}\nAverage Light Intensity: {_avgLight}\n");
+
+            // Get the limits we're comparing to
             GetGreenhouseLimits(data);
-            _commandsToSend = DecideAppropriateAction();
+
+            // Get the state data
+            TransitionToAppropriateState();
+
+            // Send the state data to the Arduino
             ArduinoControlSender sendCommands = new ArduinoControlSender();
-            Task.Run(() => sendCommands.SendCommands(_commandsToSend));
+            Task.Run(() => sendCommands.SendCommands(GreenhouseStateMachine.Instance.CurrentState));
         }
 
         /// <summary>
@@ -74,9 +84,17 @@ namespace GreenhouseController
                 {
                     _tempLimits[0] = pack.tempHi;
                 }
-                if (_tempLimits[1] != pack.tempLo)
+                else if (_tempLimits[1] != pack.tempLo)
                 {
                     _tempLimits[1] = pack.tempLo;
+                }
+                else if (_lightLimit != pack.lightLim)
+                {
+                    _lightLimit = pack.lightLim;
+                }
+                else if (_moistureLimit != pack.moistLim)
+                {
+                    _moistureLimit = pack.moistLim;
                 }
             }
         }
@@ -85,99 +103,52 @@ namespace GreenhouseController
         /// Make decisions about what to do with greenhouse based on data we receive
         /// </summary>
         /// <returns></returns>
-        private List<GreenhouseCommands> DecideAppropriateAction()
+        private void TransitionToAppropriateState()
         {
             // TODO: implement light and humidity, plus greenhouse state stuff
-            List<GreenhouseCommands> commands = new List<GreenhouseCommands>();
             
+            /* How state decision is made: 
+             * For each metric we measure, add or subtract a value from our state integer.
+             * Once we make it through all the metric checking, convert the state integer
+             * into a greenhouse state. Send that state over serial to the Arduino.
+             *          WAITING = 0
+             *          HEATING = 10
+             *          COOLING = 20
+             *          LIGHTING = 1
+             *          WATERING = 2
+             * Because of the way this works, we shouldn't need to check if the temperature is between the 
+             * temp limits, as we'd just add 0 to our state value if it was.
+            */
+
             // Temp is too low
             if (_avgTemp <= _tempLimits[1])
             {
-                // Do stuff for temperature being too low
-                commands.Add(GreenhouseCommands.HEAT_ON);
-                commands.Add(GreenhouseCommands.CLOSE_VENTS);
-                commands.Add(GreenhouseCommands.RETRACT_SHADES);
+                _greenhouseStateValue += 10;
             }
 
             // If the temp is too high
             else if (_avgTemp >= _tempLimits[0])
             {
-                // Do stuff for temperature being too high
-                commands.Add(GreenhouseCommands.OPEN_VENTS);
-                commands.Add(GreenhouseCommands.FAN_ON);
-                commands.Add(GreenhouseCommands.EXTEND_SHADES);
-            }
-
-            // If the temperature is juuuuuuuuuust right...
-            else if (_avgTemp < _tempLimits[0] && _avgTemp > _tempLimits[1])
-            {
-                // Do stuff for temperature being right
-                commands.Add(GreenhouseCommands.CLOSE_VENTS);
-                commands.Add(GreenhouseCommands.RETRACT_SHADES);
-                commands.Add(GreenhouseCommands.HEAT_OFF);
-                commands.Add(GreenhouseCommands.FAN_OFF);
+                _greenhouseStateValue += 20;
             }
             
+            // If light is too low
             if (_avgLight <= _lightLimit)
             {
-                // Do stuff for light level being too low
-                commands.Add(GreenhouseCommands.LIGHT_ON);
-            }
-            else
-            {
-                // Light levels are okay
-                commands.Add(GreenhouseCommands.LIGHT_OFF);
+                _greenhouseStateValue += 1;
             }
 
+            // If moisture is too low
             if (_avgMoisture < _moistureLimit)
             {
-                // Do watering stuff
-                commands.Add(GreenhouseCommands.WATER_ON);
-            }
-            else
-            {
-                commands.Add(GreenhouseCommands.WATER_OFF);
+                _greenhouseStateValue += 2;
             }
 
-            #region State Machine Decisions
-            // If the command is to heat
-            if (commands.Contains(GreenhouseCommands.HEAT_ON))
-            {
-                // and to light
-                if (commands.Contains(GreenhouseCommands.LIGHT_ON))
-                {
-                    // and to water
-                    if (commands.Contains(GreenhouseCommands.WATER_ON))
-                    {
-                        // state is HEATING LIGHTING WATERING
-                        GreenhouseStateMachine.Instance.CurrentState = GreenhouseState.HEATING_LIGHTING_WATERING;
-                    }
-                    // otherwise
-                    else
-                    {
-                        // state is HEATING LIGHTING
-                        GreenhouseStateMachine.Instance.CurrentState = GreenhouseState.HEATING_LIGHTING;
-                    }
-                }
-                // OR to water but NOT to light
-                else if (commands.Contains(GreenhouseCommands.WATER_ON) && !commands.Contains(GreenhouseCommands.LIGHT_OFF))
-                {
-                    // state is HEATING WATERING
-                    GreenhouseStateMachine.Instance.CurrentState = GreenhouseState.HEATING_WATERING;
-                }
-                // otherwise just heating
-                else
-                {
-                    GreenhouseStateMachine.Instance.CurrentState = GreenhouseState.HEATING;
-                }
-            }
-            #endregion
+            GreenhouseStateMachine.Instance.CalculateNewState(_greenhouseStateValue);
 
             // Print stuff out for debugging purposes
             Console.WriteLine($"State: {GreenhouseStateMachine.Instance.CurrentState.ToString()}");
             
-
-            return commands;
         }
     }
 }

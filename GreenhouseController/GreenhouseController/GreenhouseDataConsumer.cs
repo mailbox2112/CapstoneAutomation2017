@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    class GreenhouseDataConsumer
+    public class GreenhouseDataConsumer
     {
         private static volatile GreenhouseDataConsumer _instance;
         private static object _syncRoot = new object();

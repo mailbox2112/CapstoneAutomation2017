@@ -9,7 +9,7 @@ namespace GreenhouseController
     /// <summary>
     /// Nondeterministic State machine implementation for our greenhouse. Needs to be a singleton for persistence and preventing multiple changes to states.
     /// </summary>
-    class GreenhouseStateMachine
+    public class GreenhouseStateMachine
     {
         // Singleton stuff
         private static volatile GreenhouseStateMachine _instance;
@@ -49,6 +49,52 @@ namespace GreenhouseController
                 }
 
                 return _instance;
+            }
+        }
+
+        public void CalculateNewState(int stateValue)
+        {
+            switch(stateValue)
+            {
+                case 0:
+                    CurrentState = GreenhouseState.WAITING;
+                    break;
+                case 1:
+                    CurrentState = GreenhouseState.LIGHTING;
+                    break;
+                case 2:
+                    CurrentState = GreenhouseState.WATERING;
+                    break;
+                case 3:
+                    CurrentState = GreenhouseState.LIGHTING_WATERING;
+                    break;
+                case 10:
+                    CurrentState = GreenhouseState.HEATING;
+                    break;
+                case 11:
+                    CurrentState = GreenhouseState.HEATING_LIGHTING;
+                    break;
+                case 12:
+                    CurrentState = GreenhouseState.HEATING_WATERING;
+                    break;
+                case 13:
+                    CurrentState = GreenhouseState.HEATING_LIGHTING_WATERING;
+                    break;
+                case 20:
+                    CurrentState = GreenhouseState.COOLING;
+                    break;
+                case 21:
+                    CurrentState = GreenhouseState.COOLING_LIGHTING;
+                    break;
+                case 22:
+                    CurrentState = GreenhouseState.COOLING_WATERING;
+                    break;
+                case 23:
+                    CurrentState = GreenhouseState.COOLING_LIGHTING_WATERING;
+                    break;
+                default:
+                    CurrentState = GreenhouseState.WAITING;
+                    break;
             }
         }
     }

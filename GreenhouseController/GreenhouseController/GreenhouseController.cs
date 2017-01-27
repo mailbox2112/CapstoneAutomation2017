@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    class GreenhouseController
+    public class GreenhouseController
     {
         static void Main(string[] args)
         {

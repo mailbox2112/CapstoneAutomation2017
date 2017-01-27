@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    class GreenhouseDataProducer
+    public class GreenhouseDataProducer
     {
         private static volatile GreenhouseDataProducer _instance;
         private static object syncRoot = new object();
