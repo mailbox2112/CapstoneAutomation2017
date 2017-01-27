@@ -39,7 +39,6 @@ namespace GreenhouseController
                     {
                         if (_instance == null)
                         {
-                            // TODO: add whatever parameters get passed into construction!
                             _instance = new GreenhouseDataConsumer();
                         }
                     }

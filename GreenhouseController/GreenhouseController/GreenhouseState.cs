@@ -8,6 +8,7 @@ namespace GreenhouseController
 {
     enum GreenhouseState
     {
+        WAITING,
         HEATING,
         COOLING,
         LIGHTING,

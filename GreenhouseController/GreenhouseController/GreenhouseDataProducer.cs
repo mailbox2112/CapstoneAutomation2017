@@ -25,7 +25,7 @@ namespace GreenhouseController
         /// </summary>
         /// <param name="hostEndpoint">Endpoint to be reached</param>
         /// <param name="hostAddress">IP address we're trying to connect to</param>
-        private GreenhouseDataProducer(IPAddress hostAddress, IPEndPoint hostEndpoint)
+        private GreenhouseDataProducer()
         {
             Console.WriteLine("Constructing data producer...");
 
@@ -49,8 +49,7 @@ namespace GreenhouseController
                     {
                         if (_instance == null)
                         {
-                            // TODO: put actual network locations in here!
-                            _instance = new GreenhouseDataProducer(IPAddress.Parse("127.0.0.1"), new IPEndPoint(IPAddress.Parse("127.0.0.1"), 80));
+                            _instance = new GreenhouseDataProducer();
                         }
                     }
                 }
