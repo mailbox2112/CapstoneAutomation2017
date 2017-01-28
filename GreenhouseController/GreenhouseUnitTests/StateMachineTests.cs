@@ -16,7 +16,7 @@ namespace GreenhouseUnitTests
         }
 
         [TestMethod]
-        public void TestStateDecisionmaking()
+        public void TestStateDecisionMaking()
         {
             int[] possibleStates = new int[] { 0, 1, 2, 3, 10, 11, 12, 13, 20, 21, 22, 23 };
             

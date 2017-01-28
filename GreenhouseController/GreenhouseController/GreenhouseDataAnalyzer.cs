@@ -66,10 +66,12 @@ namespace GreenhouseController
                 _avgTemp += pack.temperature;
                 _avgHumid += pack.humidity;
                 _avgLight += pack.light;
+                _avgMoisture += pack.moisture;
             }
             _avgTemp /= 5;
             _avgHumid /= 5;
             _avgLight /= 5;
+            _avgMoisture /= 5;
         }
 
         /// <summary>
@@ -84,15 +86,15 @@ namespace GreenhouseController
                 {
                     _tempLimits[0] = pack.tempHi;
                 }
-                else if (_tempLimits[1] != pack.tempLo)
+                if (_tempLimits[1] != pack.tempLo)
                 {
                     _tempLimits[1] = pack.tempLo;
                 }
-                else if (_lightLimit != pack.lightLim)
+                if (_lightLimit != pack.lightLim)
                 {
                     _lightLimit = pack.lightLim;
                 }
-                else if (_moistureLimit != pack.moistLim)
+                if (_moistureLimit != pack.moistLim)
                 {
                     _moistureLimit = pack.moistLim;
                 }
@@ -139,7 +141,7 @@ namespace GreenhouseController
             }
 
             // If moisture is too low
-            if (_avgMoisture < _moistureLimit)
+            if (_avgMoisture <= _moistureLimit)
             {
                 _greenhouseStateValue += 2;
             }
