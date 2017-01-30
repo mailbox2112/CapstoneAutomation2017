@@ -57,8 +57,16 @@ namespace GreenhouseController
             {
                 source.TryTake(out _data);
                 var deserializedData = JsonConvert.DeserializeObject<DataPacket>(Encoding.ASCII.GetString(_data));
+                
+                // Check for repeat zones, and if we have any, throw out the old zone data
+                if(_zoneInformation.Where(p => p.zone == deserializedData.zone) != null)
+                {
+                    _zoneInformation.RemoveAll(p => p.zone == deserializedData.zone);
+                }
+
                 _zoneInformation.Add(deserializedData);
-                if(_zoneInformation.Count == 5)
+
+                if (_zoneInformation.Count == 5)
                 {
                     SendDataToAnalyzer(_zoneInformation);
                 }

@@ -34,7 +34,7 @@ namespace ConsoleApplication1
                     JsonSpoof jSpoof = new JsonSpoof();
                     
                     byte[] bytesFrom = new byte[10025];
-                    int[] zones = new int[5] { 1, 2, 3, 4, 5 };
+                    int[] zones = new int[] { 1, 2, 3, 3, 4, 5 };
                     foreach (int zone in zones)
                     {
                         string json = jSpoof.SpoofGreenhouseData(zone);
