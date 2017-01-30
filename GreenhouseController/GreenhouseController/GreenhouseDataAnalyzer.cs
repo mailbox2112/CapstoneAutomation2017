@@ -37,7 +37,7 @@ namespace GreenhouseController
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
         public void InterpretStateData(DataPacket[] data)
         {
-            // Always reset the greenhouse state value before we start changing it
+            // Always reset the temporary greenhouse state value before we start changing it
             _greenhouseStateValue = 0;
 
             // Get the averages of greenhouse readings
@@ -107,10 +107,9 @@ namespace GreenhouseController
         /// <returns></returns>
         private void TransitionToAppropriateState()
         {
-            // TODO: implement light and humidity, plus greenhouse state stuff
             
             /* How state decision is made: 
-             * For each metric we measure, add or subtract a value from our state integer.
+             * For each metric we measure, add a value from our state integer.
              * Once we make it through all the metric checking, convert the state integer
              * into a greenhouse state. Send that state over serial to the Arduino.
              *          WAITING = 0
