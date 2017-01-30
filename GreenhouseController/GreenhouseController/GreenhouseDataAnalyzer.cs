@@ -107,7 +107,6 @@ namespace GreenhouseController
         /// <returns></returns>
         private void TransitionToAppropriateState()
         {
-            
             /* How state decision is made: 
              * For each metric we measure, add a value from our state integer.
              * Once we make it through all the metric checking, convert the state integer
@@ -149,7 +148,6 @@ namespace GreenhouseController
 
             // Print stuff out for debugging purposes
             Console.WriteLine($"State: {GreenhouseStateMachine.Instance.CurrentState.ToString()}");
-            
         }
     }
 }
