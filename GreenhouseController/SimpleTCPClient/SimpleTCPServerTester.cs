@@ -7,6 +7,7 @@ using System.Threading;
 using System.Net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using GreenhouseController;
 
 namespace ConsoleApplication1
 {
@@ -58,19 +59,6 @@ namespace ConsoleApplication1
 
         public class JsonSpoof
         {
-            public class Packet
-            {
-                public int zone;
-                public double temperature;
-                public double humidity;
-                public double light;
-                public double moisture;
-
-                public int tempHi;
-                public int tempLo;
-                public int lightLim;
-                public int moistLim;
-            }
             
             public JsonSpoof() { }
             public string SpoofGreenhouseData(int zone)
@@ -83,7 +71,7 @@ namespace ConsoleApplication1
                 int moistLim = 30;
                 Random rand = new Random();
 
-                Packet pack = new Packet()
+                DataPacket pack = new DataPacket()
                 {
                     zone = zone,
                     temperature = rand.Next(tempMin, tempMax),

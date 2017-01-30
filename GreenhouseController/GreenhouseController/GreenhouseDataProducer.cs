@@ -66,22 +66,20 @@ namespace GreenhouseController
             {
                 try
                 {
-                    if (_dataStream.DataAvailable)
-                    {
-                        byte[] buffer = new byte[10025];
-                        _dataStream.ReadAsync(buffer, 0, buffer.Length);
+                    byte[] buffer = new byte[10025];
 
-                        target.TryAdd(buffer);
-                        EventHandler<DataEventArgs> handler = ItemInQueue;
-                        handler(this, new DataEventArgs() { Buffer = target });
-                    }
+                    // The read command is blocking, so this just waits until data is available
+                    _dataStream.Read(buffer, 0, buffer.Length);
+
+                    target.TryAdd(buffer);
+                    EventHandler<DataEventArgs> handler = ItemInQueue;
+                    handler(this, new DataEventArgs() { Buffer = target });
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex);
                     _dataStream.Dispose();
                 }
-                Thread.Sleep(1000);
             }
         }
     }

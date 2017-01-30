@@ -54,6 +54,12 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GreenhouseController\GreenhouseController.csproj">
+      <Project>{9779d6f9-8ab4-4c96-ba4d-3ffa7a5f2b56}</Project>
+      <Name>GreenhouseController</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

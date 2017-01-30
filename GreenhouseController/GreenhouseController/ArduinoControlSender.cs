@@ -35,9 +35,9 @@ namespace GreenhouseController
            
             try
             {
-                Console.WriteLine($"Attempting to send command {stateToSend}");
+                Console.WriteLine($"Attempting to send state {stateToSend}");
                 //_output.Write(command.ToString());
-                Console.WriteLine($"Commmand {stateToSend} sent successfully");
+                Console.WriteLine($"State {stateToSend} sent successfully");
             }
             catch(Exception ex)
             {
@@ -47,12 +47,12 @@ namespace GreenhouseController
             {
                 // TODO: read response from arduino
                 //int response = _output.Read(buffer, 0, 8);
-                Console.WriteLine($"Command {stateToSend} executed successfully\n");
+                Console.WriteLine($"State {stateToSend} executed successfully\n");
                 //Console.WriteLine($"{response}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex + $"\n Command {stateToSend} unsuccessful\n");
+                Console.WriteLine(ex + $"\n State {stateToSend} unsuccessful\n");
             }
 
             Dispose();
