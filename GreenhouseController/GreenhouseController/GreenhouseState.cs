@@ -11,17 +11,13 @@ namespace GreenhouseController
     /// </summary>
     public enum GreenhouseState
     {
-        WAITING,
+        WAITING_FOR_DATA,
+        WAITING_FOR_RESPONSE,
+        PROCESSING_DATA,
+        SENDING_DATA,
         HEATING,
         COOLING,
         LIGHTING,
         WATERING,
-        LIGHTING_WATERING,
-        HEATING_LIGHTING,
-        HEATING_WATERING,
-        HEATING_LIGHTING_WATERING,
-        COOLING_LIGHTING,
-        COOLING_WATERING,
-        COOLING_LIGHTING_WATERING
     }
 }

@@ -28,20 +28,20 @@ namespace GreenhouseController
         /// Takes a list of commands to be sent to the arduino and sends them over the pi's serial port
         /// </summary>
         /// <param name="_commandsToSend">List of GreenhouseCommands from the enum</param>
-        public void SendCommands(GreenhouseState stateToSend)
+        public void SendCommand(IStateMachine stateMachine)
         {
             byte[] buffer = new byte[8];
             
             // TODO: send specified commands to arduino
             //_output.Open();
-           
             try
             {
-                Console.WriteLine($"Attempting to send state {stateToSend}");
+                stateMachine.CurrentState = GreenhouseState.SENDING_DATA;
+                Console.WriteLine($"Attempting to send state {stateMachine.EndState}");
                 //_output.Write(command.ToString());
-                Console.WriteLine($"State {stateToSend} sent successfully");
+                Console.WriteLine($"State {stateMachine.EndState} sent successfully");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
@@ -49,15 +49,15 @@ namespace GreenhouseController
             {
                 // TODO: read response from arduino
                 //int response = _output.Read(buffer, 0, 8);
-                Console.WriteLine($"State {stateToSend} executed successfully\n");
+                stateMachine.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
+                Console.WriteLine($"State {stateMachine.EndState} executed successfully\n");
                 //Console.WriteLine($"{response}");
+                stateMachine.CurrentState = stateMachine.EndState;
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex + $"\n State {stateToSend} unsuccessful\n");
+                Console.WriteLine(ex + $"\n State {stateMachine.EndState} unsuccessful\n");
             }
-
-            Dispose();
         }
     }
 }

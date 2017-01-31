@@ -89,8 +89,8 @@ namespace GreenhouseController
             data.Clear();
             // TODO: Add error control! What if we get a packet from a zone we already have, and the values are different?!
             
-            GreenhouseDataAnalyzer analyze = new GreenhouseDataAnalyzer();
-            Task.Run(() => analyze.InterpretStateData(tempZoneInfo));
+            GreenhouseActionAnalyzer analyze = new GreenhouseActionAnalyzer();
+            Task.Run(() => analyze.AnalyzeData(tempZoneInfo));
         }
     }
 }

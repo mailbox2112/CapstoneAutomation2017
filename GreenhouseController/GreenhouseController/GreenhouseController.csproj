@@ -53,13 +53,16 @@
     <Compile Include="ArduinoControlSender.cs" />
     <Compile Include="DataEventArgs.cs" />
     <Compile Include="DataPackets.cs" />
-    <Compile Include="GreenhouseDataAnalyzer.cs" />
+    <Compile Include="GreenhouseActionAnalyzer.cs" />
     <Compile Include="GreenhouseDataProducer.cs" />
     <Compile Include="GreenhouseController.cs" />
     <Compile Include="GreenhouseState.cs" />
     <Compile Include="GreenhouseDataConsumer.cs" />
-    <Compile Include="GreenhouseStateMachine.cs" />
+    <Compile Include="LightingStateMachine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="IStateMachine.cs" />
+    <Compile Include="TemperatureStateMachine.cs" />
+    <Compile Include="WateringStateMachine.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

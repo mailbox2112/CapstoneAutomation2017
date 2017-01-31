@@ -26,15 +26,16 @@ namespace ConsoleApplication1
             client = serverListener.AcceptTcpClient();
             Console.WriteLine(" >> Accept connection from client");
             NetworkStream networkStream = client.GetStream();
-            
+
+            int[] zones = new int[] { 1, 2, 3, 4, 5 };
+            byte[] bytesFrom = new byte[1024];
+
             while ((true))
             {
                 try
                 {
                     JsonSpoof jSpoof = new JsonSpoof();
                     
-                    byte[] bytesFrom = new byte[10025];
-                    int[] zones = new int[] { 1, 1, 2, 2, 3, 3, 4, 4, 5 };
                     foreach (int zone in zones)
                     {
                         string json = jSpoof.SpoofGreenhouseData(zone);
@@ -67,7 +68,7 @@ namespace ConsoleApplication1
                 int tempMax = 120;
                 int humidMin = 0;
                 int humidMax = 100;
-                int lightLim = 50000;
+                int lightLim = 40000;
                 int moistLim = 30;
                 Random rand = new Random();
 
