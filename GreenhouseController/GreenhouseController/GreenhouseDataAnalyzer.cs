@@ -120,6 +120,8 @@ namespace GreenhouseController
              * temp limits, as we'd just add 0 to our state value if it was.
             */
 
+            // TODO: implement three separate state machines for Temperature, Lighting, Watering
+
             // Temp is too low
             if (_avgTemp <= _tempLimits[1])
             {

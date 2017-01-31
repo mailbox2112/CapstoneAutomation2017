@@ -9,6 +9,8 @@ namespace GreenhouseController
 {
     public class ArduinoControlSender : IDisposable
     {
+        // TODO: ERROR CONTROL!
+
         private SerialPort _output;
         public ArduinoControlSender()
         {

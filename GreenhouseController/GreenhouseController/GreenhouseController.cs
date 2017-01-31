@@ -10,6 +10,7 @@ namespace GreenhouseController
 {
     public class GreenhouseController
     {
+        // TODO: RESET BUTTON?
         static void Main(string[] args)
         {
             var buffer = new BlockingCollection<byte[]>();

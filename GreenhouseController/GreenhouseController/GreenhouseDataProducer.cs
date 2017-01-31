@@ -16,6 +16,7 @@ namespace GreenhouseController
         private static volatile GreenhouseDataProducer _instance;
         private static object syncRoot = new object();
         
+        private byte[] _buffer = new byte[10025];
         private NetworkStream _dataStream;
         private TcpClient _client;
         public event EventHandler<DataEventArgs> ItemInQueue;
@@ -66,12 +67,12 @@ namespace GreenhouseController
             {
                 try
                 {
-                    byte[] buffer = new byte[10025];
+                    
 
                     // The read command is blocking, so this just waits until data is available
-                    _dataStream.Read(buffer, 0, buffer.Length);
+                    _dataStream.Read(_buffer, 0, _buffer.Length);
 
-                    target.TryAdd(buffer);
+                    target.TryAdd(_buffer);
                     EventHandler<DataEventArgs> handler = ItemInQueue;
                     handler(this, new DataEventArgs() { Buffer = target });
                 }
