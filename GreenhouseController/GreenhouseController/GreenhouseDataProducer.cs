@@ -13,6 +13,8 @@ namespace GreenhouseController
 {
     public class GreenhouseDataProducer
     {
+        public event EventHandler<DataEventArgs> ItemInQueue;
+
         private static volatile GreenhouseDataProducer _instance;
         private static object syncRoot = new object();
         
@@ -20,7 +22,7 @@ namespace GreenhouseController
         private byte[] _tempBuffer = new byte[1024];
         private NetworkStream _dataStream;
         private TcpClient _client;
-        public event EventHandler<DataEventArgs> ItemInQueue;
+        private bool _break;
 
         /// <summary>
         /// Private constructor for singleton pattern
@@ -34,8 +36,8 @@ namespace GreenhouseController
             _client = new TcpClient();
             _client.Connect("127.0.0.1", 8888);
             _dataStream = _client.GetStream();
+            _break = false;
             Console.WriteLine("Data producer constructed.\n");
-            
         }
 
         /// <summary>
@@ -64,22 +66,26 @@ namespace GreenhouseController
         /// </summary>
         public void RequestAndReceiveGreenhouseData(BlockingCollection<byte[]> target)
         {
-            while (true)
+            while (_break != true)
             {
                 try
                 {
                     // The read command is blocking, so this just waits until data is available
-                    _dataStream.Read(_buffer, 0, _buffer.Length);
-                    Array.Copy(sourceArray: _buffer, destinationArray: _tempBuffer, length: _buffer.Length);
+                    if (_client.Connected)
+                    {
+                        _dataStream.Read(_buffer, 0, _buffer.Length);
+                        Array.Copy(sourceArray: _buffer, destinationArray: _tempBuffer, length: _buffer.Length);
 
-                    target.TryAdd(_tempBuffer);
-                    EventHandler<DataEventArgs> handler = ItemInQueue;
-                    handler(this, new DataEventArgs() { Buffer = target });
-                    Array.Clear(_buffer, 0, _buffer.Length);
+                        target.TryAdd(_tempBuffer);
+                        EventHandler<DataEventArgs> handler = ItemInQueue;
+                        handler(this, new DataEventArgs() { Buffer = target });
+                        Array.Clear(_buffer, 0, _buffer.Length);
+                    }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex);
+                    _break = true;
                     _dataStream.Dispose();
                 }
             }
