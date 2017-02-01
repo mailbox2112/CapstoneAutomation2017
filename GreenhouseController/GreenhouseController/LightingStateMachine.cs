@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    class LightingStateMachine : IStateMachine
+    public class LightingStateMachine : IStateMachine
     {
         public GreenhouseState CurrentState { get; set; }
         public GreenhouseState EndState { get; set; }
@@ -37,7 +37,7 @@ namespace GreenhouseController
             }
         }
 
-        public GreenhouseState DetermineGreenhouseState(double value, int hiLimit, int? loLimit = default(int?))
+        public void DetermineGreenhouseState(double value, int hiLimit, int? loLimit = default(int?))
         {
             CurrentState = GreenhouseState.PROCESSING_DATA;
             if (value < hiLimit)
@@ -49,8 +49,6 @@ namespace GreenhouseController
                 CurrentState = GreenhouseState.WAITING_FOR_DATA;
                 EndState = GreenhouseState.WAITING_FOR_DATA;
             }
-
-            return CurrentState;
         }
     }
 }

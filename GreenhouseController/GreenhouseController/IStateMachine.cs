@@ -8,7 +8,7 @@ namespace GreenhouseController
 {
     public interface IStateMachine
     {
-        GreenhouseState DetermineGreenhouseState(double value, int hiLimit, int? loLimit = null);
+        void DetermineGreenhouseState(double value, int hiLimit, int? loLimit = null);
 
         GreenhouseState CurrentState { get; set; }
 
