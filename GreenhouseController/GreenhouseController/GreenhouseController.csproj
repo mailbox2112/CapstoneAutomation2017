@@ -50,15 +50,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Unit Test Classes\ArduinoControlSenderSimulator.cs" />
+    <Compile Include="UnitTestClasses\ArduinoControlSenderSimulator.cs" />
     <Compile Include="ArduinoControlSender.cs" />
     <Compile Include="DataEventArgs.cs" />
     <Compile Include="DataPackets.cs" />
-    <Compile Include="GreenhouseActionAnalyzer.cs" />
-    <Compile Include="GreenhouseDataProducer.cs" />
+    <Compile Include="ActionAnalyzer.cs" />
+    <Compile Include="DataProducer.cs" />
     <Compile Include="GreenhouseController.cs" />
     <Compile Include="GreenhouseState.cs" />
-    <Compile Include="GreenhouseDataConsumer.cs" />
+    <Compile Include="DataConsumer.cs" />
     <Compile Include="LightingStateMachine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IStateMachine.cs" />

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    public class GreenhouseActionAnalyzer
+    public class ActionAnalyzer
     {
         private double _avgTemp;
         private double _avgHumid;
@@ -17,7 +17,7 @@ namespace GreenhouseController
         private int _lightLimit;
         private int _moistureLimit;
 
-        public GreenhouseActionAnalyzer()
+        public ActionAnalyzer()
         {
             _avgTemp = new double();
             _avgLight = new double();

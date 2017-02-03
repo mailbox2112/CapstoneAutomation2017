@@ -8,18 +8,18 @@ namespace GreenhouseController
 {
     public class StateMachineController
     {
-        private WateringStateMachine Watering;
-        private LightingStateMachine Lighting;
-        private TemperatureStateMachine Temperature;
+        private WateringStateMachine _watering;
+        private LightingStateMachine _lighting;
+        private TemperatureStateMachine _temperature;
 
         private static volatile StateMachineController _instance;
         private static object _syncRoot = new object();
 
         private StateMachineController()
         {
-            Watering = new WateringStateMachine();
-            Lighting = new LightingStateMachine();
-            Temperature = new TemperatureStateMachine();
+            _watering = new WateringStateMachine();
+            _lighting = new LightingStateMachine();
+            _temperature = new TemperatureStateMachine();
         }
 
         public static StateMachineController Instance
@@ -49,7 +49,7 @@ namespace GreenhouseController
         /// <returns></returns>
         public void DetermineLightingState(double value, int limit)
         {
-            Lighting.DetermineGreenhouseState(value, limit);
+            _lighting.DetermineGreenhouseState(value, limit);
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace GreenhouseController
         /// <returns></returns>
         public GreenhouseState GetLightingCurrentState()
         {
-            return Lighting.CurrentState;
+            return _lighting.CurrentState;
         }
 
         /// <summary>
@@ -67,12 +67,12 @@ namespace GreenhouseController
         /// <returns></returns>
         public GreenhouseState GetLightingEndState()
         {
-            return Lighting.EndState;
+            return _lighting.EndState;
         }
 
         public LightingStateMachine GetLightingMachine()
         {
-            return Lighting;
+            return _lighting;
         }
         #endregion
 
@@ -85,7 +85,7 @@ namespace GreenhouseController
         /// <returns></returns>
         public void DetermineWateringState(double value, int limit)
         {
-            Watering.DetermineGreenhouseState(value, limit);
+            _watering.DetermineGreenhouseState(value, limit);
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace GreenhouseController
         /// <returns></returns>
         public GreenhouseState GetWateringCurrentState()
         {
-            return Watering.CurrentState;
+            return _watering.CurrentState;
         }
 
         /// <summary>
@@ -103,12 +103,12 @@ namespace GreenhouseController
         /// <returns></returns>
         public GreenhouseState GetWateringEndState()
         {
-            return Watering.EndState;
+            return _watering.EndState;
         }
 
         public WateringStateMachine GetWateringMachine()
         {
-            return Watering;
+            return _watering;
         }
         #endregion
 
@@ -122,7 +122,7 @@ namespace GreenhouseController
         /// <returns></returns>
         public void DetermineTemperatureState(double value, int hiLimit, int loLimit)
         {
-            Temperature.DetermineGreenhouseState(value, hiLimit, loLimit);
+            _temperature.DetermineGreenhouseState(value, hiLimit, loLimit);
         }
 
         /// <summary>
@@ -131,7 +131,7 @@ namespace GreenhouseController
         /// <returns></returns>
         public GreenhouseState GetTemperatureCurrentState()
         {
-            return Temperature.CurrentState;
+            return _temperature.CurrentState;
         }
 
         /// <summary>
@@ -140,12 +140,12 @@ namespace GreenhouseController
         /// <returns></returns>
         public GreenhouseState GetTemperatureEndState()
         {
-            return Temperature.EndState;
+            return _temperature.EndState;
         }
 
         public TemperatureStateMachine GetTemperatureMachine()
         {
-            return Temperature;
+            return _temperature;
         }
         #endregion
     }

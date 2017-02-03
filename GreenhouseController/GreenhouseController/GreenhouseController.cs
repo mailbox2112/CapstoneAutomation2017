@@ -17,13 +17,13 @@ namespace GreenhouseController
             Console.WriteLine($"Temperature State: {StateMachineController.Instance.GetTemperatureCurrentState().ToString()}");
             Console.WriteLine($"Lighting State: {StateMachineController.Instance.GetLightingCurrentState().ToString()}");
             Console.WriteLine($"Watering State: {StateMachineController.Instance.GetWateringCurrentState().ToString()}");
-            GreenhouseDataProducer.Instance.ItemInQueue += ItemInQueue;
-            Task.WaitAll(Task.Run(new Action(() => GreenhouseDataProducer.Instance.RequestAndReceiveGreenhouseData(buffer))));
+            DataProducer.Instance.ItemInQueue += ItemInQueue;
+            Task.WaitAll(Task.Run(new Action(() => DataProducer.Instance.RequestAndReceiveGreenhouseData(buffer))));
         }
 
         static void ItemInQueue(object sender, DataEventArgs e)
         {
-            Task.Run(() => GreenhouseDataConsumer.Instance.ReceiveGreenhouseData(e.Buffer));
+            Task.Run(() => DataConsumer.Instance.ReceiveGreenhouseData(e.Buffer));
         }
     }
 }

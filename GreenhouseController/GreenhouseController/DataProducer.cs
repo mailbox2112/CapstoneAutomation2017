@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    public class GreenhouseDataProducer
+    public class DataProducer
     {
         public event EventHandler<DataEventArgs> ItemInQueue;
 
-        private static volatile GreenhouseDataProducer _instance;
+        private static volatile DataProducer _instance;
         private static object _syncRoot = new object();
         
         private byte[] _buffer = new byte[1024];
@@ -29,7 +29,7 @@ namespace GreenhouseController
         /// </summary>
         /// <param name="hostEndpoint">Endpoint to be reached</param>
         /// <param name="hostAddress">IP address we're trying to connect to</param>
-        private GreenhouseDataProducer()
+        private DataProducer()
         {
             Console.WriteLine("Constructing data producer...");
 
@@ -43,7 +43,7 @@ namespace GreenhouseController
         /// <summary>
         /// Instance property, used for singleton pattern
         /// </summary>
-        public static GreenhouseDataProducer Instance
+        public static DataProducer Instance
         {
             get
             {
@@ -53,7 +53,7 @@ namespace GreenhouseController
                     {
                         if (_instance == null)
                         {
-                            _instance = new GreenhouseDataProducer();
+                            _instance = new DataProducer();
                         }
                     }
                 }
