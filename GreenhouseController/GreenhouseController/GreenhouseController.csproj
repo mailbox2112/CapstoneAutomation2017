@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Unit Test Classes\ArduinoControlSenderSimulator.cs" />
     <Compile Include="ArduinoControlSender.cs" />
     <Compile Include="DataEventArgs.cs" />
     <Compile Include="DataPackets.cs" />
