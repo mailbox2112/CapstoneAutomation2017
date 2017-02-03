@@ -6,35 +6,15 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    class WateringStateMachine : IStateMachine
+    public class WateringStateMachine : IStateMachine
     {
         public GreenhouseState CurrentState { get; set; }
         public GreenhouseState EndState { get; set; }
-
-        private static volatile WateringStateMachine _instance;
-        private static volatile object _syncRoot = new object();
-
-        private WateringStateMachine()
+        
+        public WateringStateMachine()
         {
             CurrentState = GreenhouseState.WAITING_FOR_DATA;
-        }
-
-        public static WateringStateMachine Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (_syncRoot)
-                    {
-                        if (_instance == null)
-                        {
-                            _instance = new WateringStateMachine();
-                        }
-                    }
-                }
-                return _instance;
-            }
+            EndState = GreenhouseState.WAITING_FOR_DATA;
         }
 
         public GreenhouseState DetermineGreenhouseState(double value, int hiLimit, int? loLimit = default(int?))

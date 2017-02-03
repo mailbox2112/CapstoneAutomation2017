@@ -11,30 +11,10 @@ namespace GreenhouseController
         public GreenhouseState EndState { get; set; }
         public GreenhouseState CurrentState { get; set; }
 
-        private static volatile TemperatureStateMachine _instance;
-        private static object _syncRoot = new object();
-
-        private TemperatureStateMachine()
+        public TemperatureStateMachine()
         {
             CurrentState = GreenhouseState.WAITING_FOR_DATA;
-        }
-
-        public static TemperatureStateMachine Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (_syncRoot)
-                    {
-                        if (_instance == null)
-                        {
-                            _instance = new TemperatureStateMachine();
-                        }
-                    }
-                }
-                return _instance;
-            }
+            EndState = GreenhouseState.WAITING_FOR_DATA;
         }
 
 

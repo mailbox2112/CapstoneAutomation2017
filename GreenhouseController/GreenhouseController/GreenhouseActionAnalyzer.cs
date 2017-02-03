@@ -44,23 +44,23 @@ namespace GreenhouseController
             GetGreenhouseLimits(data);
 
             // Get Temperature state machine state
-            TemperatureStateMachine.Instance.DetermineGreenhouseState(_avgTemp, _tempLimits[0], _tempLimits[1]);
-            LightingStateMachine.Instance.DetermineGreenhouseState(_avgLight, _lightLimit);
-            WateringStateMachine.Instance.DetermineGreenhouseState(_avgMoisture, _moistureLimit);
+            StateMachineController.Instance.DetermineTemperatureState(_avgTemp, _tempLimits[0], _tempLimits[1]);
+            StateMachineController.Instance.DetermineLightingState(_avgLight, _lightLimit);
+            StateMachineController.Instance.DetermineWateringState(_avgMoisture, _moistureLimit);
 
             using (ArduinoControlSender sender = new ArduinoControlSender())
             {
-                if (TemperatureStateMachine.Instance.EndState == GreenhouseState.COOLING || TemperatureStateMachine.Instance.EndState == GreenhouseState.HEATING)
+                if (StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.COOLING || StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.HEATING)
                 {
-                    sender.SendCommand(TemperatureStateMachine.Instance);
+                    sender.SendCommand(StateMachineController.Instance.GetTemperatureMachine());
                 }
-                if (LightingStateMachine.Instance.EndState == GreenhouseState.LIGHTING)
+                if (StateMachineController.Instance.GetLightingEndState() == GreenhouseState.LIGHTING)
                 {
-                    sender.SendCommand(LightingStateMachine.Instance);
+                    sender.SendCommand(StateMachineController.Instance.GetLightingMachine());
                 }
-                if (WateringStateMachine.Instance.EndState == GreenhouseState.WATERING)
+                if (StateMachineController.Instance.GetWateringEndState() == GreenhouseState.WATERING)
                 {
-                    sender.SendCommand(WateringStateMachine.Instance);
+                    sender.SendCommand(StateMachineController.Instance.GetWateringMachine());
                 }
             }
         }

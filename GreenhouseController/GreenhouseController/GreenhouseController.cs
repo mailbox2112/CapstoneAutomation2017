@@ -14,7 +14,9 @@ namespace GreenhouseController
         static void Main(string[] args)
         {
             var buffer = new BlockingCollection<byte[]>();
-            Console.WriteLine($"State: {TemperatureStateMachine.Instance.CurrentState.ToString()}");
+            Console.WriteLine($"Temperature State: {StateMachineController.Instance.GetTemperatureCurrentState().ToString()}");
+            Console.WriteLine($"Lighting State: {StateMachineController.Instance.GetLightingCurrentState().ToString()}");
+            Console.WriteLine($"Watering State: {StateMachineController.Instance.GetWateringCurrentState().ToString()}");
             GreenhouseDataProducer.Instance.ItemInQueue += ItemInQueue;
             Task.WaitAll(Task.Run(new Action(() => GreenhouseDataProducer.Instance.RequestAndReceiveGreenhouseData(buffer))));
         }

@@ -16,7 +16,7 @@ namespace GreenhouseController
         public event EventHandler<DataEventArgs> ItemInQueue;
 
         private static volatile GreenhouseDataProducer _instance;
-        private static object syncRoot = new object();
+        private static object _syncRoot = new object();
         
         private byte[] _buffer = new byte[1024];
         private byte[] _tempBuffer = new byte[1024];
@@ -49,7 +49,7 @@ namespace GreenhouseController
             {
                 if (_instance == null)
                 {
-                    lock(syncRoot)
+                    lock(_syncRoot)
                     {
                         if (_instance == null)
                         {
