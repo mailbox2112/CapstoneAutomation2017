@@ -13,6 +13,7 @@ namespace GreenhouseController
 {
     public class DataProducer
     {
+        // TODO: implement RPC or whatever matt wants to use to communicate with me
         public event EventHandler<DataEventArgs> ItemInQueue;
 
         private static volatile DataProducer _instance;
