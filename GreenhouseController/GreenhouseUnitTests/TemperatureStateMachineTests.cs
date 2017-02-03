@@ -7,40 +7,42 @@ namespace GreenhouseUnitTests
     [TestClass]
     public class TemperatureStateMachineTests
     {
+        TemperatureStateMachine testMachine;
         [TestMethod]
         public void TestTemperatureStateMachineCreation()
         {
-            object obj = TemperatureStateMachine.Instance;
-            Assert.IsNotNull(obj);
+            testMachine = new TemperatureStateMachine();
+            Assert.IsNotNull(testMachine);
         }
 
         [TestMethod]
         public void TestTemperatureStateDecisions()
         {
-            TemperatureStateMachine.Instance.DetermineGreenhouseState(89.6, 50, 0);
-            Assert.IsTrue(TemperatureStateMachine.Instance.CurrentState == GreenhouseState.PROCESSING_DATA);
-            Assert.IsTrue(TemperatureStateMachine.Instance.EndState == GreenhouseState.COOLING);
+            testMachine = new TemperatureStateMachine();
+            testMachine.DetermineGreenhouseState(89.6, 50, 0);
+            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.PROCESSING_DATA);
+            Assert.IsTrue(testMachine.EndState == GreenhouseState.COOLING);
 
-            TemperatureStateMachine.Instance.DetermineGreenhouseState(0, 100, 50);
-            Assert.IsTrue(TemperatureStateMachine.Instance.CurrentState == GreenhouseState.PROCESSING_DATA);
-            Assert.IsTrue(TemperatureStateMachine.Instance.EndState == GreenhouseState.HEATING);
+            testMachine.DetermineGreenhouseState(0, 100, 50);
+            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.PROCESSING_DATA);
+            Assert.IsTrue(testMachine.EndState == GreenhouseState.HEATING);
 
-            TemperatureStateMachine.Instance.DetermineGreenhouseState(50, 100, 0);
-            Assert.IsTrue(TemperatureStateMachine.Instance.CurrentState == GreenhouseState.WAITING_FOR_DATA);
+            testMachine.DetermineGreenhouseState(50, 100, 0);
+            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.WAITING_FOR_DATA);
 
-            TemperatureStateMachine.Instance.DetermineGreenhouseState(50, 80, 70);
+            testMachine.DetermineGreenhouseState(50, 80, 70);
             using (ArduinoControlSenderSimulator sim = new ArduinoControlSenderSimulator())
             {
-                sim.SendCommand(TemperatureStateMachine.Instance);
+                sim.SendCommand(testMachine);
             }
-            Assert.IsTrue(TemperatureStateMachine.Instance.CurrentState == GreenhouseState.HEATING);
+            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.HEATING);
 
-            TemperatureStateMachine.Instance.DetermineGreenhouseState(100, 80, 50);
+            testMachine.DetermineGreenhouseState(100, 80, 50);
             using (ArduinoControlSenderSimulator sim = new ArduinoControlSenderSimulator())
             {
-                sim.SendCommand(TemperatureStateMachine.Instance);
+                sim.SendCommand(testMachine);
             }
-            Assert.IsTrue(TemperatureStateMachine.Instance.CurrentState == GreenhouseState.COOLING);
+            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.COOLING);
         }
     }
 }

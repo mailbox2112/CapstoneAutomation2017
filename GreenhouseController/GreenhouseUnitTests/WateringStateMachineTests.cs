@@ -7,29 +7,32 @@ namespace GreenhouseUnitTests
     [TestClass]
     public class WateringStateMachineTests
     {
+        WateringStateMachine testMachine;
+
         [TestMethod]
         public void TestWateringStateMachineCreation()
         {
-            object obj = WateringStateMachine.Instance;
-            Assert.IsNotNull(obj);
+            testMachine = new WateringStateMachine();
+            Assert.IsNotNull(testMachine);
         }
 
         [TestMethod]
         public void TestWateringStateDecisions()
         {
-            WateringStateMachine.Instance.DetermineGreenhouseState(30, 50);
-            Assert.IsTrue(WateringStateMachine.Instance.CurrentState == GreenhouseState.PROCESSING_DATA);
-            Assert.IsTrue(WateringStateMachine.Instance.EndState == GreenhouseState.WATERING);
+            testMachine = new WateringStateMachine();
+            testMachine.DetermineGreenhouseState(30, 50);
+            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.PROCESSING_DATA);
+            Assert.IsTrue(testMachine.EndState == GreenhouseState.WATERING);
 
-            WateringStateMachine.Instance.DetermineGreenhouseState(50, 30);
-            Assert.IsTrue(WateringStateMachine.Instance.CurrentState == GreenhouseState.WAITING_FOR_DATA);
+            testMachine.DetermineGreenhouseState(50, 30);
+            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.WAITING_FOR_DATA);
 
-            WateringStateMachine.Instance.DetermineGreenhouseState(30, 50);
+            testMachine.DetermineGreenhouseState(30, 50);
             using (ArduinoControlSenderSimulator sim = new ArduinoControlSenderSimulator())
             {
-                sim.SendCommand(WateringStateMachine.Instance);
+                sim.SendCommand(testMachine);
             }
-            Assert.IsTrue(WateringStateMachine.Instance.CurrentState == GreenhouseState.WATERING);
+            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.WATERING);
         }
     }
 }

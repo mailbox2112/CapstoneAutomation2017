@@ -47,9 +47,9 @@ namespace GreenhouseController
         /// <param name="value"></param>
         /// <param name="limit"></param>
         /// <returns></returns>
-        public GreenhouseState DetermineLightingState(double value, int limit)
+        public void DetermineLightingState(double value, int limit)
         {
-            return Lighting.DetermineGreenhouseState(value, limit);
+            Lighting.DetermineGreenhouseState(value, limit);
         }
 
         /// <summary>
@@ -83,9 +83,9 @@ namespace GreenhouseController
         /// <param name="value"></param>
         /// <param name="limit"></param>
         /// <returns></returns>
-        public GreenhouseState DetermineWateringState(double value, int limit)
+        public void DetermineWateringState(double value, int limit)
         {
-            return Watering.DetermineGreenhouseState(value, limit);
+            Watering.DetermineGreenhouseState(value, limit);
         }
 
         /// <summary>
@@ -120,9 +120,9 @@ namespace GreenhouseController
         /// <param name="hiLimit"></param>
         /// <param name="loLimit"></param>
         /// <returns></returns>
-        public GreenhouseState DetermineTemperatureState(double value, int hiLimit, int loLimit)
+        public void DetermineTemperatureState(double value, int hiLimit, int loLimit)
         {
-            return Temperature.DetermineGreenhouseState(value, hiLimit, loLimit);
+            Temperature.DetermineGreenhouseState(value, hiLimit, loLimit);
         }
 
         /// <summary>

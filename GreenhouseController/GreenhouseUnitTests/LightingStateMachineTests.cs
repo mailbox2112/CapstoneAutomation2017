@@ -7,28 +7,30 @@ namespace GreenhouseUnitTests
     [TestClass]
     public class LightingStateMachineTests
     {
+        LightingStateMachine testMachine;
         [TestMethod]
         public void TestLightingStateMachineCreation()
         {
-            object obj = LightingStateMachine.Instance;
-            Assert.IsNotNull(obj);
+            testMachine = new LightingStateMachine();
+            Assert.IsNotNull(testMachine);
         }
 
         [TestMethod]
         public void TestLightingStateDecisions()
         {
-            LightingStateMachine.Instance.DetermineGreenhouseState(30, 100);
-            Assert.IsTrue(LightingStateMachine.Instance.CurrentState == GreenhouseState.PROCESSING_DATA);
+            testMachine = new LightingStateMachine();
+            testMachine.DetermineGreenhouseState(30, 100);
+            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.PROCESSING_DATA);
 
-            LightingStateMachine.Instance.DetermineGreenhouseState(100, 30);
-            Assert.IsTrue(LightingStateMachine.Instance.CurrentState == GreenhouseState.WAITING_FOR_DATA);
+            testMachine.DetermineGreenhouseState(100, 30);
+            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.WAITING_FOR_DATA);
 
-            LightingStateMachine.Instance.DetermineGreenhouseState(30, 100);
+            testMachine.DetermineGreenhouseState(30, 100);
             using (ArduinoControlSenderSimulator sim = new ArduinoControlSenderSimulator())
             {
-                sim.SendCommand(LightingStateMachine.Instance);
+                sim.SendCommand(testMachine);
             }
-            Assert.IsTrue(LightingStateMachine.Instance.CurrentState == GreenhouseState.LIGHTING);
+            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.LIGHTING);
         }
     }
 }
