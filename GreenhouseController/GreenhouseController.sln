@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GreenhouseController", "Gre
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleTCPServer", "SimpleTCPClient\SimpleTCPServer.csproj", "{DCEAB653-1713-440D-AD99-CF5CFC29730E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GreenhouseUnitTests", "GreenhouseUnitTests\GreenhouseUnitTests.csproj", "{BB3CFF62-4DF7-414E-96F6-1EA459D51DE7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{DCEAB653-1713-440D-AD99-CF5CFC29730E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DCEAB653-1713-440D-AD99-CF5CFC29730E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DCEAB653-1713-440D-AD99-CF5CFC29730E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB3CFF62-4DF7-414E-96F6-1EA459D51DE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB3CFF62-4DF7-414E-96F6-1EA459D51DE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB3CFF62-4DF7-414E-96F6-1EA459D51DE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB3CFF62-4DF7-414E-96F6-1EA459D51DE7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

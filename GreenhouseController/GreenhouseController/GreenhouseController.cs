@@ -8,18 +8,22 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    class GreenhouseController
+    public class GreenhouseController
     {
+        // TODO: RESET BUTTON?
         static void Main(string[] args)
         {
             var buffer = new BlockingCollection<byte[]>();
-            GreenhouseDataProducer.Instance.ItemInQueue += ItemInQueue;
-            Task.WaitAll(Task.Run(new Action(() => GreenhouseDataProducer.Instance.RequestAndReceiveGreenhouseData(buffer))));
+            Console.WriteLine($"Temperature State: {StateMachineController.Instance.GetTemperatureCurrentState().ToString()}");
+            Console.WriteLine($"Lighting State: {StateMachineController.Instance.GetLightingCurrentState().ToString()}");
+            Console.WriteLine($"Watering State: {StateMachineController.Instance.GetWateringCurrentState().ToString()}");
+            DataProducer.Instance.ItemInQueue += ItemInQueue;
+            Task.WaitAll(Task.Run(new Action(() => DataProducer.Instance.RequestAndReceiveGreenhouseData(buffer))));
         }
 
         static void ItemInQueue(object sender, DataEventArgs e)
         {
-            Task.Run(() => GreenhouseDataConsumer.Instance.ReceiveGreenhouseData(e.buffer));
+            Task.Run(() => DataConsumer.Instance.ReceiveGreenhouseData(e.Buffer));
         }
     }
 }

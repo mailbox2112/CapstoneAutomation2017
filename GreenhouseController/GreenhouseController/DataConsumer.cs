@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    class GreenhouseDataConsumer
+    public class DataConsumer
     {
-        private static volatile GreenhouseDataConsumer _instance;
+        private static volatile DataConsumer _instance;
         private static object _syncRoot = new object();
         private byte[] _data;
         private List<DataPacket> _zoneInformation;
@@ -19,7 +19,7 @@ namespace GreenhouseController
         /// <summary>
         /// Private constructor for singleton pattern
         /// </summary>
-        private GreenhouseDataConsumer()
+        private DataConsumer()
         {
             Console.WriteLine("Constructing greenhouse data analyzer...");
             _zoneInformation = new List<DataPacket>();
@@ -29,7 +29,7 @@ namespace GreenhouseController
         /// <summary>
         /// Instance property, used for singleton pattern
         /// </summary>
-        public static GreenhouseDataConsumer Instance
+        public static DataConsumer Instance
         {
             get
             {
@@ -39,7 +39,7 @@ namespace GreenhouseController
                     {
                         if (_instance == null)
                         {
-                            _instance = new GreenhouseDataConsumer();
+                            _instance = new DataConsumer();
                         }
                     }
                 }
@@ -57,8 +57,16 @@ namespace GreenhouseController
             {
                 source.TryTake(out _data);
                 var deserializedData = JsonConvert.DeserializeObject<DataPacket>(Encoding.ASCII.GetString(_data));
+                
+                // Check for repeat zones, and if we have any, throw out the old zone data
+                if(_zoneInformation.Where(p => p.zone == deserializedData.zone) != null)
+                {
+                    _zoneInformation.RemoveAll(p => p.zone == deserializedData.zone);
+                }
+
                 _zoneInformation.Add(deserializedData);
-                if(_zoneInformation.Count == 5)
+
+                if (_zoneInformation.Count == 5)
                 {
                     SendDataToAnalyzer(_zoneInformation);
                 }
@@ -79,10 +87,9 @@ namespace GreenhouseController
             DataPacket[] tempZoneInfo = new DataPacket[5];
             data.CopyTo(tempZoneInfo);
             data.Clear();
-            // TODO: Add error control! What if we get a packet from a zone we already have, and the values are different?!
             
-            GreenhouseDataAnalyzer analyze = new GreenhouseDataAnalyzer();
-            Task.Run(() => analyze.InterpretStateData(tempZoneInfo));
+            ActionAnalyzer analyze = new ActionAnalyzer();
+            Task.Run(() => analyze.AnalyzeData(tempZoneInfo));
         }
     }
 }

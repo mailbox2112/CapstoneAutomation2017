@@ -6,19 +6,18 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    enum GreenhouseState
+    /// <summary>
+    /// Enum of possible states that could be combined in our NFA
+    /// </summary>
+    public enum GreenhouseState
     {
-        WAITING,
+        WAITING_FOR_DATA,
+        WAITING_FOR_RESPONSE,
+        PROCESSING_DATA,
+        SENDING_DATA,
         HEATING,
         COOLING,
         LIGHTING,
         WATERING,
-        HEATING_LIGHTING,
-        COOLING_LIGHTING,
-        HEATING_WATERING,
-        COOLING_WATERING,
-        LIGHTING_WATERING,
-        HEATING_LIGHTING_WATERING,
-        COOLING_LIGHTING_WATERING,
     }
 }

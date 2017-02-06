@@ -7,6 +7,7 @@ using System.Threading;
 using System.Net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using GreenhouseController;
 
 namespace ConsoleApplication1
 {
@@ -25,15 +26,16 @@ namespace ConsoleApplication1
             client = serverListener.AcceptTcpClient();
             Console.WriteLine(" >> Accept connection from client");
             NetworkStream networkStream = client.GetStream();
-            
+
+            int[] zones = new int[] { 1, 2, 3, 4, 5 };
+            byte[] bytesFrom = new byte[1024];
+
             while ((true))
             {
                 try
                 {
                     JsonSpoof jSpoof = new JsonSpoof();
                     
-                    byte[] bytesFrom = new byte[10025];
-                    int[] zones = new int[5] { 1, 2, 3, 4, 5 };
                     foreach (int zone in zones)
                     {
                         string json = jSpoof.SpoofGreenhouseData(zone);
@@ -42,7 +44,7 @@ namespace ConsoleApplication1
                         networkStream.Flush();
                         Console.WriteLine(" >> " + $"{json}");
 
-                        Thread.Sleep(3000);
+                        Thread.Sleep(1000);
                     }
                 }
                 catch (Exception ex)
@@ -58,20 +60,6 @@ namespace ConsoleApplication1
 
         public class JsonSpoof
         {
-            public class Packet
-            {
-                public int zone;
-                public double temperature;
-                public double humidity;
-                public double light;
-
-                public int tempHi;
-                public int tempLo;
-                public int lightHi;
-                public int lightLo;
-                public int humidHi;
-                public int humidLo;
-            }
             
             public JsonSpoof() { }
             public string SpoofGreenhouseData(int zone)
@@ -80,18 +68,21 @@ namespace ConsoleApplication1
                 int tempMax = 120;
                 int humidMin = 0;
                 int humidMax = 100;
-                int lightMin = 0;
-                int lightMax = 98000;
+                int lightLim = 40000;
+                int moistLim = 30;
                 Random rand = new Random();
 
-                Packet pack = new Packet()
+                DataPacket pack = new DataPacket()
                 {
                     zone = zone,
                     temperature = rand.Next(tempMin, tempMax),
                     humidity = rand.Next(humidMin, humidMax),
-                    light = rand.Next(lightMin, lightMax),
+                    light = rand.Next(0, 100000),
+                    moisture = rand.Next(0, 100),
                     tempHi = 80,
-                    tempLo = 65
+                    tempLo = 65,
+                    lightLim = lightLim,
+                    moistLim = moistLim
                 };
 
                 string spoofData = JsonConvert.SerializeObject(pack);
