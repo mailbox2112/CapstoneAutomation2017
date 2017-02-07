@@ -58,7 +58,7 @@ namespace ConsoleApplication1
             Console.ReadLine();
         }
 
-        public class JsonSpoof
+        internal class JsonSpoof
         {
             
             public JsonSpoof() { }
