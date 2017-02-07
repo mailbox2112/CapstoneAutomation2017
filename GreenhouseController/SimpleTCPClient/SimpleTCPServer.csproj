@@ -7,8 +7,8 @@
     <ProjectGuid>{DCEAB653-1713-440D-AD99-CF5CFC29730E}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SimpleTCPClient</RootNamespace>
-    <AssemblyName>SimpleTCPClient</AssemblyName>
+    <RootNamespace>SimpleTCPServer</RootNamespace>
+    <AssemblyName>SimpleTCPServer</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
