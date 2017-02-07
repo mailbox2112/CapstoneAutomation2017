@@ -44,7 +44,7 @@ namespace ConsoleApplication1
                         networkStream.Flush();
                         Console.WriteLine(" >> " + $"{json}");
 
-                        Thread.Sleep(1000);
+                        Thread.Sleep(500);
                     }
                 }
                 catch (Exception ex)
