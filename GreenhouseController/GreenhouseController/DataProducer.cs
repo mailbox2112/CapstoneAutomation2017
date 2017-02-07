@@ -63,9 +63,9 @@ namespace GreenhouseController
         }
 
         /// <summary>
-        /// Request greenhouse data from the server
+        /// Read greenhouse data from the server
         /// </summary>
-        public void RequestAndReceiveGreenhouseData(BlockingCollection<byte[]> target)
+        public void ReadGreenhouseData(BlockingCollection<byte[]> target)
         {
             while (_break != true)
             {

@@ -18,7 +18,7 @@ namespace GreenhouseController
             Console.WriteLine($"Lighting State: {StateMachineController.Instance.GetLightingCurrentState().ToString()}");
             Console.WriteLine($"Watering State: {StateMachineController.Instance.GetWateringCurrentState().ToString()}");
             DataProducer.Instance.ItemInQueue += ItemInQueue;
-            Task.WaitAll(Task.Run(new Action(() => DataProducer.Instance.RequestAndReceiveGreenhouseData(buffer))));
+            Task.WaitAll(Task.Run(new Action(() => DataProducer.Instance.ReadGreenhouseData(buffer))));
         }
 
         static void ItemInQueue(object sender, DataEventArgs e)
