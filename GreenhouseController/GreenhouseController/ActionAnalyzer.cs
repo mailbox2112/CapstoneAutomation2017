@@ -33,7 +33,7 @@ namespace GreenhouseController
         /// Processes the data received from the packets
         /// </summary>
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
-        public void AnalyzeData(List<DataPacket> data)
+        public void AnalyzeData(DataPacket[] data)
         {
 
             // Get the averages of greenhouse readings
@@ -69,7 +69,7 @@ namespace GreenhouseController
         /// Helper method for averaging greenhouse data
         /// </summary>
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
-        private void GetGreenhouseAverages(List<DataPacket> data)
+        private void GetGreenhouseAverages(DataPacket[] data)
         {
             foreach (DataPacket pack in data)
             {
@@ -87,7 +87,7 @@ namespace GreenhouseController
         /// <summary>
         /// Helper method to get the greenhouse limits from packets
         /// </summary>
-        private void GetGreenhouseLimits(List<DataPacket> packet)
+        private void GetGreenhouseLimits(DataPacket[] packet)
         {
             // TODO: get light and humidity
             foreach (DataPacket pack in packet)

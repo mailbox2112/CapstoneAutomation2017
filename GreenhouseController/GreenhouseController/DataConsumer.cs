@@ -14,7 +14,7 @@ namespace GreenhouseController
         private static volatile DataConsumer _instance;
         private static object _syncRoot = new object();
         private byte[] _data;
-        private BlockingCollection<DataPacket> _zoneInformation;
+        private List<DataPacket> _zoneInformation;
 
         /// <summary>
         /// Private constructor for singleton pattern
@@ -22,7 +22,7 @@ namespace GreenhouseController
         private DataConsumer()
         {
             Console.WriteLine("Constructing greenhouse data analyzer...");
-            _zoneInformation = new BlockingCollection<DataPacket>(5);
+            _zoneInformation = new List<DataPacket>(5);
             Console.WriteLine("Greenhouse data analyzer constructed.\n");
         }
 
@@ -61,7 +61,7 @@ namespace GreenhouseController
                 // Check for repeat zones, and if we have any, throw out the old zone data
                 if(_zoneInformation.Where(p => p.zone == deserializedData.zone) != null)
                 {
-                    _zoneInformation.TakeWhile(p => p.zone == deserializedData.zone);
+                    _zoneInformation.RemoveAll(p => p.zone == deserializedData.zone);
                 }
 
                 _zoneInformation.Add(deserializedData);
@@ -82,15 +82,11 @@ namespace GreenhouseController
         /// </summary>
         /// <param name="data">Packet object representing the data contained in JSON sent over TCP</param>
         /// <returns></returns>
-        public void SendDataToAnalyzer(BlockingCollection<DataPacket> data)
+        public void SendDataToAnalyzer(List<DataPacket> data)
         {
-            List<DataPacket> tempZoneInfo = new List<DataPacket>();
-            DataPacket item;
-            while(data.Count != 0)
-            {
-                data.TryTake(out item);
-                tempZoneInfo.Add(item);
-            }
+            DataPacket[] tempZoneInfo = new DataPacket[data.Count];
+            data.CopyTo(tempZoneInfo);
+            data.Clear();
             
             ActionAnalyzer analyze = new ActionAnalyzer();
             Task.Run(() => analyze.AnalyzeData(tempZoneInfo));

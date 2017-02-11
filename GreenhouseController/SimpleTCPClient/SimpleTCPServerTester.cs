@@ -27,7 +27,7 @@ namespace ConsoleApplication1
             Console.WriteLine(" >> Accept connection from client");
             NetworkStream networkStream = client.GetStream();
 
-            int[] zones = new int[] { 1, 2, 3, 4, 5 };
+            int[] zones = new int[] { 1, 1, 2, 2, 3, 4, 4, 5 };
             byte[] bytesFrom = new byte[1024];
 
             while ((true))
