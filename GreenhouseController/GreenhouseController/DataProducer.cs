@@ -35,7 +35,19 @@ namespace GreenhouseController
             Console.WriteLine("Constructing data producer...");
 
             _client = new TcpClient();
-            _client.Connect("127.0.0.1", 8888);
+            while(!_client.Connected)
+            {
+                try
+                {
+                    _client.Connect("127.0.0.1", 8888);
+                    Console.WriteLine("Connected to data server.");
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine($"Could not connect to data server, retrying. {ex.Message}");
+                    Thread.Sleep(1000);
+                }
+            }
             _dataStream = _client.GetStream();
             _break = false;
             Console.WriteLine("Data producer constructed.\n");
@@ -69,9 +81,9 @@ namespace GreenhouseController
         {
             while (_break != true)
             {
+                // The read command is blocking, so this just waits until data is available
                 try
                 {
-                    // The read command is blocking, so this just waits until data is available
                     if (_client.Connected)
                     {
                         _dataStream.Read(_buffer, 0, _buffer.Length);
@@ -83,13 +95,29 @@ namespace GreenhouseController
                         Array.Clear(_buffer, 0, _buffer.Length);
                     }
                 }
-                catch (Exception ex)
+                // Should we lose the connection, we get rid of the socket, try to start a new one,
+                // and try to connect to it.
+                catch
                 {
-                    Console.WriteLine(ex);
-                    _break = true;
-                    _dataStream.Dispose();
+                    _client.Close();
+                    _client = new TcpClient();
+                    while (!_client.Connected)
+                    {
+                        try
+                        {
+                            _client.Connect("127.0.0.1", 8888);
+                            Console.WriteLine("Connected to data server.");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Could not connect to data server, retrying. {ex.Message}");
+                            Thread.Sleep(1000);
+                        }
+                    }
+                    _dataStream = _client.GetStream();
                 }
             }
+            _dataStream.Dispose();
         }
     }
 }
