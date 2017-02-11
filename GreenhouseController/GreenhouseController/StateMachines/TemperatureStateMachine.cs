@@ -8,6 +8,8 @@ namespace GreenhouseController
 {
     public class TemperatureStateMachine : IStateMachine
     {
+        private const int _emergencyTemp = 120;
+
         public GreenhouseState EndState { get; set; }
         public GreenhouseState CurrentState { get; set; }
 
@@ -27,7 +29,14 @@ namespace GreenhouseController
             }
             else if (value > hiLimit)
             {
-                EndState = GreenhouseState.COOLING;
+                if (value >= _emergencyTemp)
+                {
+                    CurrentState = GreenhouseState.EMERGENCY;
+                }
+                else
+                {
+                    EndState = GreenhouseState.COOLING;
+                }
             }
             else
             {

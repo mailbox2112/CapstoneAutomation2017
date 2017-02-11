@@ -37,12 +37,16 @@ namespace GreenhouseUnitTests
         public void TestDetermineWaterState()
         {
             // Should be watering
-            StateMachineController.Instance.DetermineWateringState(0, 100);
+            StateMachineController.Instance.DetermineWateringState(10, 100);
             Assert.IsTrue(StateMachineController.Instance.GetWateringEndState() == GreenhouseState.WATERING);
 
             // Should be waiting
             StateMachineController.Instance.DetermineWateringState(100, 0);
             Assert.IsTrue(StateMachineController.Instance.GetWateringEndState() == GreenhouseState.WAITING_FOR_DATA);
+
+            // SHould be emergency
+            StateMachineController.Instance.DetermineWateringState(0, 100);
+            Assert.IsTrue(StateMachineController.Instance.GetWateringCurrentState() == GreenhouseState.EMERGENCY);
         }
 
         [TestMethod]
@@ -89,12 +93,16 @@ namespace GreenhouseUnitTests
             Assert.IsTrue(StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.HEATING);
 
             // Should be cooling
-            StateMachineController.Instance.DetermineTemperatureState(500, 100, 50);
+            StateMachineController.Instance.DetermineTemperatureState(101, 100, 50);
             Assert.IsTrue(StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.COOLING);
 
             // Should be waiting
             StateMachineController.Instance.DetermineTemperatureState(75, 100, 50);
             Assert.IsTrue(StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.WAITING_FOR_DATA);
+
+            // Should be emergency
+            StateMachineController.Instance.DetermineTemperatureState(150, 100, 0);
+            Assert.IsTrue(StateMachineController.Instance.GetTemperatureCurrentState() == GreenhouseState.EMERGENCY);
         }
     }
 }

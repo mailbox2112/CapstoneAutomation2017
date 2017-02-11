@@ -43,6 +43,9 @@ namespace GreenhouseUnitTests
                 sim.SendCommand(testMachine);
             }
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.COOLING);
+
+            testMachine.DetermineGreenhouseState(150, 100, 0);
+            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.EMERGENCY);
         }
     }
 }

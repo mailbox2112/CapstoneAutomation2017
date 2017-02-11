@@ -50,7 +50,8 @@ namespace GreenhouseController
 
             using (ArduinoControlSender sender = new ArduinoControlSender())
             {
-                if (StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.COOLING || StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.HEATING)
+                if ((StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.COOLING || StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.HEATING)
+                    && StateMachineController.Instance.GetTemperatureCurrentState() != GreenhouseState.EMERGENCY)
                 {
                     sender.SendCommand(StateMachineController.Instance.GetTemperatureMachine());
                 }
@@ -58,10 +59,19 @@ namespace GreenhouseController
                 {
                     sender.SendCommand(StateMachineController.Instance.GetLightingMachine());
                 }
-                if (StateMachineController.Instance.GetWateringEndState() == GreenhouseState.WATERING)
+                if (StateMachineController.Instance.GetWateringEndState() == GreenhouseState.WATERING && StateMachineController.Instance.GetWateringCurrentState() != GreenhouseState.EMERGENCY)
                 {
                     sender.SendCommand(StateMachineController.Instance.GetWateringMachine());
                 }
+            }
+
+            if (StateMachineController.Instance.GetWateringCurrentState() == GreenhouseState.EMERGENCY)
+            {
+                // Send an emergency message to the Data Team!
+            }
+            if (StateMachineController.Instance.GetTemperatureCurrentState() == GreenhouseState.EMERGENCY)
+            {
+                // Send an emergency message to the Data Team!
             }
         }
 

@@ -19,5 +19,7 @@ namespace GreenhouseController
         COOLING,
         LIGHTING,
         WATERING,
+        EMERGENCY,
+        ERROR
     }
 }

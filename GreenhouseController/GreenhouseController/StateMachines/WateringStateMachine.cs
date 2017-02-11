@@ -8,6 +8,8 @@ namespace GreenhouseController
 {
     public class WateringStateMachine : IStateMachine
     {
+        private const int _emergencyMoist = 0;
+
         public GreenhouseState CurrentState { get; set; }
         public GreenhouseState EndState { get; set; }
         
@@ -23,7 +25,14 @@ namespace GreenhouseController
 
             if(value < hiLimit)
             {
-                EndState = GreenhouseState.WATERING;
+                if (value == _emergencyMoist)
+                {
+                    CurrentState = GreenhouseState.EMERGENCY;
+                }
+                else 
+                {
+                    EndState = GreenhouseState.WATERING;
+                }
             }
             else
             {
