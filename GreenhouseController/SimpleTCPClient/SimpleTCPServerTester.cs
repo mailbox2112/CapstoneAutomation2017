@@ -78,7 +78,7 @@ namespace ConsoleApplication1
                     temperature = rand.Next(tempMin, tempMax),
                     humidity = rand.Next(humidMin, humidMax),
                     light = rand.Next(0, 100000),
-                    moisture = rand.Next(0, 100),
+                    moisture = rand.Next(10, 100),
                     tempHi = 80,
                     tempLo = 65,
                     lightLim = lightLim,
