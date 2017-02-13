@@ -63,6 +63,7 @@ namespace GreenhouseController
                     // {
                     //      _retryCount++;
                     //      retry;
+                    //      state == ERROR
                     // }
 
                     Console.WriteLine($"State {stateMachine.EndState} executed successfully\n");
