@@ -16,6 +16,10 @@ namespace GreenhouseController
         private int[] _tempLimits;
         private int _lightLimit;
         private int _moistureLimit;
+        private bool _manualHeat;
+        private bool _manualCool;
+        private bool _manualLight;
+        private bool _manualWater;
 
         public ActionAnalyzer()
         {
@@ -35,43 +39,72 @@ namespace GreenhouseController
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
         public void AnalyzeData(DataPacket[] data)
         {
-
-            // Get the averages of greenhouse readings
-            GetGreenhouseAverages(data);
-            Console.WriteLine($"Time: {_currentTime}\nAverage Temperature: {_avgTemp}\nAverage Humidity: {_avgHumid}\nAverage Light Intensity: {_avgLight}\nAverage Soil Moisture: {_avgMoisture}\n");
-
-            // Get the limits we're comparing to
-            GetGreenhouseLimits(data);
-
-            // Get Temperature state machine state
-            StateMachineController.Instance.DetermineTemperatureState(_avgTemp, _tempLimits[0], _tempLimits[1]);
-            StateMachineController.Instance.DetermineLightingState(_avgLight, _lightLimit);
-            StateMachineController.Instance.DetermineWateringState(_avgMoisture, _moistureLimit);
-
-            using (ArduinoControlSender sender = new ArduinoControlSender())
+            foreach (var packet in data)
             {
-                if ((StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.COOLING || StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.HEATING)
-                    && StateMachineController.Instance.GetTemperatureCurrentState() != GreenhouseState.EMERGENCY)
+                if (packet.manualCool)
                 {
-                    sender.SendCommand(StateMachineController.Instance.GetTemperatureMachine());
+                    _manualCool = packet.manualCool;
                 }
-                if (StateMachineController.Instance.GetLightingEndState() == GreenhouseState.LIGHTING)
+                else if (packet.manualHeat)
                 {
-                    sender.SendCommand(StateMachineController.Instance.GetLightingMachine());
+                    _manualHeat = packet.manualHeat;
                 }
-                if (StateMachineController.Instance.GetWateringEndState() == GreenhouseState.WATERING && StateMachineController.Instance.GetWateringCurrentState() != GreenhouseState.EMERGENCY)
+                else if (packet.manualLight)
                 {
-                    sender.SendCommand(StateMachineController.Instance.GetWateringMachine());
+                    _manualLight = packet.manualLight;
+                }
+                else if (packet.manualWater)
+                {
+                    _manualWater = packet.manualWater;
                 }
             }
 
-            if (StateMachineController.Instance.GetWateringCurrentState() == GreenhouseState.EMERGENCY)
+            // Check if the manual flags are set
+            if (!_manualCool || !_manualHeat || !_manualLight || !_manualWater)
             {
-                // Send an emergency message to the Data Team!
+                // Get the averages of greenhouse readings
+                GetGreenhouseAverages(data);
+                Console.WriteLine($"Time: {_currentTime}\nAverage Temperature: {_avgTemp}\nAverage Humidity: {_avgHumid}\nAverage Light Intensity: {_avgLight}\nAverage Soil Moisture: {_avgMoisture}\n");
+
+                // Get the limits we're comparing to
+                GetGreenhouseLimits(data);
+
+                // Get Temperature state machine state
+                StateMachineController.Instance.DetermineTemperatureState(_avgTemp, _tempLimits[0], _tempLimits[1]);
+                StateMachineController.Instance.DetermineLightingState(_avgLight, _lightLimit);
+                StateMachineController.Instance.DetermineWateringState(_avgMoisture, _moistureLimit);
+
+                // Send commands
+                using (ArduinoControlSender sender = new ArduinoControlSender())
+                {
+                    if ((StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.COOLING || StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.HEATING)
+                        && StateMachineController.Instance.GetTemperatureCurrentState() != GreenhouseState.EMERGENCY)
+                    {
+                        sender.SendCommand(StateMachineController.Instance.GetTemperatureMachine());
+                    }
+                    if (StateMachineController.Instance.GetLightingEndState() == GreenhouseState.LIGHTING)
+                    {
+                        sender.SendCommand(StateMachineController.Instance.GetLightingMachine());
+                    }
+                    if (StateMachineController.Instance.GetWateringEndState() == GreenhouseState.WATERING && StateMachineController.Instance.GetWateringCurrentState() != GreenhouseState.EMERGENCY)
+                    {
+                        sender.SendCommand(StateMachineController.Instance.GetWateringMachine());
+                    }
+                }
+
+                if (StateMachineController.Instance.GetWateringCurrentState() == GreenhouseState.EMERGENCY)
+                {
+                    // Send an emergency message to the Data Team!
+                }
+                if (StateMachineController.Instance.GetTemperatureCurrentState() == GreenhouseState.EMERGENCY)
+                {
+                    // Send an emergency message to the Data Team!
+                }
             }
-            if (StateMachineController.Instance.GetTemperatureCurrentState() == GreenhouseState.EMERGENCY)
+            // If manual flags are set....
+            else
             {
-                // Send an emergency message to the Data Team!
+                // Override stuff
             }
         }
 
