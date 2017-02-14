@@ -16,10 +16,10 @@ namespace GreenhouseController
         private int[] _tempLimits;
         private int _lightLimit;
         private int _moistureLimit;
-        private bool _manualHeat;
-        private bool _manualCool;
-        private bool _manualLight;
-        private bool _manualWater;
+        private bool? _manualHeat;
+        private bool? _manualCool;
+        private bool? _manualLight;
+        private bool? _manualWater;
 
         public ActionAnalyzer()
         {
@@ -30,6 +30,10 @@ namespace GreenhouseController
             _tempLimits = new int[2];
             _lightLimit = new int();
             _moistureLimit = new int();
+            _manualCool = null;
+            _manualHeat = null;
+            _manualLight = null;
+            _manualWater = null;
             _currentTime = DateTime.Now;
         }
 
@@ -39,73 +43,96 @@ namespace GreenhouseController
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
         public void AnalyzeData(DataPacket[] data)
         {
+            // If any of the packets have a value for manual control in them, we change the manual variables
+            // otherwise they stay null
             foreach (var packet in data)
             {
-                if (packet.manualCool)
-                {
-                    _manualCool = packet.manualCool;
-                }
-                else if (packet.manualHeat)
+                if (packet.manualHeat != null)
                 {
                     _manualHeat = packet.manualHeat;
                 }
-                else if (packet.manualLight)
+                if (packet.manualCool != null)
+                {
+                    _manualCool = packet.manualCool;
+                }
+                if (packet.manualLight != null)
                 {
                     _manualLight = packet.manualLight;
                 }
-                else if (packet.manualWater)
+                if (packet.manualWater != null)
                 {
                     _manualWater = packet.manualWater;
                 }
             }
 
-            // Check if the manual flags are set
-            if (!_manualCool || !_manualHeat || !_manualLight || !_manualWater)
+            #region Greenhouse Under Automated Control
+            // Get the averages of greenhouse readings
+            GetGreenhouseAverages(data);
+            Console.WriteLine($"Time: {_currentTime}\nAverage Temperature: {_avgTemp}\nAverage Humidity: {_avgHumid}\nAverage Light Intensity: {_avgLight}\nAverage Soil Moisture: {_avgMoisture}\n");
+            Console.WriteLine($"Manual Heating: {_manualHeat}\nManual Cooling: {_manualCool}\nManual Lighting: {_manualLight}\nManual Watering: {_manualWater}\n");
+            // Get the limits we're comparing to
+            GetGreenhouseLimits(data);
+
+            // Get state machine states as long as we don't have a manual command change to send
+            if (_manualHeat != null && _manualCool != null)
             {
-                // Get the averages of greenhouse readings
-                GetGreenhouseAverages(data);
-                Console.WriteLine($"Time: {_currentTime}\nAverage Temperature: {_avgTemp}\nAverage Humidity: {_avgHumid}\nAverage Light Intensity: {_avgLight}\nAverage Soil Moisture: {_avgMoisture}\n");
-
-                // Get the limits we're comparing to
-                GetGreenhouseLimits(data);
-
-                // Get Temperature state machine state
                 StateMachineController.Instance.DetermineTemperatureState(_avgTemp, _tempLimits[0], _tempLimits[1]);
-                StateMachineController.Instance.DetermineLightingState(_avgLight, _lightLimit);
-                StateMachineController.Instance.DetermineWateringState(_avgMoisture, _moistureLimit);
-
-                // Send commands
-                using (ArduinoControlSender sender = new ArduinoControlSender())
-                {
-                    if ((StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.COOLING || StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.HEATING)
-                        && StateMachineController.Instance.GetTemperatureCurrentState() != GreenhouseState.EMERGENCY)
-                    {
-                        sender.SendCommand(StateMachineController.Instance.GetTemperatureMachine());
-                    }
-                    if (StateMachineController.Instance.GetLightingEndState() == GreenhouseState.LIGHTING)
-                    {
-                        sender.SendCommand(StateMachineController.Instance.GetLightingMachine());
-                    }
-                    if (StateMachineController.Instance.GetWateringEndState() == GreenhouseState.WATERING && StateMachineController.Instance.GetWateringCurrentState() != GreenhouseState.EMERGENCY)
-                    {
-                        sender.SendCommand(StateMachineController.Instance.GetWateringMachine());
-                    }
-                }
-
-                if (StateMachineController.Instance.GetWateringCurrentState() == GreenhouseState.EMERGENCY)
-                {
-                    // Send an emergency message to the Data Team!
-                }
-                if (StateMachineController.Instance.GetTemperatureCurrentState() == GreenhouseState.EMERGENCY)
-                {
-                    // Send an emergency message to the Data Team!
-                }
             }
-            // If manual flags are set....
             else
             {
-                // Override stuff
+                // TODO: Change state based on manual controls!
             }
+            if (_manualLight != null)
+            {
+                StateMachineController.Instance.DetermineLightingState(_avgLight, _lightLimit);
+            }
+            else
+            {
+                // TODO: Change state based on manual controls!
+            }
+            if (_manualWater != null)
+            {
+                StateMachineController.Instance.DetermineWateringState(_avgMoisture, _moistureLimit);
+            }
+            else
+            {
+                // TODO: Change state based on manual controls!
+            }
+            
+            // TODO: how to send only the stuff that is automated and not anything that's been manually controlled?
+            // Solution: see above. We send the commands regardless, and have a separate manual state for each state machine
+            //              rather than the same heating/cooling state for everything. Makes the state machines a bit more complex,
+            //              but the solution is probably cleaner than if we tried some other way. This way just have a nice little "if"
+            //              statement that checks to see if we're in the manual state and doens't send a command unless we've received a
+            //              non-null value for the manual command that's DIFFERENT than the one that's currently set in the state machine
+            // Send commands
+            using (ArduinoControlSender sender = new ArduinoControlSender())
+            {
+                if ((StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.COOLING || StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.HEATING)
+                    && StateMachineController.Instance.GetTemperatureCurrentState() != GreenhouseState.EMERGENCY)
+                {
+                    sender.SendCommand(StateMachineController.Instance.GetTemperatureMachine());
+                }
+                if (StateMachineController.Instance.GetLightingEndState() == GreenhouseState.LIGHTING)
+                {
+                    sender.SendCommand(StateMachineController.Instance.GetLightingMachine());
+                }
+                if (StateMachineController.Instance.GetWateringEndState() == GreenhouseState.WATERING && StateMachineController.Instance.GetWateringCurrentState() != GreenhouseState.EMERGENCY)
+                {
+                    sender.SendCommand(StateMachineController.Instance.GetWateringMachine());
+                }
+            }
+            #endregion
+
+            if (StateMachineController.Instance.GetWateringCurrentState() == GreenhouseState.EMERGENCY)
+            {
+                // TODO: Send an emergency message to the Data Team!
+            }
+            if (StateMachineController.Instance.GetTemperatureCurrentState() == GreenhouseState.EMERGENCY)
+            {
+                // TODO: Send an emergency message to the Data Team!
+            }
+
         }
 
         /// <summary>

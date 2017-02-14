@@ -19,9 +19,9 @@ namespace GreenhouseController
         public int lightLim;
         public int moistLim;
 
-        public bool manualHeat;
-        public bool manualCool;
-        public bool manualLight;
-        public bool manualWater;
+        public bool? manualHeat;
+        public bool? manualCool;
+        public bool? manualLight;
+        public bool? manualWater;
     }
 }
