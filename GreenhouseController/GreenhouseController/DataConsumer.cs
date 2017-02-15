@@ -84,10 +84,17 @@ namespace GreenhouseController
         /// <returns></returns>
         public void SendDataToAnalyzer(List<DataPacket> data)
         {
+            // Set the state machines
+            StateMachineContainer.Instance.Temperature.CurrentState = GreenhouseState.PROCESSING_DATA;
+            StateMachineContainer.Instance.Lighting.CurrentState = GreenhouseState.PROCESSING_DATA;
+            StateMachineContainer.Instance.Watering.CurrentState = GreenhouseState.PROCESSING_DATA;
+
+            // Copy info to an array so we don't modify list as we use it in another thread
             DataPacket[] tempZoneInfo = new DataPacket[data.Count];
             data.CopyTo(tempZoneInfo);
             data.Clear();
             
+            // Send array
             ActionAnalyzer analyze = new ActionAnalyzer();
             Task.Run(() => analyze.AnalyzeData(tempZoneInfo));
         }

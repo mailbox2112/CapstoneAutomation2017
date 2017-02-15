@@ -11,33 +11,28 @@ namespace GreenhouseController
         private const int _emergencyMoist = 0;
 
         public GreenhouseState CurrentState { get; set; }
-        public GreenhouseState EndState { get; set; }
         
         public WateringStateMachine()
         {
             CurrentState = GreenhouseState.WAITING_FOR_DATA;
-            EndState = GreenhouseState.WAITING_FOR_DATA;
         }
 
-        public void DetermineGreenhouseState(double value, int hiLimit, int? loLimit = default(int?))
+        public GreenhouseState DetermineState(double value, int hiLimit, int? loLimit = default(int?))
         {
-            CurrentState = GreenhouseState.PROCESSING_DATA;
-
             if(value < hiLimit)
             {
                 if (value == _emergencyMoist)
                 {
-                    CurrentState = GreenhouseState.EMERGENCY;
+                    return GreenhouseState.EMERGENCY;
                 }
                 else 
                 {
-                    EndState = GreenhouseState.WATERING;
+                    return GreenhouseState.WATERING;
                 }
             }
             else
             {
-                CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                EndState = GreenhouseState.WAITING_FOR_DATA;
+                return GreenhouseState.WAITING_FOR_DATA;
             }
         }
     }

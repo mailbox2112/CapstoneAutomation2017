@@ -65,6 +65,8 @@ namespace GreenhouseController
                 }
             }
 
+            List<GreenhouseState> statesToSend = new List<GreenhouseState>();
+
             #region Greenhouse Under Automated Control
             // Get the averages of greenhouse readings
             GetGreenhouseAverages(data);
@@ -74,29 +76,74 @@ namespace GreenhouseController
             GetGreenhouseLimits(data);
 
             // Get state machine states as long as we don't have a manual command change to send
-            if (_manualHeat != null && _manualCool != null)
+            if (_manualHeat == null && _manualCool == null)
             {
-                StateMachineController.Instance.DetermineTemperatureState(_avgTemp, _tempLimits[0], _tempLimits[1]);
+                GreenhouseState goalTempState = StateMachineContainer.Instance.Temperature.DetermineState(_avgTemp, _tempLimits[0], _tempLimits[1]);
+                if (goalTempState == GreenhouseState.HEATING || goalTempState == GreenhouseState.COOLING)
+                {
+                    statesToSend.Add(goalTempState);
+                }
             }
             else
             {
-                // TODO: Change state based on manual controls!
+                if (_manualHeat == true)
+                {
+                    GreenhouseState goalTempState = GreenhouseState.MAN_HEATING;
+                    statesToSend.Add(goalTempState);
+                }
+                else if (_manualCool == true)
+                {
+                    GreenhouseState goalTempState = GreenhouseState.MAN_COOLING;
+                    statesToSend.Add(goalTempState);
+                }
+                else if (_manualHeat == false)
+                {
+                    // send command to turn off heating!
+                }
+                else if (_manualCool == false)
+                {
+                    // send command to turn off cooling!
+                }
             }
-            if (_manualLight != null)
+            if (_manualLight == null)
             {
-                StateMachineController.Instance.DetermineLightingState(_avgLight, _lightLimit);
+                GreenhouseState goalLightState = StateMachineContainer.Instance.Lighting.DetermineState(_avgLight, _lightLimit);
+                if (goalLightState == GreenhouseState.LIGHTING)
+                {
+                    statesToSend.Add(goalLightState);
+                }
             }
             else
             {
-                // TODO: Change state based on manual controls!
+                if (_manualLight == true)
+                {
+                    GreenhouseState goalLightState = GreenhouseState.MAN_LIGHTING;
+                    statesToSend.Add(goalLightState);
+                }
+                else
+                {
+                    // send command to turn off lighting!
+                }
             }
-            if (_manualWater != null)
+            if (_manualWater == null)
             {
-                StateMachineController.Instance.DetermineWateringState(_avgMoisture, _moistureLimit);
+                GreenhouseState goalWaterState = StateMachineContainer.Instance.Watering.DetermineState(_avgMoisture, _moistureLimit);
+                if (goalWaterState == GreenhouseState.WATERING)
+                {
+                    statesToSend.Add(goalWaterState);
+                }
             }
             else
             {
-                // TODO: Change state based on manual controls!
+                if (_manualWater == true)
+                {
+                    GreenhouseState goalWaterState = GreenhouseState.MAN_WATER;
+                    statesToSend.Add(goalWaterState);
+                }
+                else
+                {
+                    // send command to turn off watering!
+                }
             }
             
             // TODO: how to send only the stuff that is automated and not anything that's been manually controlled?
@@ -108,27 +155,16 @@ namespace GreenhouseController
             // Send commands
             using (ArduinoControlSender sender = new ArduinoControlSender())
             {
-                if ((StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.COOLING || StateMachineController.Instance.GetTemperatureEndState() == GreenhouseState.HEATING)
-                    && StateMachineController.Instance.GetTemperatureCurrentState() != GreenhouseState.EMERGENCY)
-                {
-                    sender.SendCommand(StateMachineController.Instance.GetTemperatureMachine());
-                }
-                if (StateMachineController.Instance.GetLightingEndState() == GreenhouseState.LIGHTING)
-                {
-                    sender.SendCommand(StateMachineController.Instance.GetLightingMachine());
-                }
-                if (StateMachineController.Instance.GetWateringEndState() == GreenhouseState.WATERING && StateMachineController.Instance.GetWateringCurrentState() != GreenhouseState.EMERGENCY)
-                {
-                    sender.SendCommand(StateMachineController.Instance.GetWateringMachine());
-                }
+                // Send commands
+                sender.SendCommand(statesToSend);
             }
             #endregion
 
-            if (StateMachineController.Instance.GetWateringCurrentState() == GreenhouseState.EMERGENCY)
+            if (StateMachineContainer.Instance.Watering.CurrentState == GreenhouseState.EMERGENCY)
             {
                 // TODO: Send an emergency message to the Data Team!
             }
-            if (StateMachineController.Instance.GetTemperatureCurrentState() == GreenhouseState.EMERGENCY)
+            if (StateMachineContainer.Instance.Temperature.CurrentState == GreenhouseState.EMERGENCY)
             {
                 // TODO: Send an emergency message to the Data Team!
             }

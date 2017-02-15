@@ -22,8 +22,8 @@ namespace GreenhouseController
             try
             {
                 stateMachine.CurrentState = GreenhouseState.SENDING_DATA;
-                Console.WriteLine($"Attempting to send state {stateMachine.EndState}");
-                Console.WriteLine($"State {stateMachine.EndState} sent successfully");
+                Console.WriteLine($"Attempting to send state {stateMachine.CurrentState}");
+                Console.WriteLine($"State {stateMachine.CurrentState} sent successfully");
             }
             catch (Exception ex)
             {
@@ -32,12 +32,11 @@ namespace GreenhouseController
             try
             {
                 stateMachine.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
-                Console.WriteLine($"State {stateMachine.EndState} executed successfully\n");
-                stateMachine.CurrentState = stateMachine.EndState;
+                Console.WriteLine($"State {stateMachine.CurrentState} executed successfully\n");
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex + $"\n State {stateMachine.EndState} unsuccessful\n");
+                Console.WriteLine(ex + $"\n State {stateMachine.CurrentState} unsuccessful\n");
             }
         }
     }

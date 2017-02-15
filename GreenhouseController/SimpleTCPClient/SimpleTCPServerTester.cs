@@ -17,7 +17,7 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
-            Thread.Sleep(10000);
+            Thread.Sleep(1000);
             TcpListener serverListener = new TcpListener(IPAddress.Parse("127.0.0.1"), 8888);
             
             TcpClient client = default(TcpClient);

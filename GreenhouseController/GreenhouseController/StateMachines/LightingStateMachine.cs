@@ -9,25 +9,22 @@ namespace GreenhouseController
     public class LightingStateMachine : IStateMachine
     {
         public GreenhouseState CurrentState { get; set; }
-        public GreenhouseState EndState { get; set; }
         
         public LightingStateMachine()
         {
             CurrentState = GreenhouseState.WAITING_FOR_DATA;
-            EndState = GreenhouseState.WAITING_FOR_DATA;
         }
 
-        public void DetermineGreenhouseState(double value, int hiLimit, int? loLimit = default(int?))
+        public GreenhouseState DetermineState(double value, int hiLimit, int? loLimit = default(int?))
         {
             CurrentState = GreenhouseState.PROCESSING_DATA;
             if (value < hiLimit)
             {
-                EndState = GreenhouseState.LIGHTING;
+                return GreenhouseState.LIGHTING;
             }
             else
             {
-                CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                EndState = GreenhouseState.WAITING_FOR_DATA;
+                return GreenhouseState.WAITING_FOR_DATA;
             }
         }
     }

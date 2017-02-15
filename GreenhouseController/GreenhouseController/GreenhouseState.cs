@@ -19,6 +19,10 @@ namespace GreenhouseController
         COOLING,
         LIGHTING,
         WATERING,
+        MAN_HEATING,
+        MAN_COOLING,
+        MAN_LIGHTING,
+        MAN_WATER,
         EMERGENCY,
         ERROR
     }
