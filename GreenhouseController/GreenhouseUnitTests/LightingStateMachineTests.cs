@@ -19,16 +19,17 @@ namespace GreenhouseUnitTests
         public void TestLightingStateDecisions()
         {
             testMachine = new LightingStateMachine();
-            testMachine.DetermineState(30, 100);
+            GreenhouseState result = testMachine.DetermineState(30, 100);
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.PROCESSING_DATA);
+            Assert.IsTrue(result == GreenhouseState.LIGHTING);
 
             testMachine.DetermineState(100, 30);
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.WAITING_FOR_DATA);
 
-            testMachine.DetermineState(30, 100);
+            result = testMachine.DetermineState(30, 100);
             using (ArduinoControlSenderSimulator sim = new ArduinoControlSenderSimulator())
             {
-                sim.SendCommand(testMachine);
+                sim.SendCommand(result, testMachine);
             }
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.LIGHTING);
         }

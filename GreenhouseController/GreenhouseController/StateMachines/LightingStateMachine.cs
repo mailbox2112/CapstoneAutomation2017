@@ -24,6 +24,7 @@ namespace GreenhouseController
             }
             else
             {
+                CurrentState = GreenhouseState.WAITING_FOR_DATA;
                 return GreenhouseState.WAITING_FOR_DATA;
             }
         }

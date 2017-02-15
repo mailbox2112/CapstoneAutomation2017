@@ -20,22 +20,23 @@ namespace GreenhouseUnitTests
         public void TestWateringStateDecisions()
         {
             testMachine = new WateringStateMachine();
-            testMachine.DetermineState(30, 50);
+            GreenhouseState result = testMachine.DetermineState(30, 50);
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.PROCESSING_DATA);
-            Assert.IsTrue(testMachine.EndState == GreenhouseState.WATERING);
+            Assert.IsTrue(result == GreenhouseState.WATERING);
 
-            testMachine.DetermineState(50, 30);
+            result = testMachine.DetermineState(50, 30);
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.WAITING_FOR_DATA);
+            Assert.IsTrue(result == GreenhouseState.WAITING_FOR_DATA);
 
-            testMachine.DetermineState(30, 50);
+            result = testMachine.DetermineState(30, 50);
             using (ArduinoControlSenderSimulator sim = new ArduinoControlSenderSimulator())
             {
-                sim.SendCommand(testMachine);
+                sim.SendCommand(result, testMachine);
             }
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.WATERING);
 
-            testMachine.DetermineState(0, 100);
-            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.EMERGENCY);
+            result = testMachine.DetermineState(0, 100);
+            Assert.IsTrue(result == GreenhouseState.EMERGENCY);
         }
     }
 }

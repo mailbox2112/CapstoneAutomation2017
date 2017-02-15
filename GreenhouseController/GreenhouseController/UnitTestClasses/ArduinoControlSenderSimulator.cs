@@ -17,7 +17,7 @@ namespace GreenhouseController
         /// Takes a list of commands to be sent to the arduino and sends them over the pi's serial port
         /// </summary>
         /// <param name="_commandsToSend">List of GreenhouseCommands from the enum</param>
-        public void SendCommand(IStateMachine stateMachine)
+        public void SendCommand(GreenhouseState state, IStateMachine stateMachine)
         {
             try
             {
@@ -33,6 +33,7 @@ namespace GreenhouseController
             {
                 stateMachine.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
                 Console.WriteLine($"State {stateMachine.CurrentState} executed successfully\n");
+                stateMachine.CurrentState = state;
             }
             catch (Exception ex)
             {

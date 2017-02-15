@@ -19,33 +19,34 @@ namespace GreenhouseUnitTests
         public void TestTemperatureStateDecisions()
         {
             testMachine = new TemperatureStateMachine();
-            testMachine.DetermineState(89.6, 50, 0);
+            GreenhouseState result = testMachine.DetermineState(89.6, 50, 0);
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.PROCESSING_DATA);
-            Assert.IsTrue(testMachine.EndState == GreenhouseState.COOLING);
+            Assert.IsTrue(result == GreenhouseState.COOLING);
 
-            testMachine.DetermineState(0, 100, 50);
+            result = testMachine.DetermineState(0, 100, 50);
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.PROCESSING_DATA);
-            Assert.IsTrue(testMachine.EndState == GreenhouseState.HEATING);
+            Assert.IsTrue(result == GreenhouseState.HEATING);
 
-            testMachine.DetermineState(50, 100, 0);
+            result = testMachine.DetermineState(50, 100, 0);
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.WAITING_FOR_DATA);
+            Assert.IsTrue(result == GreenhouseState.WAITING_FOR_DATA);
 
-            testMachine.DetermineState(50, 80, 70);
+            result = testMachine.DetermineState(50, 80, 70);
             using (ArduinoControlSenderSimulator sim = new ArduinoControlSenderSimulator())
             {
-                sim.SendCommand(testMachine);
+                sim.SendCommand(result, testMachine);
             }
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.HEATING);
 
-            testMachine.DetermineState(100, 80, 50);
+            result = testMachine.DetermineState(100, 80, 50);
             using (ArduinoControlSenderSimulator sim = new ArduinoControlSenderSimulator())
             {
-                sim.SendCommand(testMachine);
+                sim.SendCommand(result, testMachine);
             }
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.COOLING);
 
-            testMachine.DetermineState(150, 100, 0);
-            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.EMERGENCY);
+            result = testMachine.DetermineState(150, 100, 0);
+            Assert.IsTrue(result == GreenhouseState.EMERGENCY);
         }
     }
 }

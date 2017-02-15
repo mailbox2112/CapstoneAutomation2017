@@ -19,7 +19,8 @@ namespace GreenhouseController
 
         public GreenhouseState DetermineState(double value, int hiLimit, int? loLimit = default(int?))
         {
-            if(value < hiLimit)
+            CurrentState = GreenhouseState.PROCESSING_DATA;
+            if (value < hiLimit)
             {
                 if (value == _emergencyMoist)
                 {
@@ -32,6 +33,7 @@ namespace GreenhouseController
             }
             else
             {
+                CurrentState = GreenhouseState.WAITING_FOR_DATA;
                 return GreenhouseState.WAITING_FOR_DATA;
             }
         }
