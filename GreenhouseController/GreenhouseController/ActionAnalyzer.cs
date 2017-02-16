@@ -88,12 +88,12 @@ namespace GreenhouseController
             {
                 if (_manualHeat == true)
                 {
-                    GreenhouseState goalTempState = GreenhouseState.MAN_HEATING;
+                    GreenhouseState goalTempState = GreenhouseState.HEATING;
                     statesToSend.Add(goalTempState);
                 }
                 else if (_manualCool == true)
                 {
-                    GreenhouseState goalTempState = GreenhouseState.MAN_COOLING;
+                    GreenhouseState goalTempState = GreenhouseState.COOLING;
                     statesToSend.Add(goalTempState);
                 }
                 else if (_manualHeat == false)
@@ -117,7 +117,7 @@ namespace GreenhouseController
             {
                 if (_manualLight == true)
                 {
-                    GreenhouseState goalLightState = GreenhouseState.MAN_LIGHTING;
+                    GreenhouseState goalLightState = GreenhouseState.LIGHTING;
                     statesToSend.Add(goalLightState);
                 }
                 else
@@ -137,7 +137,7 @@ namespace GreenhouseController
             {
                 if (_manualWater == true)
                 {
-                    GreenhouseState goalWaterState = GreenhouseState.MAN_WATER;
+                    GreenhouseState goalWaterState = GreenhouseState.WATERING;
                     statesToSend.Add(goalWaterState);
                 }
                 else
@@ -215,6 +215,6 @@ namespace GreenhouseController
                     _moistureLimit = pack.moistLim;
                 }
             }
-        }
+        }  
     }
 }

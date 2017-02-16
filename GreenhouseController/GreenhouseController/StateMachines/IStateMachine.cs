@@ -10,6 +10,8 @@ namespace GreenhouseController
     {
         GreenhouseState DetermineState(double value, int hiLimit, int? loLimit = null);
 
+        List<Commands> ConvertStateToCommands(GreenhouseState state);
+
         GreenhouseState CurrentState { get; set; }
     }
 }
