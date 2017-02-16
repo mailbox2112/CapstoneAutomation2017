@@ -96,13 +96,12 @@ namespace GreenhouseController
                     GreenhouseState goalTempState = GreenhouseState.COOLING;
                     statesToSend.Add(goalTempState);
                 }
-                else if (_manualHeat == false)
+                else if (_manualHeat == false || _manualCool == false)
                 {
-                    // send command to turn off heating!
-                }
-                else if (_manualCool == false)
-                {
-                    // send command to turn off cooling!
+                    using (ArduinoControlSender sender = new ArduinoControlSender())
+                    {
+                        sender.SendManualOffCommand(StateMachineContainer.Instance.Temperature);
+                    }
                 }
             }
             if (_manualLight == null)
@@ -122,7 +121,10 @@ namespace GreenhouseController
                 }
                 else
                 {
-                    // send command to turn off lighting!
+                    using (ArduinoControlSender sender = new ArduinoControlSender())
+                    {
+                        sender.SendManualOffCommand(StateMachineContainer.Instance.Lighting);
+                    }
                 }
             }
             if (_manualWater == null)
@@ -142,10 +144,13 @@ namespace GreenhouseController
                 }
                 else
                 {
-                    // send command to turn off watering!
+                    using (ArduinoControlSender sender = new ArduinoControlSender())
+                    {
+                        sender.SendManualOffCommand(StateMachineContainer.Instance.Watering);
+                    }
                 }
             }
-            
+
             // TODO: how to send only the stuff that is automated and not anything that's been manually controlled?
             // Solution: see above. We send the commands regardless, and have a separate manual state for each state machine
             //              rather than the same heating/cooling state for everything. Makes the state machines a bit more complex,
@@ -153,10 +158,12 @@ namespace GreenhouseController
             //              statement that checks to see if we're in the manual state and doens't send a command unless we've received a
             //              non-null value for the manual command that's DIFFERENT than the one that's currently set in the state machine
             // Send commands
-            using (ArduinoControlSender sender = new ArduinoControlSender())
+            foreach (var state in statesToSend)
             {
+                ArduinoControlSender sender = new ArduinoControlSender();
+
                 // Send commands
-                sender.SendCommand(statesToSend);
+                sender.SendCommand(state);
             }
             #endregion
 
@@ -215,6 +222,6 @@ namespace GreenhouseController
                     _moistureLimit = pack.moistLim;
                 }
             }
-        }  
+        }
     }
 }
