@@ -20,6 +20,7 @@ namespace GreenhouseController
         private bool? _manualCool;
         private bool? _manualLight;
         private bool? _manualWater;
+        private Dictionary<IStateMachine, GreenhouseState> _statesToSend;
 
         public ActionAnalyzer()
         {
@@ -35,6 +36,7 @@ namespace GreenhouseController
             _manualLight = null;
             _manualWater = null;
             _currentTime = DateTime.Now;
+            _statesToSend = new Dictionary<IStateMachine, GreenhouseState>();
         }
 
         /// <summary>
@@ -79,9 +81,9 @@ namespace GreenhouseController
             if (_manualHeat == null && _manualCool == null)
             {
                 GreenhouseState goalTempState = StateMachineContainer.Instance.Temperature.DetermineState(_avgTemp, _tempLimits[0], _tempLimits[1]);
-                if (goalTempState == GreenhouseState.HEATING || goalTempState == GreenhouseState.COOLING)
+                if (goalTempState == GreenhouseState.HEATING || goalTempState == GreenhouseState.COOLING || goalTempState == GreenhouseState.WAITING_FOR_DATA)
                 {
-                    statesToSend.Add(goalTempState);
+                    _statesToSend.Add(new TemperatureStateMachine(), goalTempState);
                 }
             }
             else
@@ -89,12 +91,12 @@ namespace GreenhouseController
                 if (_manualHeat == true)
                 {
                     GreenhouseState goalTempState = GreenhouseState.HEATING;
-                    statesToSend.Add(goalTempState);
+                    _statesToSend.Add(new TemperatureStateMachine(), goalTempState);
                 }
                 else if (_manualCool == true)
                 {
                     GreenhouseState goalTempState = GreenhouseState.COOLING;
-                    statesToSend.Add(goalTempState);
+                    _statesToSend.Add(new TemperatureStateMachine(), goalTempState);
                 }
                 else if (_manualHeat == false || _manualCool == false)
                 {
@@ -107,9 +109,9 @@ namespace GreenhouseController
             if (_manualLight == null)
             {
                 GreenhouseState goalLightState = StateMachineContainer.Instance.Lighting.DetermineState(_avgLight, _lightLimit);
-                if (goalLightState == GreenhouseState.LIGHTING)
+                if (goalLightState == GreenhouseState.LIGHTING || goalLightState == GreenhouseState.WAITING_FOR_DATA)
                 {
-                    statesToSend.Add(goalLightState);
+                    _statesToSend.Add(new LightingStateMachine(), goalLightState);
                 }
             }
             else
@@ -117,7 +119,7 @@ namespace GreenhouseController
                 if (_manualLight == true)
                 {
                     GreenhouseState goalLightState = GreenhouseState.LIGHTING;
-                    statesToSend.Add(goalLightState);
+                    _statesToSend.Add(new LightingStateMachine(), goalLightState);
                 }
                 else
                 {
@@ -130,9 +132,9 @@ namespace GreenhouseController
             if (_manualWater == null)
             {
                 GreenhouseState goalWaterState = StateMachineContainer.Instance.Watering.DetermineState(_avgMoisture, _moistureLimit);
-                if (goalWaterState == GreenhouseState.WATERING)
+                if (goalWaterState == GreenhouseState.WATERING || goalWaterState == GreenhouseState.WAITING_FOR_DATA)
                 {
-                    statesToSend.Add(goalWaterState);
+                    _statesToSend.Add(new WateringStateMachine(), goalWaterState);
                 }
             }
             else
@@ -140,7 +142,7 @@ namespace GreenhouseController
                 if (_manualWater == true)
                 {
                     GreenhouseState goalWaterState = GreenhouseState.WATERING;
-                    statesToSend.Add(goalWaterState);
+                    _statesToSend.Add(new WateringStateMachine(), goalWaterState);
                 }
                 else
                 {
@@ -158,7 +160,7 @@ namespace GreenhouseController
             //              statement that checks to see if we're in the manual state and doens't send a command unless we've received a
             //              non-null value for the manual command that's DIFFERENT than the one that's currently set in the state machine
             // Send commands
-            foreach (var state in statesToSend)
+            foreach (var state in _statesToSend)
             {
                 ArduinoControlSender sender = new ArduinoControlSender();
 

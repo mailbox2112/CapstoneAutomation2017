@@ -31,7 +31,7 @@ namespace GreenhouseController
         /// Takes a list of commands to be sent to the arduino and sends them over the pi's serial port
         /// </summary>
         /// <param name="_commandsToSend">State to convert to commands and send to Arduino</param>
-        public void SendCommand(GreenhouseState state)
+        public void SendCommand(KeyValuePair<IStateMachine, GreenhouseState> statePair)
         {
             byte[] buffer = new byte[8];
             List<Commands> commandsToSend = new List<Commands>();
@@ -42,19 +42,19 @@ namespace GreenhouseController
 
             // _output.Open();
 
-            if (state == GreenhouseState.COOLING || state == GreenhouseState.HEATING)
+            if (statePair.Key is TemperatureStateMachine)
             {
-                commandsToSend = StateMachineContainer.Instance.Temperature.ConvertStateToCommands(state);
+                commandsToSend = StateMachineContainer.Instance.Temperature.ConvertStateToCommands(statePair.Value);
             }
-            else if (state == GreenhouseState.LIGHTING)
+            else if (statePair.Key is LightingStateMachine)
             {
-                commandsToSend = StateMachineContainer.Instance.Lighting.ConvertStateToCommands(state);
+                commandsToSend = StateMachineContainer.Instance.Lighting.ConvertStateToCommands(statePair.Value);
             }
-            else if (state == GreenhouseState.WATERING)
+            else if (statePair.Key is WateringStateMachine)
             {
-                commandsToSend = StateMachineContainer.Instance.Watering.ConvertStateToCommands(state);
+                commandsToSend = StateMachineContainer.Instance.Watering.ConvertStateToCommands(statePair.Value);
             }
-            Console.WriteLine($"Attempting to send state {state}");
+            Console.WriteLine($"Attempting to send state {statePair.Value}");
 
             foreach (var command in commandsToSend)
             {
@@ -64,15 +64,15 @@ namespace GreenhouseController
                     //_output.Write(command.ToString());
 
                     // TODO: Move this somewhere that makes sense. Do we change state for each command sent? Probably
-                    if (state == GreenhouseState.COOLING || state == GreenhouseState.HEATING)
+                    if (statePair.Key is TemperatureStateMachine)
                     {
                         StateMachineContainer.Instance.Temperature.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
                     }
-                    else if (state == GreenhouseState.LIGHTING)
+                    else if (statePair.Key is LightingStateMachine)
                     {
                         StateMachineContainer.Instance.Lighting.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
                     }
-                    else if (state == GreenhouseState.WATERING)
+                    else if (statePair.Key is WateringStateMachine)
                     {
                         StateMachineContainer.Instance.Watering.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
                     }
@@ -130,34 +130,34 @@ namespace GreenhouseController
                 // Change state based on results of sending commands
                 if (_success == false)
                 {
-                    if (state == GreenhouseState.COOLING || state == GreenhouseState.HEATING)
+                    if (statePair.Key is TemperatureStateMachine)
                     {
                         StateMachineContainer.Instance.Temperature.CurrentState = GreenhouseState.ERROR;
                     }
-                    else if (state == GreenhouseState.LIGHTING)
+                    else if (statePair.Key is LightingStateMachine)
                     {
                         StateMachineContainer.Instance.Lighting.CurrentState = GreenhouseState.ERROR;
                     }
-                    else if (state == GreenhouseState.WATERING)
+                    else if (statePair.Key is WateringStateMachine)
                     {
                         StateMachineContainer.Instance.Watering.CurrentState = GreenhouseState.ERROR;
                     }
                 }
                 else if (_success == true)
                 {
-                    if (state == GreenhouseState.COOLING || state == GreenhouseState.HEATING)
+                    if (statePair.Value == GreenhouseState.COOLING || statePair.Value == GreenhouseState.HEATING)
                     {
-                        StateMachineContainer.Instance.Temperature.CurrentState = state;
+                        StateMachineContainer.Instance.Temperature.CurrentState = statePair.Value;
                     }
-                    else if (state == GreenhouseState.LIGHTING)
+                    else if (statePair.Value == GreenhouseState.LIGHTING)
                     {
-                        StateMachineContainer.Instance.Lighting.CurrentState = state;
+                        StateMachineContainer.Instance.Lighting.CurrentState = statePair.Value;
                     }
-                    else if (state == GreenhouseState.WATERING)
+                    else if (statePair.Value == GreenhouseState.WATERING)
                     {
-                        StateMachineContainer.Instance.Watering.CurrentState = state;
+                        StateMachineContainer.Instance.Watering.CurrentState = statePair.Value;
                     }
-                    Console.WriteLine($"State change {state} executed successfully\n");
+                    Console.WriteLine($"State change {statePair.Value} executed successfully\n");
                 }
                 _retryCount = 0;
                 _success = false;
