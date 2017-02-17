@@ -8,10 +8,10 @@ namespace GreenhouseController
 {
     public interface IStateMachine
     {
-        void DetermineGreenhouseState(double value, int hiLimit, int? loLimit = null);
+        GreenhouseState DetermineState(double value, int hiLimit, int? loLimit = null);
+
+        List<Commands> ConvertStateToCommands(GreenhouseState state);
 
         GreenhouseState CurrentState { get; set; }
-
-        GreenhouseState EndState { get; set; }
     }
 }

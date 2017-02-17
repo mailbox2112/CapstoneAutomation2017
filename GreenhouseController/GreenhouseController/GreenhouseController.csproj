@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands.cs" />
     <Compile Include="UnitTestClasses\ArduinoControlSenderSimulator.cs" />
     <Compile Include="ArduinoControlSender.cs" />
     <Compile Include="DataEventArgs.cs" />
@@ -62,7 +63,7 @@
     <Compile Include="StateMachines\LightingStateMachine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StateMachines\IStateMachine.cs" />
-    <Compile Include="StateMachines\StateMachineController.cs" />
+    <Compile Include="StateMachines\StateMachineContainer.cs" />
     <Compile Include="StateMachines\TemperatureStateMachine.cs" />
     <Compile Include="StateMachines\WateringStateMachine.cs" />
   </ItemGroup>

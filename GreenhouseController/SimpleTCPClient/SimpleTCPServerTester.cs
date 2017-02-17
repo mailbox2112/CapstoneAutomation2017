@@ -17,7 +17,7 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
-            Thread.Sleep(10000);
+            Thread.Sleep(1000);
             TcpListener serverListener = new TcpListener(IPAddress.Parse("127.0.0.1"), 8888);
             
             TcpClient client = default(TcpClient);
@@ -27,7 +27,7 @@ namespace ConsoleApplication1
             Console.WriteLine(" >> Accept connection from client");
             NetworkStream networkStream = client.GetStream();
 
-            int[] zones = new int[] { 1, 1, 2, 2, 3, 4, 4, 5 };
+            int[] zones = new int[] { 1, 2, 3, 4, 5 };
             byte[] bytesFrom = new byte[1024];
 
             while ((true))
