@@ -11,8 +11,8 @@ namespace GreenhouseController
     {
         private bool _success = false;
         private int _retryCount = 0;
-        private byte[] ACK = new byte[] { 1 };
-        private byte[] NACK = new byte[] { 0 };
+        private byte[] ACK = new byte[2] { 10, 12 };
+        private byte[] NACK = new byte[2] { 5, 6};
 
         private SerialPort _output;
         public ArduinoControlSender()

@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using GreenhouseController;
+using System.Collections.Generic;
 
 namespace GreenhouseUnitTests
 {
@@ -13,6 +14,7 @@ namespace GreenhouseUnitTests
         {
             testMachine = new LightingStateMachine();
             Assert.IsNotNull(testMachine);
+            Assert.IsInstanceOfType(testMachine, typeof(LightingStateMachine));
         }
 
         [TestMethod]
@@ -32,6 +34,19 @@ namespace GreenhouseUnitTests
                 sim.SendCommand(result, testMachine);
             }
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.LIGHTING);
+        }
+
+        [TestMethod]
+        public void TestConvertLightingStateToCommands()
+        {
+            testMachine = new LightingStateMachine();
+            GreenhouseState state = GreenhouseState.LIGHTING;
+            List<Commands> results = testMachine.ConvertStateToCommands(state);
+            Assert.IsTrue(results[0] == Commands.LIGHTS_ON);
+
+            state = GreenhouseState.WAITING_FOR_DATA;
+            results = testMachine.ConvertStateToCommands(state);
+            Assert.IsTrue(results[0] == Commands.LIGHTS_OFF);
         }
     }
 }

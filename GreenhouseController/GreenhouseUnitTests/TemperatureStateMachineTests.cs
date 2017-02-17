@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using GreenhouseController;
+using System.Collections.Generic;
 
 namespace GreenhouseUnitTests
 {
@@ -13,6 +14,7 @@ namespace GreenhouseUnitTests
         {
             testMachine = new TemperatureStateMachine();
             Assert.IsNotNull(testMachine);
+            Assert.IsInstanceOfType(testMachine, typeof(TemperatureStateMachine));
         }
 
         [TestMethod]
@@ -47,6 +49,28 @@ namespace GreenhouseUnitTests
 
             result = testMachine.DetermineState(150, 100, 0);
             Assert.IsTrue(result == GreenhouseState.EMERGENCY);
+        }
+
+        [TestMethod]
+        public void TestConvertTemperatureStateToCommands()
+        {
+            testMachine = new TemperatureStateMachine();
+            List<Commands> result = new List<Commands>();
+            result = testMachine.ConvertStateToCommands(GreenhouseState.COOLING);
+            Assert.IsTrue(result.Contains(Commands.FANS_ON));
+            Assert.IsTrue(result.Contains(Commands.SHADE_EXTEND));
+            Assert.IsTrue(result.Contains(Commands.VENT_OPEN));
+
+            result = testMachine.ConvertStateToCommands(GreenhouseState.HEATING);
+            Assert.IsTrue(result.Contains(Commands.HEAT_ON));
+            Assert.IsTrue(result.Contains(Commands.SHADE_RETRACT));
+            Assert.IsTrue(result.Contains(Commands.VENT_CLOSED));
+
+            result = testMachine.ConvertStateToCommands(GreenhouseState.WAITING_FOR_DATA);
+            Assert.IsTrue(result.Contains(Commands.HEAT_OFF));
+            Assert.IsTrue(result.Contains(Commands.FANS_OFF));
+            Assert.IsTrue(result.Contains(Commands.VENT_CLOSED));
+            Assert.IsTrue(result.Contains(Commands.SHADE_RETRACT));
         }
     }
 }

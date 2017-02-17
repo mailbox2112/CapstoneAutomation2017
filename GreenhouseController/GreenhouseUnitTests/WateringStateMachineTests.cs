@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using GreenhouseController;
+using System.Collections.Generic;
 
 namespace GreenhouseUnitTests
 {
@@ -14,6 +15,7 @@ namespace GreenhouseUnitTests
         {
             testMachine = new WateringStateMachine();
             Assert.IsNotNull(testMachine);
+            Assert.IsInstanceOfType(testMachine, typeof(WateringStateMachine));
         }
 
         [TestMethod]
@@ -37,6 +39,18 @@ namespace GreenhouseUnitTests
 
             result = testMachine.DetermineState(0, 100);
             Assert.IsTrue(result == GreenhouseState.EMERGENCY);
+        }
+
+        [TestMethod]
+        public void TestConvertWateringStateToCommands()
+        {
+            testMachine = new WateringStateMachine();
+            List<Commands> results = new List<Commands>();
+            results = testMachine.ConvertStateToCommands(GreenhouseState.WATERING);
+            Assert.IsTrue(results[0] == Commands.WATER_ON);
+
+            results = testMachine.ConvertStateToCommands(GreenhouseState.WAITING_FOR_DATA);
+            Assert.IsTrue(results[0] == Commands.WATER_OFF);
         }
     }
 }
