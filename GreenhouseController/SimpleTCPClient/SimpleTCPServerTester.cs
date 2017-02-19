@@ -30,7 +30,7 @@ namespace ConsoleApplication1
             int[] zones = new int[] { 1, 2, 3, 4, 5 };
             byte[] bytesFrom = new byte[1024];
 
-            while ((true))
+            
             {
                 try
                 {
@@ -75,10 +75,10 @@ namespace ConsoleApplication1
                 DataPacket pack = new DataPacket()
                 {
                     zone = zone,
-                    temperature = rand.Next(tempMin, tempMax),
-                    humidity = rand.Next(humidMin, humidMax),
-                    light = rand.Next(0, 100000),
-                    moisture = rand.Next(10, 100),
+                    temperature = 100,//rand.Next(tempMin, tempMax),
+                    humidity = 50,//rand.Next(humidMin, humidMax),
+                    light = 60000,//rand.Next(0, 100000),
+                    moisture = 40,//rand.Next(10, 100),
                     tempHi = 80,
                     tempLo = 65,
                     lightLim = lightLim,

@@ -165,7 +165,11 @@ namespace GreenhouseController
                 ArduinoControlSender sender = new ArduinoControlSender();
 
                 // Send commands
-                sender.SendCommand(state);
+                // TODO: Get rid of once we troubleshoot for demo
+                if (state.Key is TemperatureStateMachine)
+                {
+                    sender.SendCommand(state);
+                }
             }
             #endregion
 
