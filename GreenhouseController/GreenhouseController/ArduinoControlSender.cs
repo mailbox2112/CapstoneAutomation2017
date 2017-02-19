@@ -19,7 +19,7 @@ namespace GreenhouseController
         public ArduinoControlSender()
         {
             // TODO: construct!
-             //_output = new SerialPort("/dev/ttyACM0", 9600, Parity.None, 8, StopBits.One);
+             _output = new SerialPort("/dev/ttyACM0", 9600, Parity.None, 8, StopBits.One);
         }
 
         public void Dispose()
@@ -41,7 +41,7 @@ namespace GreenhouseController
             // Also, what happens if one of the commands fails but others are fine? retry, and make state machine 
             // behave properly in that case.  How do we tell if one of the commands failed and we need to retry?
 
-             //_output.Open();
+             _output.Open();
             Thread.Sleep(1000);
 
             if (statePair.Key is TemperatureStateMachine)
@@ -66,7 +66,7 @@ namespace GreenhouseController
                     //_output.Write(command.ToString());
                     if (command == Commands.FANS_ON)
                     {
-                        //_output.WriteLine(command.ToString());
+                        _output.WriteLine(command.ToString());
                     }
                     
                     Console.WriteLine($"Command {command} sent");
@@ -89,7 +89,7 @@ namespace GreenhouseController
                     Console.WriteLine("Reading response.");
                     if (command == Commands.FANS_ON)
                     {
-                        //_output.Read(buffer, 0, 0);
+                        _output.Read(buffer, 0, 0);
                     }
                     Console.WriteLine($"Response {buffer} received.");
                     //buffer = NACK;
@@ -116,9 +116,9 @@ namespace GreenhouseController
                         // Try-catch so we don't explode if it fails to send/receive
                         try
                         {
-                            //_output.Write(command.ToString());
+                            _output.WriteLine(command.ToString());
 
-                           // _output.Read(buffer, 0, 0);
+                            _output.Read(buffer, 0, 0);
                             //buffer = ACK;
                         }
                         catch (Exception ex)
@@ -208,10 +208,10 @@ namespace GreenhouseController
                 // Try to send command to turn off heater, watering, lighting etc.
                 try
                 {
-                    //_output.Write(command.ToString());
+                    _output.WriteLine(command.ToString());
                     
                     // Wait for response
-                    //_output.Read(buffer, 0, 0);
+                    _output.Read(buffer, 0, 0);
                     buffer = NACK;
                 }
                 catch (Exception ex)
@@ -236,9 +236,9 @@ namespace GreenhouseController
                         // Try-catch so we don't explode if it fails to send/receive
                         try
                         {
-                            //_output.Write(command.ToString());
+                            _output.Write(command.ToString());
 
-                            //_output.Read(buffer, 0, 0);
+                            _output.Read(buffer, 0, 0);
                             buffer = ACK;
                         }
                         catch (Exception ex)
