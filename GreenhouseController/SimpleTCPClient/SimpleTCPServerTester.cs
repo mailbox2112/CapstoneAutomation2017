@@ -74,15 +74,15 @@ namespace ConsoleApplication1
 
                 DataPacket pack = new DataPacket()
                 {
-                    zone = zone,
-                    temperature = rand.Next(tempMin, tempMax),
-                    humidity = rand.Next(humidMin, humidMax),
-                    light = rand.Next(0, 100000),
-                    moisture = rand.Next(10, 100),
-                    tempHi = 80,
-                    tempLo = 65,
-                    lightLim = lightLim,
-                    moistLim = moistLim
+                    Zone = zone,
+                    Temperature = rand.Next(tempMin, tempMax),
+                    Humidity = rand.Next(humidMin, humidMax),
+                    Light = rand.Next(0, 100000),
+                    Moisture = rand.Next(10, 100),
+                    TempHi = 80,
+                    TempLo = 65,
+                    LightLim = lightLim,
+                    MoistLim = moistLim
                 };
 
                 string spoofData = JsonConvert.SerializeObject(pack);

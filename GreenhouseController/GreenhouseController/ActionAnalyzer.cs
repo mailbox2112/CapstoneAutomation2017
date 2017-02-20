@@ -49,21 +49,21 @@ namespace GreenhouseController
             // otherwise they stay null
             foreach (var packet in data)
             {
-                if (packet.manualHeat != null)
+                if (packet.ManualHeat != null)
                 {
-                    _manualHeat = packet.manualHeat;
+                    _manualHeat = packet.ManualHeat;
                 }
-                if (packet.manualCool != null)
+                if (packet.ManualCool != null)
                 {
-                    _manualCool = packet.manualCool;
+                    _manualCool = packet.ManualCool;
                 }
-                if (packet.manualLight != null)
+                if (packet.ManualLight != null)
                 {
-                    _manualLight = packet.manualLight;
+                    _manualLight = packet.ManualLight;
                 }
-                if (packet.manualWater != null)
+                if (packet.ManualWater != null)
                 {
-                    _manualWater = packet.manualWater;
+                    _manualWater = packet.ManualWater;
                 }
             }
 
@@ -188,10 +188,10 @@ namespace GreenhouseController
         {
             foreach (DataPacket pack in data)
             {
-                _avgTemp += pack.temperature;
-                _avgHumid += pack.humidity;
-                _avgLight += pack.light;
-                _avgMoisture += pack.moisture;
+                _avgTemp += pack.Temperature;
+                _avgHumid += pack.Humidity;
+                _avgLight += pack.Light;
+                _avgMoisture += pack.Moisture;
             }
             _avgTemp /= 5;
             _avgHumid /= 5;
@@ -207,21 +207,21 @@ namespace GreenhouseController
             // TODO: get light and humidity
             foreach (DataPacket pack in packet)
             {
-                if (_tempLimits[0] != pack.tempHi)
+                if (_tempLimits[0] != pack.TempHi)
                 {
-                    _tempLimits[0] = pack.tempHi;
+                    _tempLimits[0] = pack.TempHi;
                 }
-                if (_tempLimits[1] != pack.tempLo)
+                if (_tempLimits[1] != pack.TempLo)
                 {
-                    _tempLimits[1] = pack.tempLo;
+                    _tempLimits[1] = pack.TempLo;
                 }
-                if (_lightLimit != pack.lightLim)
+                if (_lightLimit != pack.LightLim)
                 {
-                    _lightLimit = pack.lightLim;
+                    _lightLimit = pack.LightLim;
                 }
-                if (_moistureLimit != pack.moistLim)
+                if (_moistureLimit != pack.MoistLim)
                 {
-                    _moistureLimit = pack.moistLim;
+                    _moistureLimit = pack.MoistLim;
                 }
             }
         }
