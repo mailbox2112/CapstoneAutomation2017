@@ -12,8 +12,8 @@ namespace GreenhouseController
     {
         private bool _success = false;
         private int _retryCount = 0;
-        private byte[] ACK = new byte[] { 10, 12 };
-        private byte[] NACK = new byte[] { 5, 6};
+        private byte[] _ACK = new byte[2] { 10, 12 };
+        private byte[] _NACK = new byte[2] { 5, 6};
 
         private SerialPort _output;
         public ArduinoControlSender()
@@ -91,13 +91,13 @@ namespace GreenhouseController
                 }
 
                 
-                if (buffer == ACK)
+                if (buffer == _ACK)
                 {
                     Console.WriteLine($"Command {command} sent successfully");
 
                     _success = true;
                 }
-                else if (buffer == NACK || buffer == null)
+                else if (buffer == _NACK || buffer == null)
                 {
                     Console.WriteLine($"Command {command} sent unsuccessfully, attempting to resend.");
 
@@ -118,12 +118,12 @@ namespace GreenhouseController
                         }
                         
                         // If we succeeded this time, break out of the loop!
-                        if (buffer == ACK)
+                        if (buffer == _ACK)
                         {
                             Console.WriteLine($"Command {command} sent successfully.");
                             _success = true;
                         }
-                        else if (buffer == NACK || buffer == null && _retryCount != 5)
+                        else if (buffer == _NACK || buffer == null && _retryCount != 5)
                         {
                             Console.WriteLine("Retrying again....");
                             _retryCount++;
@@ -211,13 +211,13 @@ namespace GreenhouseController
                 }
 
 
-                if (buffer == ACK)
+                if (buffer == _ACK)
                 {
                     Console.WriteLine($"Command {command} sent successfully");
 
                     _success = true;
                 }
-                else if (buffer == NACK || buffer == null)
+                else if (buffer == _NACK || buffer == null)
                 {
                     Console.WriteLine($"Command {command} sent unsuccessfully, attempting to resend.");
 
@@ -238,12 +238,12 @@ namespace GreenhouseController
                         }
 
                         // If we succeeded this time, break out of the loop!
-                        if (buffer == ACK)
+                        if (buffer == _ACK)
                         {
                             Console.WriteLine($"Command {command} sent successfully.");
                             _success = true;
                         }
-                        else if (buffer == NACK || buffer == null && _retryCount != 5)
+                        else if (buffer == _NACK || buffer == null && _retryCount != 5)
                         {
                             Console.WriteLine("Retrying again....");
                             _retryCount++;

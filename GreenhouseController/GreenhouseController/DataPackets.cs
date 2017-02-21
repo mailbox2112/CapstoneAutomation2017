@@ -8,20 +8,20 @@ namespace GreenhouseController
 {
     public class DataPacket
     {
-        public int zone;
-        public double temperature;
-        public double humidity;
-        public double light;
-        public double moisture;
+        public int Zone;
+        public double Temperature;
+        public double Humidity;
+        public double Light;
+        public double Moisture;
         
-        public int tempHi;
-        public int tempLo;
-        public int lightLim;
-        public int moistLim;
+        public int TempHi;
+        public int TempLo;
+        public int LightLim;
+        public int MoistLim;
 
-        public bool? manualHeat;
-        public bool? manualCool;
-        public bool? manualLight;
-        public bool? manualWater;
+        public bool? ManualHeat;
+        public bool? ManualCool;
+        public bool? ManualLight;
+        public bool? ManualWater;
     }
 }
