@@ -230,7 +230,7 @@ namespace GreenhouseController
                             _output.WriteLine(command.ToString());
                             Thread.Sleep(100);
                             _output.Read(buffer, 0, 0);
-                            buffer = ACK;
+                            //buffer = ACK;
                         }
                         catch (Exception ex)
                         {
