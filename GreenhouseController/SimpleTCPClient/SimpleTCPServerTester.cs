@@ -51,6 +51,7 @@ namespace ConsoleApplication1
                 {
                     Console.WriteLine(ex.ToString());
                 }
+                Thread.Sleep(10000);
             }
             client.Close();
             serverListener.Stop();

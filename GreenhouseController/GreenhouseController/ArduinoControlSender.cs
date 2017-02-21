@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GreenhouseController
@@ -11,20 +12,23 @@ namespace GreenhouseController
     {
         private bool _success = false;
         private int _retryCount = 0;
-        private byte[] ACK = new byte[2] { 10, 12 };
-        private byte[] NACK = new byte[2] { 5, 6};
+        private byte[] ACK = new byte[] { 10, 12 };
+        private byte[] NACK = new byte[] { 5, 6};
 
         private SerialPort _output;
         public ArduinoControlSender()
         {
             // TODO: construct!
-            // _output = new SerialPort("/dev/ttyAMA0", 115200, Parity.None, 8, StopBits.One);
+            _output = new SerialPort("/dev/ttyACM0", 9600, Parity.None, 8, StopBits.One);
+            _output.Open();
+            _output.ReadTimeout = 500;
+            _output.RtsEnable = true;
         }
 
         public void Dispose()
         {
             // TODO: close sockets and stuff here!
-            // _output.Close();
+            _output.Close();
         }
 
         /// <summary>
@@ -40,8 +44,7 @@ namespace GreenhouseController
             // Also, what happens if one of the commands fails but others are fine? retry, and make state machine 
             // behave properly in that case.  How do we tell if one of the commands failed and we need to retry?
 
-            // _output.Open();
-
+            
             if (statePair.Key is TemperatureStateMachine)
             {
                 commandsToSend = StateMachineContainer.Instance.Temperature.ConvertStateToCommands(statePair.Value);
@@ -61,8 +64,9 @@ namespace GreenhouseController
                 // Send commands
                 try
                 {
-                    //_output.Write(command.ToString());
-
+                    _output.Write(command.ToString());
+                    Thread.Sleep(2000);
+                    Console.WriteLine("Successful transmission.");
                     // TODO: Move this somewhere that makes sense. Do we change state for each command sent? Probably
                     if (statePair.Key is TemperatureStateMachine)
                     {
@@ -78,8 +82,8 @@ namespace GreenhouseController
                     }
 
                     // Wait for response
-                    //_output.Read(buffer, 0, 0);
-                    buffer = NACK;
+                    _output.Read(buffer, 0, 0);
+                    //buffer = NACK;
                 }
                 catch (Exception ex)
                 {
@@ -103,10 +107,10 @@ namespace GreenhouseController
                         // Try-catch so we don't explode if it fails to send/receive
                         try
                         {
-                            //_output.Write(command.ToString());
+                            _output.WriteLine(command.ToString());
 
-                            //_output.Read(buffer, 0, 0);
-                            buffer = ACK;
+                            _output.Read(buffer, 0, 0);
+                            //buffer = ACK;
                         }
                         catch (Exception ex)
                         {
@@ -195,11 +199,11 @@ namespace GreenhouseController
                 // Try to send command to turn off heater, watering, lighting etc.
                 try
                 {
-                    //_output.Write(command.ToString());
+                    _output.WriteLine(command.ToString());
                     
                     // Wait for response
-                    //_output.Read(buffer, 0, 0);
-                    buffer = NACK;
+                    _output.Read(buffer, 0, 0);
+                    //buffer = NACK;
                 }
                 catch (Exception ex)
                 {
@@ -223,9 +227,9 @@ namespace GreenhouseController
                         // Try-catch so we don't explode if it fails to send/receive
                         try
                         {
-                            //_output.Write(command.ToString());
-
-                            //_output.Read(buffer, 0, 0);
+                            _output.WriteLine(command.ToString());
+                            Thread.Sleep(100);
+                            _output.Read(buffer, 0, 0);
                             buffer = ACK;
                         }
                         catch (Exception ex)

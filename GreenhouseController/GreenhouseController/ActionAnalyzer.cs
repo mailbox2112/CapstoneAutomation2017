@@ -160,12 +160,14 @@ namespace GreenhouseController
             //              statement that checks to see if we're in the manual state and doens't send a command unless we've received a
             //              non-null value for the manual command that's DIFFERENT than the one that's currently set in the state machine
             // Send commands
-            foreach (var state in _statesToSend)
-            {
-                ArduinoControlSender sender = new ArduinoControlSender();
 
-                // Send commands
-                sender.SendCommand(state);
+            using (ArduinoControlSender sender = new ArduinoControlSender())
+            {
+                foreach (var state in _statesToSend)
+                {
+                    // Send commands
+                    sender.SendCommand(state);
+                }
             }
             #endregion
 
