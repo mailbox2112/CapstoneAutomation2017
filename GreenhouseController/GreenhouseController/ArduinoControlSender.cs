@@ -76,7 +76,7 @@ namespace GreenhouseController
             // Create the serial port
             if (_output == null)
             {
-                _output = new SerialPort("COM4", _BAUD, _PARITY, _DATABITS, _STOPBITS);
+                _output = new SerialPort("/dev/ttyACM0", _BAUD, _PARITY, _DATABITS, _STOPBITS);
             }
 
             // Open the serial port
