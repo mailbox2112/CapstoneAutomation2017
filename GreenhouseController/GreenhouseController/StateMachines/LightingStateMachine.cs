@@ -47,6 +47,11 @@ namespace GreenhouseController
                 CurrentState = GreenhouseState.LIGHTING;
                 return GreenhouseState.NO_CHANGE;
             }
+            else if (value > hiLimit && CurrentState == GreenhouseState.PROCESSING_DATA)
+            {
+                CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                return GreenhouseState.NO_CHANGE;
+            }
             else
             {
                 return GreenhouseState.WAITING_FOR_DATA;
