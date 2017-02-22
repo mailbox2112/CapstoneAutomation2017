@@ -10,27 +10,30 @@ namespace GreenhouseController
 {
     public class ArduinoControlSender
     {
-        private bool _success = false;
-        private int _retryCount = 0;
-        private byte[] _ACK = new byte[] { 172 };
-        private byte[] _NACK = new byte[] { 86 };
-        private static volatile ArduinoControlSender _instance;
-        private static object _syncRoot = new object();
+        // Constants for setting up serial ports
         private const int _BAUD = 9600;
         private const Parity _PARITY = Parity.None;
         private const int _DATABITS = 8;
         private const StopBits _STOPBITS = StopBits.One;
+
+        // Communications elements
         private SerialPort _output;
+        private byte[] _ACK = new byte[] { 0xAC };
+        private byte[] _NACK = new byte[] { 0x56 };
+        private bool _success = false;
+        private int _retryCount = 0;
+
+        // Singleton pattern items
+        private static volatile ArduinoControlSender _instance;
+        private static object _syncRoot = new object();
+        
+        
 
         /// <summary>
         /// Empty constructor
         /// </summary>
         private ArduinoControlSender()
-        {
-            // TODO: Move the serial port stuff to a method called "TryConnect" or something like that
-            // Also, try to find the correct UART port and see if the Arduino is ready to communicate
-            // Also add some stuff to periodically poll the Arduino to make sure it's alive
-        }
+        { }
 
         /// <summary>
         /// Singleton pattern field
@@ -63,15 +66,20 @@ namespace GreenhouseController
             //TODO: loop through to find serial ports, and establish the fact we're connected
             // We might need to start an external script to do this properly in linux,
             // SerialPort.GetPortNames() only ever returns ttyS0
+            // Find ports
             string[] ports = SerialPort.GetPortNames();
             foreach(string port in ports)
             {
-                Console.WriteLine($"{port}");
+                Console.WriteLine($"{port} available.");
             }
+
+            // Create the serial port
             if (_output == null)
             {
-                _output = new SerialPort("/dev/ttyACM0", _BAUD, _PARITY, _DATABITS, _STOPBITS);
+                _output = new SerialPort("COM4", _BAUD, _PARITY, _DATABITS, _STOPBITS);
             }
+
+            // Open the serial port
             if (_output.IsOpen != true)
             {
                 _output.Open();
@@ -79,6 +87,8 @@ namespace GreenhouseController
                 _output.ReadTimeout = 500;
                 _output.RtsEnable = true;
             }
+
+            // TODO: add task down here to periodically poll for the arduino to make sure everything is okay
         }
 
         /// <summary>
@@ -132,7 +142,9 @@ namespace GreenhouseController
                     }
 
                     // Wait for response
-                    _output.Read(buffer, 0, 0);
+                    Console.WriteLine($"Waiting for response...");
+                    _output.Read(buffer, 0, buffer.Length);
+                    Console.WriteLine($"{buffer.GetValue(0)} received.");
                     //buffer = NACK;
                 }
                 catch (Exception ex)
@@ -141,14 +153,15 @@ namespace GreenhouseController
                 }
 
                 
-                if (buffer == _ACK)
+
+                if (buffer.SequenceEqual(_ACK))
                 {
                     Console.WriteLine($"Command {command} sent successfully");
                     _success = true;
                 }
-                else if (buffer == _NACK || buffer == null)
+                else if (buffer.SequenceEqual(_NACK) || buffer == null)
                 {
-                    Console.WriteLine($"Command {command} sent unsuccessfully, attempting to resend.");
+                    Console.WriteLine($"Command {command} returned unsuccessful response, attempting to resend.");
 
                     // Attempt to resend the command 5 more times
                     while(_retryCount != 5 && _success == false)
@@ -160,7 +173,9 @@ namespace GreenhouseController
                             _output.Write(command.ToString());
                             Console.WriteLine("Awaiting response...");
 
-                            _output.Read(buffer, 0, 0);
+                            Console.WriteLine("Awaiting response...");
+                            _output.Read(buffer, 0, buffer.Length);
+                            Console.WriteLine($"{buffer.GetValue(0)} received");
                             //buffer = ACK;
                         }
                         catch (Exception ex)
@@ -200,15 +215,15 @@ namespace GreenhouseController
                 }
                 else if (_success == true)
                 {
-                    if (statePair.Value == GreenhouseState.COOLING || statePair.Value == GreenhouseState.HEATING)
+                    if (statePair.Key is TemperatureStateMachine)
                     {
                         StateMachineContainer.Instance.Temperature.CurrentState = statePair.Value;
                     }
-                    else if (statePair.Value == GreenhouseState.LIGHTING)
+                    else if (statePair.Key is LightingStateMachine)
                     {
                         StateMachineContainer.Instance.Lighting.CurrentState = statePair.Value;
                     }
-                    else if (statePair.Value == GreenhouseState.WATERING)
+                    else if (statePair.Key is WateringStateMachine)
                     {
                         StateMachineContainer.Instance.Watering.CurrentState = statePair.Value;
                     }
@@ -250,10 +265,13 @@ namespace GreenhouseController
                 // Try to send command to turn off heater, watering, lighting etc.
                 try
                 {
+                    Console.WriteLine("Retrying send...");
                     _output.Write(command.ToString());
-                    Thread.Sleep(1250);
-                    // Wait for response
-                    _output.Read(buffer, 0, 0);
+                    Console.WriteLine("Awaiting response...");
+
+                    Console.WriteLine("Awaiting response...");
+                    _output.Read(buffer, 0, buffer.Length);
+                    Console.WriteLine($"{buffer.GetValue(0)} received");
                     //buffer = NACK;
                 }
                 catch (Exception ex)
@@ -262,13 +280,13 @@ namespace GreenhouseController
                 }
 
 
-                if (buffer == _ACK)
+                if (buffer.SequenceEqual(_ACK))
                 {
                     Console.WriteLine($"Command {command} sent successfully");
 
                     _success = true;
                 }
-                else if (buffer == _NACK || buffer == null)
+                else if (buffer.SequenceEqual(_NACK) || buffer == null)
                 {
                     Console.WriteLine($"Command {command} sent unsuccessfully, attempting to resend.");
 

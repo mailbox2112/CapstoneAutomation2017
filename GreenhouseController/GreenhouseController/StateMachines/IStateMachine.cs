@@ -13,5 +13,7 @@ namespace GreenhouseController
         List<Commands> ConvertStateToCommands(GreenhouseState state);
 
         GreenhouseState CurrentState { get; set; }
+
+        void OnStateChange(StateEventArgs e);
     }
 }

@@ -10,7 +10,21 @@ namespace GreenhouseController
     {
         private const int _emergencyTemp = 120;
 
-        public GreenhouseState CurrentState { get; set; }
+        private GreenhouseState _currentState;
+        public GreenhouseState CurrentState
+        {
+            get
+            {
+                return _currentState;
+            }
+            set
+            {
+                _currentState = value;
+                OnStateChange(new StateEventArgs() { State = CurrentState });
+            }
+        }
+
+        public EventHandler<StateEventArgs> StateChanged { get; set; }
 
         public TemperatureStateMachine()
         {
@@ -71,7 +85,6 @@ namespace GreenhouseController
             }
             else
             {
-                CurrentState = GreenhouseState.WAITING_FOR_DATA;
                 return GreenhouseState.WAITING_FOR_DATA;
             }
         }
@@ -102,6 +115,11 @@ namespace GreenhouseController
             }
 
             return commandsToSend;
+        }
+
+        public void OnStateChange(StateEventArgs e)
+        {
+            StateChanged?.Invoke(this, e);
         }
     }
 }

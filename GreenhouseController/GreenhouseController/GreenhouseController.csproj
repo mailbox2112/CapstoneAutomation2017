@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands.cs" />
+    <Compile Include="StateEventArgs.cs" />
     <Compile Include="UnitTestClasses\ArduinoControlSenderSimulator.cs" />
     <Compile Include="ArduinoControlSender.cs" />
     <Compile Include="DataEventArgs.cs" />

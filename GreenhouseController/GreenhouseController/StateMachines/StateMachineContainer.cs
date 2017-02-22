@@ -20,6 +20,7 @@ namespace GreenhouseController
             Watering = new WateringStateMachine();
             Lighting = new LightingStateMachine();
             Temperature = new TemperatureStateMachine();
+            Lighting.CurrentState = GreenhouseState.WAITING_FOR_DATA;
         }
 
         public static StateMachineContainer Instance

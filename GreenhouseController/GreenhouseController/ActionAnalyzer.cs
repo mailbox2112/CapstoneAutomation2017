@@ -164,10 +164,19 @@ namespace GreenhouseController
             {
                 // TODO: Send an emergency message to the Data Team!
             }
+            else if (StateMachineContainer.Instance.Watering.CurrentState == GreenhouseState.ERROR)
+            {
+                // TODO: Set a flag somewhere!
+            }
             if (StateMachineContainer.Instance.Temperature.CurrentState == GreenhouseState.EMERGENCY)
             {
                 // TODO: Send an emergency message to the Data Team!
             }
+            else if (StateMachineContainer.Instance.Temperature.CurrentState == GreenhouseState.ERROR)
+            {
+                // TODO: Set a flag somewhere!
+            }
+
 
         }
 

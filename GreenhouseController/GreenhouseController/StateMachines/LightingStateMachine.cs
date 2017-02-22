@@ -8,12 +8,23 @@ namespace GreenhouseController
 {
     public class LightingStateMachine : IStateMachine
     {
-        public GreenhouseState CurrentState { get; set; }
+        private GreenhouseState _currentState;
+        public GreenhouseState CurrentState
+        {
+            get
+            {
+                return _currentState;
+            }
+            set
+            {
+                _currentState = value;
+                OnStateChange(new StateEventArgs() { State = CurrentState });
+            }
+        }
+        public EventHandler<StateEventArgs> StateChanged;
         
         public LightingStateMachine()
-        {
-            CurrentState = GreenhouseState.WAITING_FOR_DATA;
-        }
+        { }
 
         public GreenhouseState DetermineState(double value, int hiLimit, int? loLimit = default(int?))
         {
@@ -38,7 +49,6 @@ namespace GreenhouseController
             }
             else
             {
-                CurrentState = GreenhouseState.WAITING_FOR_DATA;
                 return GreenhouseState.WAITING_FOR_DATA;
             }
         }
@@ -56,6 +66,11 @@ namespace GreenhouseController
             }
 
             return commandsToSend;
+        }
+
+        public void OnStateChange(StateEventArgs e)
+        {
+            StateChanged?.Invoke(this, e);
         }
     }
 }
