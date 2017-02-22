@@ -53,27 +53,30 @@ namespace GreenhouseController
         /// <param name="source">Blocking collection used to hold data for producer consumer pattern</param>
         public void ReceiveGreenhouseData(BlockingCollection<byte[]> source)
         {
-            try
+            if (source.Count != 0)
             {
-                source.TryTake(out _data);
-                var deserializedData = JsonConvert.DeserializeObject<DataPacket>(Encoding.ASCII.GetString(_data));
-                
-                // Check for repeat zones, and if we have any, throw out the old zone data
-                if(_zoneInformation.Where(p => p.Zone == deserializedData.Zone) != null)
+                try
                 {
-                    _zoneInformation.RemoveAll(p => p.Zone == deserializedData.Zone);
+                    source.TryTake(out _data);
+                    var deserializedData = JsonConvert.DeserializeObject<DataPacket>(Encoding.ASCII.GetString(_data));
+
+                    // Check for repeat zones, and if we have any, throw out the old zone data
+                    if (_zoneInformation.Where(p => p.Zone == deserializedData.Zone) != null)
+                    {
+                        _zoneInformation.RemoveAll(p => p.Zone == deserializedData.Zone);
+                    }
+
+                    _zoneInformation.Add(deserializedData);
+
+                    if (_zoneInformation.Count == 5)
+                    {
+                        SendDataToAnalyzer(_zoneInformation);
+                    }
                 }
-
-                _zoneInformation.Add(deserializedData);
-
-                if (_zoneInformation.Count == 5)
+                catch (Exception ex)
                 {
-                    SendDataToAnalyzer(_zoneInformation);
+                    Console.WriteLine(ex);
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
             }
         }
 

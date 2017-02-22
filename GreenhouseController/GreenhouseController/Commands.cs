@@ -19,6 +19,6 @@ namespace GreenhouseController
         SHADE_EXTEND,
         SHADE_RETRACT,
         VENT_OPEN,
-        VENT_CLOSED
+        VENT_CLOSE
     }
 }

@@ -45,6 +45,7 @@ namespace GreenhouseController
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
         public void AnalyzeData(DataPacket[] data)
         {
+            ArduinoControlSender.Instance.TryConnect();
             // If any of the packets have a value for manual control in them, we change the manual variables
             // otherwise they stay null
             foreach (var packet in data)
@@ -100,10 +101,7 @@ namespace GreenhouseController
                 }
                 else if (_manualHeat == false || _manualCool == false)
                 {
-                    using (ArduinoControlSender sender = new ArduinoControlSender())
-                    {
-                        sender.SendManualOffCommand(StateMachineContainer.Instance.Temperature);
-                    }
+                    ArduinoControlSender.Instance.SendManualOffCommand(StateMachineContainer.Instance.Temperature);
                 }
             }
             if (_manualLight == null)
@@ -123,10 +121,7 @@ namespace GreenhouseController
                 }
                 else
                 {
-                    using (ArduinoControlSender sender = new ArduinoControlSender())
-                    {
-                        sender.SendManualOffCommand(StateMachineContainer.Instance.Lighting);
-                    }
+                    ArduinoControlSender.Instance.SendManualOffCommand(StateMachineContainer.Instance.Lighting);
                 }
             }
             if (_manualWater == null)
@@ -146,10 +141,7 @@ namespace GreenhouseController
                 }
                 else
                 {
-                    using (ArduinoControlSender sender = new ArduinoControlSender())
-                    {
-                        sender.SendManualOffCommand(StateMachineContainer.Instance.Watering);
-                    }
+                    ArduinoControlSender.Instance.SendManualOffCommand(StateMachineContainer.Instance.Watering);
                 }
             }
 
@@ -160,15 +152,12 @@ namespace GreenhouseController
             //              statement that checks to see if we're in the manual state and doens't send a command unless we've received a
             //              non-null value for the manual command that's DIFFERENT than the one that's currently set in the state machine
             // Send commands
-
-            using (ArduinoControlSender sender = new ArduinoControlSender())
-            {
+            
                 foreach (var state in _statesToSend)
                 {
                     // Send commands
-                    sender.SendCommand(state);
+                    ArduinoControlSender.Instance.SendCommand(state);
                 }
-            }
             #endregion
 
             if (StateMachineContainer.Instance.Watering.CurrentState == GreenhouseState.EMERGENCY)

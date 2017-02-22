@@ -8,27 +8,77 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    public class ArduinoControlSender : IDisposable
+    public class ArduinoControlSender
     {
         private bool _success = false;
         private int _retryCount = 0;
-        private byte[] _ACK = new byte[2] { 10, 12 };
-        private byte[] _NACK = new byte[2] { 5, 6};
-
+        private byte[] _ACK = new byte[] { 172 };
+        private byte[] _NACK = new byte[] { 86 };
+        private static volatile ArduinoControlSender _instance;
+        private static object _syncRoot = new object();
+        private const int _BAUD = 9600;
+        private const Parity _PARITY = Parity.None;
+        private const int _DATABITS = 8;
+        private const StopBits _STOPBITS = StopBits.One;
         private SerialPort _output;
-        public ArduinoControlSender()
+
+        /// <summary>
+        /// Empty constructor
+        /// </summary>
+        private ArduinoControlSender()
         {
-            // TODO: construct!
-            _output = new SerialPort("/dev/ttyACM0", 9600, Parity.None, 8, StopBits.One);
-            _output.Open();
-            _output.ReadTimeout = 500;
-            _output.RtsEnable = true;
+            // TODO: Move the serial port stuff to a method called "TryConnect" or something like that
+            // Also, try to find the correct UART port and see if the Arduino is ready to communicate
+            // Also add some stuff to periodically poll the Arduino to make sure it's alive
         }
 
-        public void Dispose()
+        /// <summary>
+        /// Singleton pattern field
+        /// </summary>
+        public static ArduinoControlSender Instance
         {
-            // TODO: close sockets and stuff here!
-            _output.Close();
+            get
+            {
+                if (_instance == null)
+                {
+                    lock (_syncRoot)
+                    {
+                        if (_instance == null)
+                        {
+                            _instance = new ArduinoControlSender();
+                        }
+                    }
+                }
+                return _instance;
+            }
+        }
+
+        /// <summary>
+        /// Tries to open a serial port on the ports available to the device.
+        /// If the port is already open, it checks to make sure that the's still communications
+        /// available on the port.
+        /// </summary>
+        public void TryConnect()
+        {
+            //TODO: loop through to find serial ports, and establish the fact we're connected
+            // We might need to start an external script to do this properly in linux,
+            // SerialPort.GetPortNames() only ever returns ttyS0
+            string[] ports = SerialPort.GetPortNames();
+            foreach(string port in ports)
+            {
+                Console.WriteLine($"{port}");
+            }
+            if (_output == null)
+            {
+                _output = new SerialPort("/dev/ttyACM0", _BAUD, _PARITY, _DATABITS, _STOPBITS);
+            }
+            if (_output.IsOpen != true)
+            {
+                _output.Open();
+                Thread.Sleep(2000);
+                _output.ReadTimeout = 500;
+                _output.RtsEnable = true;
+            }
         }
 
         /// <summary>
@@ -37,7 +87,7 @@ namespace GreenhouseController
         /// <param name="_commandsToSend">State to convert to commands and send to Arduino</param>
         public void SendCommand(KeyValuePair<IStateMachine, GreenhouseState> statePair)
         {
-            byte[] buffer = new byte[8];
+            byte[] buffer = new byte[1];
             List<Commands> commandsToSend = new List<Commands>();
 
             // TODO: Fix state machine here. Should enter the sending state just as we send to the serial port.
@@ -57,16 +107,16 @@ namespace GreenhouseController
             {
                 commandsToSend = StateMachineContainer.Instance.Watering.ConvertStateToCommands(statePair.Value);
             }
-            Console.WriteLine($"Attempting to send state {statePair.Value}");
-
+            
             foreach (var command in commandsToSend)
             {
                 // Send commands
                 try
                 {
+                    Console.WriteLine($"Attempting to send command {command}");
                     _output.Write(command.ToString());
-                    Thread.Sleep(2000);
-                    Console.WriteLine("Successful transmission.");
+                    Thread.Sleep(1250);
+                    Console.WriteLine("Send finished.");
                     // TODO: Move this somewhere that makes sense. Do we change state for each command sent? Probably
                     if (statePair.Key is TemperatureStateMachine)
                     {
@@ -94,7 +144,6 @@ namespace GreenhouseController
                 if (buffer == _ACK)
                 {
                     Console.WriteLine($"Command {command} sent successfully");
-
                     _success = true;
                 }
                 else if (buffer == _NACK || buffer == null)
@@ -107,7 +156,9 @@ namespace GreenhouseController
                         // Try-catch so we don't explode if it fails to send/receive
                         try
                         {
-                            _output.WriteLine(command.ToString());
+                            Console.WriteLine("Retrying send...");
+                            _output.Write(command.ToString());
+                            Console.WriteLine("Awaiting response...");
 
                             _output.Read(buffer, 0, 0);
                             //buffer = ACK;
@@ -175,14 +226,14 @@ namespace GreenhouseController
         public void SendManualOffCommand(IStateMachine stateMachine)
         {
 
-            byte[] buffer = new byte[8];
+            byte[] buffer = new byte[1];
             List<Commands> commandsToSend = new List<Commands>();
 
             // Get the commands we need to send to turn the manual control off
             if (stateMachine is TemperatureStateMachine)
             {
                 commandsToSend.Add(Commands.HEAT_OFF);
-                commandsToSend.Add(Commands.VENT_CLOSED);
+                commandsToSend.Add(Commands.VENT_CLOSE);
                 commandsToSend.Add(Commands.SHADE_RETRACT);
             }
             else if (stateMachine is LightingStateMachine)
@@ -199,8 +250,8 @@ namespace GreenhouseController
                 // Try to send command to turn off heater, watering, lighting etc.
                 try
                 {
-                    _output.WriteLine(command.ToString());
-                    
+                    _output.Write(command.ToString());
+                    Thread.Sleep(1250);
                     // Wait for response
                     _output.Read(buffer, 0, 0);
                     //buffer = NACK;
@@ -227,8 +278,8 @@ namespace GreenhouseController
                         // Try-catch so we don't explode if it fails to send/receive
                         try
                         {
-                            _output.WriteLine(command.ToString());
-                            Thread.Sleep(100);
+                            _output.Write(command.ToString());
+                            Thread.Sleep(1250);
                             _output.Read(buffer, 0, 0);
                             //buffer = ACK;
                         }

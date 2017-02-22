@@ -64,12 +64,12 @@ namespace GreenhouseUnitTests
             result = testMachine.ConvertStateToCommands(GreenhouseState.HEATING);
             Assert.IsTrue(result.Contains(Commands.HEAT_ON));
             Assert.IsTrue(result.Contains(Commands.SHADE_RETRACT));
-            Assert.IsTrue(result.Contains(Commands.VENT_CLOSED));
+            Assert.IsTrue(result.Contains(Commands.VENT_CLOSE));
 
             result = testMachine.ConvertStateToCommands(GreenhouseState.WAITING_FOR_DATA);
             Assert.IsTrue(result.Contains(Commands.HEAT_OFF));
             Assert.IsTrue(result.Contains(Commands.FANS_OFF));
-            Assert.IsTrue(result.Contains(Commands.VENT_CLOSED));
+            Assert.IsTrue(result.Contains(Commands.VENT_CLOSE));
             Assert.IsTrue(result.Contains(Commands.SHADE_RETRACT));
         }
     }
