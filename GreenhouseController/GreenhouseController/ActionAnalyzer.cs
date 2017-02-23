@@ -145,14 +145,7 @@ namespace GreenhouseController
                 }
             }
 
-            // TODO: how to send only the stuff that is automated and not anything that's been manually controlled?
-            // Solution: see above. We send the commands regardless, and have a separate manual state for each state machine
-            //              rather than the same heating/cooling state for everything. Makes the state machines a bit more complex,
-            //              but the solution is probably cleaner than if we tried some other way. This way just have a nice little "if"
-            //              statement that checks to see if we're in the manual state and doens't send a command unless we've received a
-            //              non-null value for the manual command that's DIFFERENT than the one that's currently set in the state machine
             // Send commands
-            
                 foreach (var state in _statesToSend)
                 {
                     // Send commands

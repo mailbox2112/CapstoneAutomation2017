@@ -122,49 +122,49 @@ namespace ConsoleApplication1
                     }
                     if (invalidCommand == false)
                     {
-                        if (heat == true)
-                        {
-                            tempHi = 1000;
-                            tempLo = 150;
+                        //if (heat == true)
+                        //{
+                        //    tempHi = 1000;
+                        //    tempLo = 150;
 
-                        }
-                        else
-                        {
-                            if (cool != true)
-                            {
+                        //}
+                        //else
+                        //{
+                        //    if (cool != true)
+                        //    {
                                 tempHi = 100;
                                 tempLo = 0;
-                            }
-                        }
-                        if (cool == true)
-                        {
-                            tempLo = 0;
-                            tempHi = 10;
-                        }
-                        else
-                        {
-                            if (heat != true)
-                            {
-                                tempHi = 100;
-                                tempLo = 0;
-                            }
-                        }
-                        if (light == true)
-                        {
-                            lightLim = 100000;
-                        }
-                        else
-                        {
+                        //    }
+                        //}
+                        //if (cool == true)
+                        //{
+                        //    tempLo = 0;
+                        //    tempHi = 10;
+                        //}
+                        //else
+                        //{
+                        //    if (heat != true)
+                        //    {
+                        //        tempHi = 100;
+                        //        tempLo = 0;
+                        //    }
+                        //}
+                        //if (light == true)
+                        //{
+                        //    lightLim = 100000;
+                        //}
+                        //else
+                        //{
                             lightLim = 0;
-                        }
-                        if (water == true)
-                        {
-                            moistLim = 150;
-                        }
-                        else
-                        {
+                        //}
+                        //if (water == true)
+                        //{
+                        //    moistLim = 150;
+                        //}
+                        //else
+                        //{
                             moistLim = 0;
-                        }
+                        //}
                         for (int i = 1; i < 6; i++)
                         {
                             packetsToSend.Add(
@@ -178,7 +178,11 @@ namespace ConsoleApplication1
                                     LightLim = lightLim,
                                     MoistLim = moistLim,
                                     TempHi = tempHi,
-                                    TempLo = tempLo
+                                    TempLo = tempLo,
+                                    ManualCool = cool,
+                                    ManualHeat = heat,
+                                    ManualLight = light,
+                                    ManualWater = water
                                 });
                         }
                         foreach (var packet in packetsToSend)
@@ -195,8 +199,10 @@ namespace ConsoleApplication1
                 }
                 #endregion
             }
+            
             else if (key == "r" || key == "R")
             {
+                #region Random Data Packets
                 int[] zones = new int[] { 1, 2, 3, 4, 5 };
                 byte[] bytesFrom = new byte[1024];
 
@@ -221,8 +227,9 @@ namespace ConsoleApplication1
                     {
                         Console.WriteLine(ex.ToString());
                     }
-                    Thread.Sleep(20000);
+                    Thread.Sleep(15000);
                 }
+                #endregion
             }
             else
             {

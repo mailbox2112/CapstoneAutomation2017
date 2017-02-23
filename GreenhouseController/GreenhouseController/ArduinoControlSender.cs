@@ -27,8 +27,6 @@ namespace GreenhouseController
         private static volatile ArduinoControlSender _instance;
         private static object _syncRoot = new object();
         
-        
-
         /// <summary>
         /// Empty constructor
         /// </summary>
@@ -87,7 +85,6 @@ namespace GreenhouseController
                 _output.ReadTimeout = 500;
                 _output.RtsEnable = true;
             }
-
             // TODO: add task down here to periodically poll for the arduino to make sure everything is okay
         }
 
@@ -99,11 +96,6 @@ namespace GreenhouseController
         {
             byte[] buffer = new byte[1];
             List<Commands> commandsToSend = new List<Commands>();
-
-            // TODO: Fix state machine here. Should enter the sending state just as we send to the serial port.
-            // Also, what happens if one of the commands fails but others are fine? retry, and make state machine 
-            // behave properly in that case.  How do we tell if one of the commands failed and we need to retry?
-
             
             if (statePair.Key is TemperatureStateMachine)
             {
@@ -127,7 +119,8 @@ namespace GreenhouseController
                     _output.Write(command.ToString());
                     Thread.Sleep(1250);
                     Console.WriteLine("Send finished.");
-                    // TODO: Move this somewhere that makes sense. Do we change state for each command sent? Probably
+
+                    // Change states based on the key/value pair we passed in
                     if (statePair.Key is TemperatureStateMachine)
                     {
                         StateMachineContainer.Instance.Temperature.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
@@ -145,20 +138,22 @@ namespace GreenhouseController
                     Console.WriteLine($"Waiting for response...");
                     _output.Read(buffer, 0, buffer.Length);
                     Console.WriteLine($"{buffer.GetValue(0)} received.");
-                    //buffer = NACK;
+                    
+                    //buffer = _NACK;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex);
                 }
 
-                
-
+                // Check the response from the Arduino
+                // ACK = success
                 if (buffer.SequenceEqual(_ACK))
                 {
                     Console.WriteLine($"Command {command} sent successfully");
                     _success = true;
                 }
+                // NACK = command wasn't acknowledged
                 else if (buffer.SequenceEqual(_NACK) || buffer == null)
                 {
                     Console.WriteLine($"Command {command} returned unsuccessful response, attempting to resend.");
@@ -166,38 +161,40 @@ namespace GreenhouseController
                     // Attempt to resend the command 5 more times
                     while(_retryCount != 5 && _success == false)
                     {
-                        // Try-catch so we don't explode if it fails to send/receive
+                        // Try-catch so thread doesn't explode if it fails to send/receive
                         try
                         {
                             Console.WriteLine("Retrying send...");
                             _output.Write(command.ToString());
+                            Thread.Sleep(1250);
                             Console.WriteLine("Awaiting response...");
-
-                            Console.WriteLine("Awaiting response...");
+                            
                             _output.Read(buffer, 0, buffer.Length);
                             Console.WriteLine($"{buffer.GetValue(0)} received");
                             //buffer = ACK;
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex.Message, "Retrying again....");
+                            Console.WriteLine(ex.Message, "Retrying again...");
                         }
                         
                         // If we succeeded this time, break out of the loop!
-                        if (buffer == _ACK)
+                        if (buffer.SequenceEqual(_ACK))
                         {
                             Console.WriteLine($"Command {command} sent successfully.");
                             _success = true;
                         }
-                        else if (buffer == _NACK || buffer == null && _retryCount != 5)
+                        // If not, we keep going!
+                        else if (buffer.SequenceEqual(_NACK) || buffer.SequenceEqual(null) && _retryCount != 5)
                         {
-                            Console.WriteLine("Retrying again....");
+                            Console.WriteLine("Retrying again...");
                             _retryCount++;
                         }
                     }
                 }
 
                 // Change state based on results of sending commands
+                // If we never successfully sent the command on retries, we go to the error state
                 if (_success == false)
                 {
                     if (statePair.Key is TemperatureStateMachine)
@@ -213,6 +210,7 @@ namespace GreenhouseController
                         StateMachineContainer.Instance.Watering.CurrentState = GreenhouseState.ERROR;
                     }
                 }
+                // If the command WAS sent successfully, we set the state accordingly and proceed as normal.
                 else if (_success == true)
                 {
                     if (statePair.Key is TemperatureStateMachine)
@@ -240,16 +238,26 @@ namespace GreenhouseController
         /// <param name="stateMachine">State machine to set back on automated control</param>
         public void SendManualOffCommand(IStateMachine stateMachine)
         {
-
+            // TODO: implement this with a key/value pair like above. Can probably reduce the commands
+            // we need to send that way.
             byte[] buffer = new byte[1];
             List<Commands> commandsToSend = new List<Commands>();
 
             // Get the commands we need to send to turn the manual control off
             if (stateMachine is TemperatureStateMachine)
             {
-                commandsToSend.Add(Commands.HEAT_OFF);
-                commandsToSend.Add(Commands.VENT_CLOSE);
-                commandsToSend.Add(Commands.SHADE_RETRACT);
+                if (stateMachine.CurrentState == GreenhouseState.HEATING)
+                {
+                    stateMachine.CurrentState = GreenhouseState.PROCESSING_HEATING;
+                    commandsToSend.Add(Commands.HEAT_OFF);
+                }
+                else if (stateMachine.CurrentState == GreenhouseState.COOLING)
+                {
+                    stateMachine.CurrentState = GreenhouseState.PROCESSING_COOLING;
+                    commandsToSend.Add(Commands.FANS_OFF);
+                    commandsToSend.Add(Commands.VENT_CLOSE);
+                    commandsToSend.Add(Commands.SHADE_RETRACT);
+                }
             }
             else if (stateMachine is LightingStateMachine)
             {
@@ -265,13 +273,14 @@ namespace GreenhouseController
                 // Try to send command to turn off heater, watering, lighting etc.
                 try
                 {
-                    Console.WriteLine("Retrying send...");
+                    Console.WriteLine($"Attempting to send command {command}");
                     _output.Write(command.ToString());
-                    Console.WriteLine("Awaiting response...");
+                    Thread.Sleep(1250);
+                    Console.WriteLine("Send finished.");
 
-                    Console.WriteLine("Awaiting response...");
+                    Console.WriteLine($"Waiting for response...");
                     _output.Read(buffer, 0, buffer.Length);
-                    Console.WriteLine($"{buffer.GetValue(0)} received");
+                    Console.WriteLine($"{buffer.GetValue(0)} received.");
                     //buffer = NACK;
                 }
                 catch (Exception ex)
@@ -279,42 +288,49 @@ namespace GreenhouseController
                     Console.WriteLine(ex);
                 }
 
-
+                // ACK = successfully executed the command to the best of the Arduino's knowledge
                 if (buffer.SequenceEqual(_ACK))
                 {
                     Console.WriteLine($"Command {command} sent successfully");
 
                     _success = true;
                 }
-                else if (buffer.SequenceEqual(_NACK) || buffer == null)
+                // NACK = couldn't successfully execute the command, so we retry
+                else if (buffer.SequenceEqual(_NACK) || buffer.SequenceEqual(null))
                 {
                     Console.WriteLine($"Command {command} sent unsuccessfully, attempting to resend.");
 
                     // Attempt to resend the command 5 more times
                     while (_retryCount != 5 && _success == false)
                     {
-                        // Try-catch so we don't explode if it fails to send/receive
+                        // Try-catch so thread doesn't explode if it fails to send/receive
                         try
                         {
+                            Console.WriteLine("Retrying send...");
                             _output.Write(command.ToString());
                             Thread.Sleep(1250);
-                            _output.Read(buffer, 0, 0);
+                            Console.WriteLine("Awaiting response...");
+
+                            Console.WriteLine("Awaiting response...");
+                            _output.Read(buffer, 0, buffer.Length);
+                            Console.WriteLine($"{buffer.GetValue(0)} received");
                             //buffer = ACK;
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex.Message, "Retrying again....");
+                            Console.WriteLine(ex.Message, "Retrying again...");
                         }
 
                         // If we succeeded this time, break out of the loop!
-                        if (buffer == _ACK)
+                        if (buffer.SequenceEqual(_ACK))
                         {
                             Console.WriteLine($"Command {command} sent successfully.");
                             _success = true;
                         }
-                        else if (buffer == _NACK || buffer == null && _retryCount != 5)
+                        // If we don't succeed, try again!
+                        else if (buffer.SequenceEqual(_NACK) || buffer.SequenceEqual(null) && _retryCount != 5)
                         {
-                            Console.WriteLine("Retrying again....");
+                            Console.WriteLine("Retrying again...");
                             _retryCount++;
                         }
                     }
