@@ -70,7 +70,7 @@ namespace GreenhouseController
 
             List<GreenhouseState> statesToSend = new List<GreenhouseState>();
 
-            #region Greenhouse Under Automated Control
+            #region Automation Decision Making
             // Get the averages of greenhouse readings
             GetGreenhouseAverages(data);
             Console.WriteLine($"Time: {_currentTime}\nAverage Temperature: {_avgTemp}\nAverage Humidity: {_avgHumid}\nAverage Light Intensity: {_avgLight}\nAverage Soil Moisture: {_avgMoisture}\n");
