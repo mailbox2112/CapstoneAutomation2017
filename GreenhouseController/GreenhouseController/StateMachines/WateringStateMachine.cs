@@ -26,12 +26,24 @@ namespace GreenhouseController
 
         public EventHandler<StateEventArgs> StateChanged { get; set; }
 
+        public int HighLimit { get; set; }
+
+        public int LowLimit { get; set; }
+
+        /// <summary>
+        /// Initialize the state machine
+        /// </summary>
         public WateringStateMachine()
         {
             CurrentState = GreenhouseState.WAITING_FOR_DATA;
         }
 
-        public GreenhouseState DetermineState(double value, int hiLimit, int? loLimit = default(int?))
+        /// <summary>
+        /// Determine the state of the greenhouse based on moisture data we receive
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public GreenhouseState DetermineState(double value)
         {
             if (CurrentState == GreenhouseState.WATERING)
             {
@@ -43,7 +55,7 @@ namespace GreenhouseController
             }
 
             // Check the states based on data, and if we were already watering take that into account
-            if (value < hiLimit && CurrentState != GreenhouseState.PROCESSING_WATER)
+            if (value < LowLimit && CurrentState != GreenhouseState.PROCESSING_WATER)
             {
                 if (value == _emergencyMoist)
                 {
@@ -54,7 +66,7 @@ namespace GreenhouseController
                     return GreenhouseState.WATERING;
                 }
             }
-            else if (value < hiLimit && CurrentState == GreenhouseState.PROCESSING_WATER)
+            else if (value < LowLimit && CurrentState == GreenhouseState.PROCESSING_WATER)
             {
                 if (value == _emergencyMoist)
                 {
@@ -66,7 +78,7 @@ namespace GreenhouseController
                     return GreenhouseState.NO_CHANGE;
                 }
             }
-            else if (value > hiLimit && CurrentState == GreenhouseState.PROCESSING_DATA)
+            else if (value > LowLimit && CurrentState == GreenhouseState.PROCESSING_DATA)
             {
                 CurrentState = GreenhouseState.WAITING_FOR_DATA;
                 return GreenhouseState.NO_CHANGE;
