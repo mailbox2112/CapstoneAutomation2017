@@ -13,8 +13,9 @@ namespace ConsoleApplication1
 {
     // Adapted from:
     // http://csharp.net-informations.com/communications/csharp-client-socket.htm
-    class SimpleTCPServerTest
+    public class SimpleTCPServerTest
     {
+        // TODO: Make this broadcast UDP for the limits
         static void Main(string[] args)
         {
             Thread.Sleep(1000);
@@ -27,6 +28,7 @@ namespace ConsoleApplication1
             Console.WriteLine(" >> Accept connection from client");
             NetworkStream networkStream = client.GetStream();
 
+            // TODO: add ability to change greenhouse limits
             Console.WriteLine("Would you like to use manual or random mode? Press M for manual, R for random.");
             var key = Console.ReadLine();
             Console.WriteLine();

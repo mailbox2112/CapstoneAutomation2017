@@ -93,6 +93,7 @@ namespace GreenhouseController
                         target.TryAdd(_tempBuffer);
                         EventHandler<DataEventArgs> handler = ItemInQueue;
                         handler(this, new DataEventArgs() { Buffer = target });
+
                         Array.Clear(_buffer, 0, _buffer.Length);
                     }
                 }

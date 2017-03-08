@@ -22,25 +22,18 @@ namespace GreenhouseController
             Console.WriteLine($"Watering State: {StateMachineContainer.Instance.Watering.CurrentState.ToString()}");
 
             // Event handlers for printing state changes
-            StateMachineContainer.Instance.Lighting.StateChanged += StateChanged;
-            StateMachineContainer.Instance.Temperature.StateChanged += StateChanged;
-            StateMachineContainer.Instance.Watering.StateChanged += StateChanged;
+            StateMachineContainer.Instance.Lighting.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
+            StateMachineContainer.Instance.Temperature.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
+            StateMachineContainer.Instance.Watering.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
 
             // Event handler for when blocking collection gets data
             DataProducer.Instance.ItemInQueue += (o, i) => { Task.Run(() => DataConsumer.Instance.ReceiveGreenhouseData(i.Buffer)); };
 
             // Start the data producer task
+            //DataRequestTimer dataRequester = new DataRequestTimer(buffer);
+            
+            // TODO: replace this with a timer task
             Task.WaitAll(Task.Run(new Action(() => DataProducer.Instance.ReadGreenhouseData(buffer))));
-        }
-
-        //static void ItemInQueue(object sender, DataEventArgs e)
-        //{
-        //    Task.Run(() => DataConsumer.Instance.ReceiveGreenhouseData(e.Buffer));
-        //}
-        
-        static void StateChanged(object sender, StateEventArgs e)
-        {
-            Console.WriteLine($"{sender}: {e.State}");
         }
     }
 }
