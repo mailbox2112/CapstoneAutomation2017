@@ -138,11 +138,11 @@ namespace GreenhouseController
             }
 
             // Send commands
-                foreach (var state in _statesToSend)
-                {
-                    // Send commands
-                    ArduinoControlSender.Instance.SendCommand(state);
-                }
+            foreach (var state in _statesToSend)
+            {
+                // Send commands
+                ArduinoControlSender.Instance.SendCommand(state);
+            }
             #endregion
 
             if (StateMachineContainer.Instance.Watering.CurrentState == GreenhouseState.EMERGENCY)
@@ -160,29 +160,6 @@ namespace GreenhouseController
             else if (StateMachineContainer.Instance.Temperature.CurrentState == GreenhouseState.ERROR)
             {
                 // TODO: Set a flag somewhere!
-            }
-        }
-
-        /// <summary>
-        /// Helper method to get the greenhouse limits from packets
-        /// </summary>
-        public void GetGreenhouseLimits(DataPacket packet)
-        {
-            if (StateMachineContainer.Instance.Temperature.HighLimit != packet.TempHi && packet.TempHi != null)
-            {
-                StateMachineContainer.Instance.Temperature.HighLimit = packet.TempHi;
-            }
-            if (StateMachineContainer.Instance.Temperature.LowLimit != packet.TempLo && packet.TempLo != null)
-            {
-                StateMachineContainer.Instance.Temperature.LowLimit = packet.TempLo;
-            }
-            if (StateMachineContainer.Instance.Lighting.LowLimit != packet.LightLim && packet.LightLim != null)
-            {
-                StateMachineContainer.Instance.Lighting.LowLimit = packet.LightLim;
-            }
-            if (StateMachineContainer.Instance.Watering.LowLimit != packet.MoistLim && packet.MoistLim != null)
-            {
-                StateMachineContainer.Instance.Watering.LowLimit = packet.MoistLim;
             }
         }
 

@@ -14,11 +14,6 @@ namespace GreenhouseController
         public double Light;
         public double Moisture;
         
-        public int? TempHi;
-        public int? TempLo;
-        public int? LightLim;
-        public int? MoistLim;
-
         public bool? ManualHeat;
         public bool? ManualCool;
         public bool? ManualLight;

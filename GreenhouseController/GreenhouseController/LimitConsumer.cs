@@ -53,8 +53,8 @@ namespace GreenhouseController
         {
             source.TryTake(out _data);
             var deserializedData = JsonConvert.DeserializeObject<LimitPacket>(Encoding.ASCII.GetString(_data));
-            Console.WriteLine($"{Encoding.ASCII.GetString(_data)}");
 
+            // TODO: Move this into a separate class!
             if (StateMachineContainer.Instance.Temperature.HighLimit != deserializedData.TempHi)
             {
                 StateMachineContainer.Instance.Temperature.HighLimit = deserializedData.TempHi;
