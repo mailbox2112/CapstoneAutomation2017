@@ -28,234 +28,256 @@ namespace ConsoleApplication1
             Console.WriteLine(" >> Accept connection from client");
             NetworkStream networkStream = client.GetStream();
 
-            // TODO: add ability to change greenhouse limits
-            Console.WriteLine("Would you like to use manual or random mode? Press M for manual, R for random.");
-            var key = Console.ReadLine();
-            Console.WriteLine();
-            if (key == "m" || key == "M")
-            {
-                #region Manual Controls
-                List<int> zones = new List<int>() { 1, 2, 3, 4, 5 };
-                List<DataPacket> packetsToSend = new List<DataPacket>();
-                Console.WriteLine("Manual mode selected. Currently, the following commands are supported:");
-                Console.WriteLine("Q to quit.");
-                Console.WriteLine("H for heating.");
-                Console.WriteLine("C for cooling.");
-                Console.WriteLine("L for lighting.");
-                Console.WriteLine("W for watering.");
+            TcpListener limitListener = new TcpListener(IPAddress.Parse("127.0.0.1"), 8000);
 
-                bool heat = false;
-                bool cool = false;
-                bool light = false;
-                bool water = false;
-                bool stop = false;
-                bool invalidCommand = false;
-                int tempHi;
-                int tempLo;
-                int lightLim;
-                int moistLim;
-                string command = null;
-                while(stop == false)
-                {
-                    tempHi = 0;
-                    tempLo = 0;
-                    lightLim = 0;
-                    moistLim = 0;
-                    invalidCommand = false;
-                    command = Console.ReadLine();
-                    Console.WriteLine();
-                    foreach(char c in command)
-                    {
-                        if (c == 'h' || c == 'H')
-                        {
-                            if (cool != true)
-                            {
-                                heat = !heat;
-                            }
-                            else
-                            {
-                                Console.WriteLine("Invalid command, cannot heat and cool simultaneously! Please try again.");
-                                heat = false;
-                                cool = false;
-                                light = false;
-                                water = false;
-                                invalidCommand = true;
-                                break;
-                            }
-                        }
-                        else if (c == 'c' || c == 'C')
-                        {
-                            if (heat != true)
-                            {
-                                cool = !cool;
-                            }
-                            else
-                            {
-                                Console.WriteLine("Invalid command, cannot heat and cool simultaneously! Please try again.");
-                                heat = false;
-                                cool = false;
-                                light = false;
-                                water = false;
-                                invalidCommand = true;
-                                break;
-                            }
-                        }
-                        else if (c == 'l' || c == 'L')
-                        {
-                            light = !light;
-                        }
-                        else if (c == 'w' || c == 'W')
-                        {
-                            water = !water;
-                        }
-                        else if (command == "q" || command == "Q")
-                        {
-                            stop = true;
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Invalid command {command}, please press one of the following keys:");
-                            Console.WriteLine("Q to quit.");
-                            Console.WriteLine("H for heating.");
-                            Console.WriteLine("C for cooling.");
-                            Console.WriteLine("L for lighting.");
-                            Console.WriteLine("W for watering.");
-                        }
-                    }
-                    if (invalidCommand == false)
-                    {
-                        //if (heat == true)
-                        //{
-                        //    tempHi = 1000;
-                        //    tempLo = 150;
-
-                        //}
-                        //else
-                        //{
-                        //    if (cool != true)
-                        //    {
-                                tempHi = 100;
-                                tempLo = 0;
-                        //    }
-                        //}
-                        //if (cool == true)
-                        //{
-                        //    tempLo = 0;
-                        //    tempHi = 10;
-                        //}
-                        //else
-                        //{
-                        //    if (heat != true)
-                        //    {
-                        //        tempHi = 100;
-                        //        tempLo = 0;
-                        //    }
-                        //}
-                        //if (light == true)
-                        //{
-                        //    lightLim = 100000;
-                        //}
-                        //else
-                        //{
-                            lightLim = 0;
-                        //}
-                        //if (water == true)
-                        //{
-                        //    moistLim = 150;
-                        //}
-                        //else
-                        //{
-                            moistLim = 0;
-                        //}
-                        for (int i = 1; i < 6; i++)
-                        {
-                            packetsToSend.Add(
-                                new DataPacket()
-                                {
-                                    Zone = i,
-                                    Humidity = 50,
-                                    Temperature = 50,
-                                    Light = 50,
-                                    Moisture = 50,
-                                    LightLim = lightLim,
-                                    MoistLim = moistLim,
-                                    TempHi = tempHi,
-                                    TempLo = tempLo,
-                                    ManualCool = cool,
-                                    ManualHeat = heat,
-                                    ManualLight = light,
-                                    ManualWater = water
-                                });
-                        }
-                        foreach (var packet in packetsToSend)
-                        {
-                            string pack = JsonConvert.SerializeObject(packet);
-                            byte[] sendBytes = Encoding.ASCII.GetBytes(pack);
-                            networkStream.Write(sendBytes, 0, sendBytes.Length);
-                            networkStream.Flush();
-                            Console.WriteLine(" >> " + $"{pack}");
-                            Thread.Sleep(500);
-                        }
-                        packetsToSend.Clear();
-                    }
-                }
-                #endregion
-            }
+            TcpClient limitClient = default(TcpClient);
+            limitListener.Start();
+            limitClient = limitListener.AcceptTcpClient();
+            NetworkStream limitStream = limitClient.GetStream();
             
-            else if (key == "r" || key == "R")
+            byte[] limitsToSend = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new LimitPacket()
             {
-                #region Random Data Packets
-                int[] zones = new int[] { 1, 2, 3, 4, 5 };
-                byte[] bytesFrom = new byte[1024];
+                TempHi = 100,
+                TempLo = 30,
+                MoistLim = 40,
+                LightHi = 100000,
+                LightLo = 40000
+            }));
+            limitStream.Write(limitsToSend, 0, limitsToSend.Length);
+            limitStream.Flush();
 
-                DataPacket limits = new DataPacket()
-                {
-                    TempHi = 120,
-                    TempLo = 50,
-                    MoistLim = 40,
-                    LightLim = 60000
-                };
+            Console.WriteLine(Encoding.ASCII.GetString(limitsToSend));
+            
+            
+            Console.ReadKey();
+            //// TODO: add ability to change greenhouse limits
+            //Console.WriteLine("Would you like to use manual or random mode? Press M for manual, R for random.");
+            //var key = Console.ReadLine();
+            //Console.WriteLine();
+            //if (key == "m" || key == "M")
+            //{
+            //    #region Manual Controls
+            //    List<int> zones = new List<int>() { 1, 2, 3, 4, 5 };
+            //    List<DataPacket> packetsToSend = new List<DataPacket>();
+            //    Console.WriteLine("Manual mode selected. Currently, the following commands are supported:");
+            //    Console.WriteLine("Q to quit.");
+            //    Console.WriteLine("H for heating.");
+            //    Console.WriteLine("C for cooling.");
+            //    Console.WriteLine("L for lighting.");
+            //    Console.WriteLine("W for watering.");
 
-                string pack = JsonConvert.SerializeObject(limits);
-                byte[] limitBytes = Encoding.ASCII.GetBytes(pack);
-                networkStream.Write(limitBytes, 0, limitBytes.Length);
-                networkStream.Flush();
-                Console.WriteLine(" >> " + $"{pack}\n");
-                Thread.Sleep(500);
+            //    bool heat = false;
+            //    bool cool = false;
+            //    bool light = false;
+            //    bool water = false;
+            //    bool stop = false;
+            //    bool invalidCommand = false;
+            //    int tempHi;
+            //    int tempLo;
+            //    int lightLim;
+            //    int moistLim;
+            //    string command = null;
+            //    while(stop == false)
+            //    {
+            //        tempHi = 0;
+            //        tempLo = 0;
+            //        lightLim = 0;
+            //        moistLim = 0;
+            //        invalidCommand = false;
+            //        command = Console.ReadLine();
+            //        Console.WriteLine();
+            //        foreach(char c in command)
+            //        {
+            //            if (c == 'h' || c == 'H')
+            //            {
+            //                if (cool != true)
+            //                {
+            //                    heat = !heat;
+            //                }
+            //                else
+            //                {
+            //                    Console.WriteLine("Invalid command, cannot heat and cool simultaneously! Please try again.");
+            //                    heat = false;
+            //                    cool = false;
+            //                    light = false;
+            //                    water = false;
+            //                    invalidCommand = true;
+            //                    break;
+            //                }
+            //            }
+            //            else if (c == 'c' || c == 'C')
+            //            {
+            //                if (heat != true)
+            //                {
+            //                    cool = !cool;
+            //                }
+            //                else
+            //                {
+            //                    Console.WriteLine("Invalid command, cannot heat and cool simultaneously! Please try again.");
+            //                    heat = false;
+            //                    cool = false;
+            //                    light = false;
+            //                    water = false;
+            //                    invalidCommand = true;
+            //                    break;
+            //                }
+            //            }
+            //            else if (c == 'l' || c == 'L')
+            //            {
+            //                light = !light;
+            //            }
+            //            else if (c == 'w' || c == 'W')
+            //            {
+            //                water = !water;
+            //            }
+            //            else if (command == "q" || command == "Q")
+            //            {
+            //                stop = true;
+            //            }
+            //            else
+            //            {
+            //                Console.WriteLine($"Invalid command {command}, please press one of the following keys:");
+            //                Console.WriteLine("Q to quit.");
+            //                Console.WriteLine("H for heating.");
+            //                Console.WriteLine("C for cooling.");
+            //                Console.WriteLine("L for lighting.");
+            //                Console.WriteLine("W for watering.");
+            //            }
+            //        }
+            //        if (invalidCommand == false)
+            //        {
+            //            //if (heat == true)
+            //            //{
+            //            //    tempHi = 1000;
+            //            //    tempLo = 150;
 
-                while ((true))
-                {
-                    try
-                    {
-                        JsonSpoof jSpoof = new JsonSpoof();
+            //            //}
+            //            //else
+            //            //{
+            //            //    if (cool != true)
+            //            //    {
+            //                    tempHi = 100;
+            //                    tempLo = 0;
+            //            //    }
+            //            //}
+            //            //if (cool == true)
+            //            //{
+            //            //    tempLo = 0;
+            //            //    tempHi = 10;
+            //            //}
+            //            //else
+            //            //{
+            //            //    if (heat != true)
+            //            //    {
+            //            //        tempHi = 100;
+            //            //        tempLo = 0;
+            //            //    }
+            //            //}
+            //            //if (light == true)
+            //            //{
+            //            //    lightLim = 100000;
+            //            //}
+            //            //else
+            //            //{
+            //                lightLim = 0;
+            //            //}
+            //            //if (water == true)
+            //            //{
+            //            //    moistLim = 150;
+            //            //}
+            //            //else
+            //            //{
+            //                moistLim = 0;
+            //            //}
+            //            for (int i = 1; i < 6; i++)
+            //            {
+            //                packetsToSend.Add(
+            //                    new DataPacket()
+            //                    {
+            //                        Zone = i,
+            //                        Humidity = 50,
+            //                        Temperature = 50,
+            //                        Light = 50,
+            //                        Moisture = 50,
+            //                        LightLim = lightLim,
+            //                        MoistLim = moistLim,
+            //                        TempHi = tempHi,
+            //                        TempLo = tempLo,
+            //                        ManualCool = cool,
+            //                        ManualHeat = heat,
+            //                        ManualLight = light,
+            //                        ManualWater = water
+            //                    });
+            //            }
+            //            foreach (var packet in packetsToSend)
+            //            {
+            //                string pack = JsonConvert.SerializeObject(packet);
+            //                byte[] sendBytes = Encoding.ASCII.GetBytes(pack);
+            //                networkStream.Write(sendBytes, 0, sendBytes.Length);
+            //                networkStream.Flush();
+            //                Console.WriteLine(" >> " + $"{pack}");
+            //                Thread.Sleep(500);
+            //            }
+            //            packetsToSend.Clear();
+            //        }
+            //    }
+            //    #endregion
+            //}
+            
+            //else if (key == "r" || key == "R")
+            //{
+            //    #region Random Data Packets
+            //    int[] zones = new int[] { 1, 2, 3, 4, 5 };
+            //    byte[] bytesFrom = new byte[1024];
 
-                        foreach (int zone in zones)
-                        {
-                            string json = jSpoof.SpoofGreenhouseData(zone);
-                            byte[] sendBytes = Encoding.ASCII.GetBytes(json);
-                            networkStream.Write(sendBytes, 0, sendBytes.Length);
-                            networkStream.Flush();
-                            Console.WriteLine(" >> " + $"{json}");
+            //    DataPacket limits = new DataPacket()
+            //    {
+            //        TempHi = 120,
+            //        TempLo = 50,
+            //        MoistLim = 40,
+            //        LightLim = 60000
+            //    };
 
-                            Thread.Sleep(500);
-                        }
-                        Console.WriteLine();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.ToString());
-                    }
-                    Thread.Sleep(15000);
-                }
-                #endregion
-            }
-            else
-            {
-                Console.WriteLine("Invalid character, restarting!");
-            }
-            client.Close();
-            serverListener.Stop();
-            Console.WriteLine(" >> exit");
+            //    string pack = JsonConvert.SerializeObject(limits);
+            //    byte[] limitBytes = Encoding.ASCII.GetBytes(pack);
+            //    networkStream.Write(limitBytes, 0, limitBytes.Length);
+            //    networkStream.Flush();
+            //    Console.WriteLine(" >> " + $"{pack}\n");
+            //    Thread.Sleep(500);
+
+            //    while ((true))
+            //    {
+            //        try
+            //        {
+            //            JsonSpoof jSpoof = new JsonSpoof();
+
+            //            foreach (int zone in zones)
+            //            {
+            //                string json = jSpoof.SpoofGreenhouseData(zone);
+            //                byte[] sendBytes = Encoding.ASCII.GetBytes(json);
+            //                networkStream.Write(sendBytes, 0, sendBytes.Length);
+            //                networkStream.Flush();
+            //                Console.WriteLine(" >> " + $"{json}");
+
+            //                Thread.Sleep(500);
+            //            }
+            //            Console.WriteLine();
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            Console.WriteLine(ex.ToString());
+            //        }
+            //        Thread.Sleep(15000);
+            //    }
+            //    #endregion
+            //}
+            //else
+            //{
+            //    Console.WriteLine("Invalid character, restarting!");
+            //}
+            //client.Close();
+            //serverListener.Stop();
+            //Console.WriteLine(" >> exit");
         }
 
         internal class JsonSpoof

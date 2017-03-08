@@ -52,6 +52,9 @@
   <ItemGroup>
     <Compile Include="Commands.cs" />
     <Compile Include="DataRequestTimer.cs" />
+    <Compile Include="LimitConsumer.cs" />
+    <Compile Include="LimitPacket.cs" />
+    <Compile Include="LimitProducer.cs" />
     <Compile Include="StateEventArgs.cs" />
     <Compile Include="UnitTestClasses\ArduinoControlSenderSimulator.cs" />
     <Compile Include="ArduinoControlSender.cs" />

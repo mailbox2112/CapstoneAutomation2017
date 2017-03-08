@@ -14,7 +14,8 @@ namespace GreenhouseController
         static void Main(string[] args)
         {
             // Create the blocking collection
-            var buffer = new BlockingCollection<byte[]>();
+            var dataBuffer = new BlockingCollection<byte[]>();
+            var limitBuffer = new BlockingCollection<byte[]>();
 
             // Print out the state of the state machine at the start of the program
             Console.WriteLine($"Temperature State: {StateMachineContainer.Instance.Temperature.CurrentState.ToString()}");
@@ -26,14 +27,15 @@ namespace GreenhouseController
             StateMachineContainer.Instance.Temperature.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
             StateMachineContainer.Instance.Watering.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
 
-            // Event handler for when blocking collection gets data
+            // Event handlers for when blocking collections get data
             DataProducer.Instance.ItemInQueue += (o, i) => { Task.Run(() => DataConsumer.Instance.ReceiveGreenhouseData(i.Buffer)); };
+            LimitProducer.Instance.ItemInQueue += (o, i) => { Task.Run(() => LimitConsumer.Instance.ChangeLimits(i.Buffer)); };
 
             // Start the data producer task
             //DataRequestTimer dataRequester = new DataRequestTimer(buffer);
             
             // TODO: replace this with a timer task
-            Task.WaitAll(Task.Run(new Action(() => DataProducer.Instance.ReadGreenhouseData(buffer))));
+            Task.WaitAll(Task.Run(new Action(() => DataProducer.Instance.ReadGreenhouseData(dataBuffer))), Task.Run(new Action(() => LimitProducer.Instance.ReceiveGreenhouseLimits(limitBuffer))));
         }
     }
 }
