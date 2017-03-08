@@ -60,17 +60,24 @@ namespace GreenhouseController
                     source.TryTake(out _data);
                     var deserializedData = JsonConvert.DeserializeObject<DataPacket>(Encoding.ASCII.GetString(_data));
 
-                    // Check for repeat zones, and if we have any, throw out the old zone data
-                    if (_zoneInformation.Where(p => p.Zone == deserializedData.Zone) != null)
+                    if (deserializedData.Zone == 0)
                     {
-                        _zoneInformation.RemoveAll(p => p.Zone == deserializedData.Zone);
+                        SendLimitsToAnalyzer(deserializedData);
                     }
-
-                    _zoneInformation.Add(deserializedData);
-
-                    if (_zoneInformation.Count == 5)
+                    else
                     {
-                        SendDataToAnalyzer(_zoneInformation);
+                        // Check for repeat zones, and if we have any, throw out the old zone data
+                        if (_zoneInformation.Where(p => p.Zone == deserializedData.Zone) != null)
+                        {
+                            _zoneInformation.RemoveAll(p => p.Zone == deserializedData.Zone);
+                        }
+
+                        _zoneInformation.Add(deserializedData);
+
+                        if (_zoneInformation.Count == 5)
+                        {
+                            SendDataToAnalyzer(_zoneInformation);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -95,6 +102,16 @@ namespace GreenhouseController
             // Send array
             ActionAnalyzer analyze = new ActionAnalyzer();
             Task.Run(() => analyze.AnalyzeData(tempZoneInfo));
+        }
+
+        /// <summary>
+        /// If we receive a packet of just limits, use this to find them
+        /// </summary>
+        /// <param name="limits"></param>
+        public void SendLimitsToAnalyzer(DataPacket limits)
+        {
+            ActionAnalyzer analyzeLimits = new ActionAnalyzer();
+            analyzeLimits.GetGreenhouseLimits(limits);
         }
     }
 }

@@ -14,9 +14,9 @@ namespace GreenhouseController
 
         GreenhouseState CurrentState { get; set; }
 
-        int HighLimit { get; set; }
+        int? HighLimit { get; set; }
 
-        int LowLimit { get; set; }
+        int? LowLimit { get; set; }
 
         void OnStateChange(StateEventArgs e);
     }

@@ -26,9 +26,9 @@ namespace GreenhouseController
 
         public EventHandler<StateEventArgs> StateChanged { get; set; }
 
-        public int HighLimit { get; set; }
+        public int? HighLimit { get; set; }
 
-        public int LowLimit { get; set; }
+        public int? LowLimit { get; set; }
 
         /// <summary>
         /// Initialize the state machine

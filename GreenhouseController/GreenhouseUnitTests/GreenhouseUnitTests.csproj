@@ -62,7 +62,6 @@
     <Compile Include="TemperatureStateMachineTests.cs" />
     <Compile Include="LightingStateMachineTests.cs" />
     <Compile Include="StateMachineControllerTests.cs" />
-    <Compile Include="ActionAnalyzerTests.cs" />
     <Compile Include="WateringStateMachineTests.cs" />
   </ItemGroup>
   <ItemGroup>

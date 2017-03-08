@@ -21,33 +21,34 @@ namespace GreenhouseUnitTests
         public void TestTemperatureStateDecisions()
         {
             testMachine = new TemperatureStateMachine();
-            GreenhouseState result = testMachine.DetermineState(89.6, 50, 0);
+            testMachine.HighLimit = 85;
+            GreenhouseState result = testMachine.DetermineState(89.6);
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.PROCESSING_DATA);
             Assert.IsTrue(result == GreenhouseState.COOLING);
 
-            result = testMachine.DetermineState(0, 100, 50);
+            testMachine.LowLimit = 30;
+            result = testMachine.DetermineState(0);
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.PROCESSING_DATA);
             Assert.IsTrue(result == GreenhouseState.HEATING);
 
-            result = testMachine.DetermineState(50, 100, 0);
+            result = testMachine.DetermineState(50);
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.WAITING_FOR_DATA);
-            Assert.IsTrue(result == GreenhouseState.WAITING_FOR_DATA);
 
-            result = testMachine.DetermineState(50, 80, 70);
+            result = testMachine.DetermineState(0);
             using (ArduinoControlSenderSimulator sim = new ArduinoControlSenderSimulator())
             {
                 sim.SendCommand(result, testMachine);
             }
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.HEATING);
 
-            result = testMachine.DetermineState(100, 80, 50);
+            result = testMachine.DetermineState(100);
             using (ArduinoControlSenderSimulator sim = new ArduinoControlSenderSimulator())
             {
                 sim.SendCommand(result, testMachine);
             }
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.COOLING);
 
-            result = testMachine.DetermineState(150, 100, 0);
+            result = testMachine.DetermineState(150);
             Assert.IsTrue(result == GreenhouseState.EMERGENCY);
         }
 

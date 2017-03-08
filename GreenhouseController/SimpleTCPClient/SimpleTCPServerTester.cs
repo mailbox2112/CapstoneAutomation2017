@@ -206,6 +206,21 @@ namespace ConsoleApplication1
                 int[] zones = new int[] { 1, 2, 3, 4, 5 };
                 byte[] bytesFrom = new byte[1024];
 
+                DataPacket limits = new DataPacket()
+                {
+                    TempHi = 120,
+                    TempLo = 50,
+                    MoistLim = 40,
+                    LightLim = 60000
+                };
+
+                string pack = JsonConvert.SerializeObject(limits);
+                byte[] limitBytes = Encoding.ASCII.GetBytes(pack);
+                networkStream.Write(limitBytes, 0, limitBytes.Length);
+                networkStream.Flush();
+                Console.WriteLine(" >> " + $"{pack}\n");
+                Thread.Sleep(500);
+
                 while ((true))
                 {
                     try
@@ -222,6 +237,7 @@ namespace ConsoleApplication1
 
                             Thread.Sleep(500);
                         }
+                        Console.WriteLine();
                     }
                     catch (Exception ex)
                     {
@@ -250,8 +266,6 @@ namespace ConsoleApplication1
                 int tempMax = 120;
                 int humidMin = 0;
                 int humidMax = 100;
-                int lightLim = 40000;
-                int moistLim = 30;
                 Random rand = new Random();
 
                 DataPacket pack = new DataPacket()
@@ -260,11 +274,7 @@ namespace ConsoleApplication1
                     Temperature = rand.Next(tempMin, tempMax),
                     Humidity = rand.Next(humidMin, humidMax),
                     Light = rand.Next(0, 100000),
-                    Moisture = rand.Next(10, 100),
-                    TempHi = 80,
-                    TempLo = 65,
-                    LightLim = lightLim,
-                    MoistLim = moistLim
+                    Moisture = rand.Next(10, 100)
                 };
 
                 string spoofData = JsonConvert.SerializeObject(pack);

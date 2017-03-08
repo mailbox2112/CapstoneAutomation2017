@@ -27,10 +27,10 @@ namespace GreenhouseController
         }
 
         // Upper limit for lighting, causes shades to close
-        public int HighLimit { get; set; }
+        public int? HighLimit { get; set; }
 
         // Lower limit for lighting, causes lights to turn on
-        public int LowLimit { get; set; }
+        public int? LowLimit { get; set; }
 
         public EventHandler<StateEventArgs> StateChanged;
         
