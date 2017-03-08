@@ -26,13 +26,24 @@ namespace GreenhouseController
 
         public EventHandler<StateEventArgs> StateChanged { get; set; }
 
+        public int? HighLimit { get; set; }
+
+        public int? LowLimit { get; set; }
+
+        /// <summary>
+        /// Initialize the state machine
+        /// </summary>
         public TemperatureStateMachine()
         {
             CurrentState = GreenhouseState.WAITING_FOR_DATA;
         }
 
-
-        public GreenhouseState DetermineState(double value, int hiLimit, int? loLimit = default(int?))
+        /// <summary>
+        /// Determines the state of the greenhouse based on the data that's input
+        /// </summary>
+        /// <param name="value">Average value of temperature data from each zone</param>
+        /// <returns></returns>
+        public GreenhouseState DetermineState(double value)
         {
             // Determine which processing state we're in
             if (CurrentState == GreenhouseState.HEATING)
@@ -51,16 +62,16 @@ namespace GreenhouseController
             // Determine what state to return/change to
             // If we're coming from an action state and we meet action criteria,
             // go back to the action state
-            if (value <= loLimit && CurrentState != GreenhouseState.PROCESSING_HEATING)
+            if (value <= LowLimit && CurrentState != GreenhouseState.PROCESSING_HEATING)
             {
                 return GreenhouseState.HEATING;
             }
-            else if (value <= loLimit && CurrentState == GreenhouseState.PROCESSING_HEATING)
+            else if (value <= LowLimit && CurrentState == GreenhouseState.PROCESSING_HEATING)
             {
                 CurrentState = GreenhouseState.HEATING;
                 return GreenhouseState.NO_CHANGE;
             }
-            else if (value > hiLimit && CurrentState != GreenhouseState.PROCESSING_COOLING)
+            else if (value > HighLimit && CurrentState != GreenhouseState.PROCESSING_COOLING)
             {
                 if (value >= _emergencyTemp)
                 {
@@ -71,7 +82,7 @@ namespace GreenhouseController
                     return GreenhouseState.COOLING;
                 }
             }
-            else if (value > hiLimit && CurrentState == GreenhouseState.PROCESSING_COOLING)
+            else if (value > HighLimit && CurrentState == GreenhouseState.PROCESSING_COOLING)
             {
                 if (value >= _emergencyTemp)
                 {
@@ -83,7 +94,7 @@ namespace GreenhouseController
                     return GreenhouseState.NO_CHANGE;
                 }
             }
-            else if (value > loLimit && value < hiLimit && CurrentState == GreenhouseState.PROCESSING_DATA)
+            else if (value > LowLimit && value < HighLimit && CurrentState == GreenhouseState.PROCESSING_DATA)
             {
                 CurrentState = GreenhouseState.WAITING_FOR_DATA;
                 return GreenhouseState.NO_CHANGE;
@@ -94,6 +105,12 @@ namespace GreenhouseController
             }
         }
 
+        /// <summary>
+        /// Takes a greenhouse state and converts it to a list of commands to be sent off
+        /// in order to properly transition to that state
+        /// </summary>
+        /// <param name="state"></param>
+        /// <returns></returns>
         public List<Commands> ConvertStateToCommands(GreenhouseState state)
         {
             List<Commands> commandsToSend = new List<Commands>();
@@ -122,6 +139,10 @@ namespace GreenhouseController
             return commandsToSend;
         }
 
+        /// <summary>
+        /// Invokes state change event handler
+        /// </summary>
+        /// <param name="e"></param>
         public void OnStateChange(StateEventArgs e)
         {
             StateChanged?.Invoke(this, e);

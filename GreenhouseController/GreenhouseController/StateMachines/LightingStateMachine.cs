@@ -8,7 +8,10 @@ namespace GreenhouseController
 {
     public class LightingStateMachine : IStateMachine
     {
+        // Private member for implementing custom get/set using the event handler
         private GreenhouseState _currentState;
+
+        // Public property to access private member and throw event
         public GreenhouseState CurrentState
         {
             get
@@ -17,16 +20,34 @@ namespace GreenhouseController
             }
             set
             {
+                // Set the value and fire off event
                 _currentState = value;
                 OnStateChange(new StateEventArgs() { State = CurrentState });
             }
         }
+
+        // Upper limit for lighting, causes shades to close
+        public int? HighLimit { get; set; }
+
+        // Lower limit for lighting, causes lights to turn on
+        public int? LowLimit { get; set; }
+
         public EventHandler<StateEventArgs> StateChanged;
         
+        /// <summary>
+        /// Initialize the state machine
+        /// </summary>
         public LightingStateMachine()
-        { }
+        {
+            CurrentState = GreenhouseState.WAITING_FOR_DATA;
+        }
 
-        public GreenhouseState DetermineState(double value, int hiLimit, int? loLimit = default(int?))
+        /// <summary>
+        /// Determinet the state of the greenhouse based on the lighting data we receive
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public GreenhouseState DetermineState(double value)
         {
             if (CurrentState == GreenhouseState.LIGHTING)
             {
@@ -38,16 +59,16 @@ namespace GreenhouseController
             }
 
             // Process data and take into account if we were already lighting when we received the data
-            if (value < hiLimit && CurrentState != GreenhouseState.PROCESSING_LIGHTING)
+            if (value < LowLimit && CurrentState != GreenhouseState.PROCESSING_LIGHTING)
             {
                 return GreenhouseState.LIGHTING;
             }
-            else if (value < hiLimit && CurrentState == GreenhouseState.PROCESSING_LIGHTING)
+            else if (value < LowLimit && CurrentState == GreenhouseState.PROCESSING_LIGHTING)
             {
                 CurrentState = GreenhouseState.LIGHTING;
                 return GreenhouseState.NO_CHANGE;
             }
-            else if (value > hiLimit && CurrentState == GreenhouseState.PROCESSING_DATA)
+            else if (value > LowLimit && CurrentState == GreenhouseState.PROCESSING_DATA)
             {
                 CurrentState = GreenhouseState.WAITING_FOR_DATA;
                 return GreenhouseState.NO_CHANGE;
@@ -58,6 +79,11 @@ namespace GreenhouseController
             }
         }
 
+        /// <summary>
+        /// Convert a greenhouse state to a list of commands to send to the Arduino
+        /// </summary>
+        /// <param name="state"></param>
+        /// <returns></returns>
         public List<Commands> ConvertStateToCommands(GreenhouseState state)
         {
             List<Commands> commandsToSend = new List<Commands>();
@@ -73,6 +99,7 @@ namespace GreenhouseController
             return commandsToSend;
         }
 
+        // Invoke the event handler
         public void OnStateChange(StateEventArgs e)
         {
             StateChanged?.Invoke(this, e);

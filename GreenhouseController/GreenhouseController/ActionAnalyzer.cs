@@ -13,9 +13,6 @@ namespace GreenhouseController
         private double _avgLight;
         private double _avgMoisture;
         private DateTime _currentTime;
-        private int[] _tempLimits;
-        private int _lightLimit;
-        private int _moistureLimit;
         private bool? _manualHeat;
         private bool? _manualCool;
         private bool? _manualLight;
@@ -28,9 +25,6 @@ namespace GreenhouseController
             _avgLight = new double();
             _avgHumid = new double();
             _avgMoisture = new double();
-            _tempLimits = new int[2];
-            _lightLimit = new int();
-            _moistureLimit = new int();
             _manualCool = null;
             _manualHeat = null;
             _manualLight = null;
@@ -75,13 +69,11 @@ namespace GreenhouseController
             GetGreenhouseAverages(data);
             Console.WriteLine($"Time: {_currentTime}\nAverage Temperature: {_avgTemp}\nAverage Humidity: {_avgHumid}\nAverage Light Intensity: {_avgLight}\nAverage Soil Moisture: {_avgMoisture}\n");
             Console.WriteLine($"Manual Heating: {_manualHeat}\nManual Cooling: {_manualCool}\nManual Lighting: {_manualLight}\nManual Watering: {_manualWater}\n");
-            // Get the limits we're comparing to
-            GetGreenhouseLimits(data);
 
             // Get state machine states as long as we don't have a manual command change to send
             if (_manualHeat == null && _manualCool == null)
             {
-                GreenhouseState goalTempState = StateMachineContainer.Instance.Temperature.DetermineState(_avgTemp, _tempLimits[0], _tempLimits[1]);
+                GreenhouseState goalTempState = StateMachineContainer.Instance.Temperature.DetermineState(_avgTemp);
                 if (goalTempState == GreenhouseState.HEATING || goalTempState == GreenhouseState.COOLING || goalTempState == GreenhouseState.WAITING_FOR_DATA)
                 {
                     _statesToSend.Add(new TemperatureStateMachine(), goalTempState);
@@ -106,7 +98,7 @@ namespace GreenhouseController
             }
             if (_manualLight == null)
             {
-                GreenhouseState goalLightState = StateMachineContainer.Instance.Lighting.DetermineState(_avgLight, _lightLimit);
+                GreenhouseState goalLightState = StateMachineContainer.Instance.Lighting.DetermineState(_avgLight);
                 if (goalLightState == GreenhouseState.LIGHTING || goalLightState == GreenhouseState.WAITING_FOR_DATA)
                 {
                     _statesToSend.Add(new LightingStateMachine(), goalLightState);
@@ -126,7 +118,7 @@ namespace GreenhouseController
             }
             if (_manualWater == null)
             {
-                GreenhouseState goalWaterState = StateMachineContainer.Instance.Watering.DetermineState(_avgMoisture, _moistureLimit);
+                GreenhouseState goalWaterState = StateMachineContainer.Instance.Watering.DetermineState(_avgMoisture);
                 if (goalWaterState == GreenhouseState.WATERING || goalWaterState == GreenhouseState.WAITING_FOR_DATA)
                 {
                     _statesToSend.Add(new WateringStateMachine(), goalWaterState);
@@ -169,8 +161,29 @@ namespace GreenhouseController
             {
                 // TODO: Set a flag somewhere!
             }
+        }
 
-
+        /// <summary>
+        /// Helper method to get the greenhouse limits from packets
+        /// </summary>
+        public void GetGreenhouseLimits(DataPacket packet)
+        {
+            if (StateMachineContainer.Instance.Temperature.HighLimit != packet.TempHi && packet.TempHi != null)
+            {
+                StateMachineContainer.Instance.Temperature.HighLimit = packet.TempHi;
+            }
+            if (StateMachineContainer.Instance.Temperature.LowLimit != packet.TempLo && packet.TempLo != null)
+            {
+                StateMachineContainer.Instance.Temperature.LowLimit = packet.TempLo;
+            }
+            if (StateMachineContainer.Instance.Lighting.LowLimit != packet.LightLim && packet.LightLim != null)
+            {
+                StateMachineContainer.Instance.Lighting.LowLimit = packet.LightLim;
+            }
+            if (StateMachineContainer.Instance.Watering.LowLimit != packet.MoistLim && packet.MoistLim != null)
+            {
+                StateMachineContainer.Instance.Watering.LowLimit = packet.MoistLim;
+            }
         }
 
         /// <summary>
@@ -190,33 +203,6 @@ namespace GreenhouseController
             _avgHumid /= 5;
             _avgLight /= 5;
             _avgMoisture /= 5;
-        }
-
-        /// <summary>
-        /// Helper method to get the greenhouse limits from packets
-        /// </summary>
-        private void GetGreenhouseLimits(DataPacket[] packet)
-        {
-            // TODO: get light and humidity
-            foreach (DataPacket pack in packet)
-            {
-                if (_tempLimits[0] != pack.TempHi)
-                {
-                    _tempLimits[0] = pack.TempHi;
-                }
-                if (_tempLimits[1] != pack.TempLo)
-                {
-                    _tempLimits[1] = pack.TempLo;
-                }
-                if (_lightLimit != pack.LightLim)
-                {
-                    _lightLimit = pack.LightLim;
-                }
-                if (_moistureLimit != pack.MoistLim)
-                {
-                    _moistureLimit = pack.MoistLim;
-                }
-            }
         }
     }
 }
