@@ -54,28 +54,8 @@ namespace GreenhouseController
             source.TryTake(out _data);
             var deserializedData = JsonConvert.DeserializeObject<LimitPacket>(Encoding.ASCII.GetString(_data));
 
-            // TODO: Move this into a separate class!
-            if (StateMachineContainer.Instance.Temperature.HighLimit != deserializedData.TempHi)
-            {
-                StateMachineContainer.Instance.Temperature.HighLimit = deserializedData.TempHi;
-            }
-            if (StateMachineContainer.Instance.Temperature.LowLimit != deserializedData.TempLo)
-            {
-                StateMachineContainer.Instance.Temperature.LowLimit = deserializedData.TempLo;
-            }
-            if (StateMachineContainer.Instance.Lighting.LowLimit != deserializedData.LightLo)
-            {
-                StateMachineContainer.Instance.Lighting.LowLimit = deserializedData.LightLo;
-            }
-            if (StateMachineContainer.Instance.Watering.LowLimit != deserializedData.MoistLim)
-            {
-                StateMachineContainer.Instance.Watering.LowLimit = deserializedData.MoistLim;
-            }
-
-            Console.WriteLine($"Temperature High Limit: {StateMachineContainer.Instance.Temperature.HighLimit}");
-            Console.WriteLine($"Temperature Low Limit: {StateMachineContainer.Instance.Temperature.LowLimit}");
-            Console.WriteLine($"Lighting Low Limit: {StateMachineContainer.Instance.Lighting.LowLimit}");
-            Console.WriteLine($"Watering High Limit: {StateMachineContainer.Instance.Watering.LowLimit}");
+            LimitsAnalyzer analyzeLimits = new LimitsAnalyzer();
+            analyzeLimits.ChangeGreenhouseLimits(deserializedData);
         }
     }
 }

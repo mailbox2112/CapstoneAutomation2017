@@ -37,8 +37,8 @@ namespace ConsoleApplication1
             
             byte[] limitsToSend = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new LimitPacket()
             {
-                TempHi = 100,
-                TempLo = 30,
+                TempHi = 80,
+                TempLo = 65,
                 MoistLim = 40,
                 LightHi = 100000,
                 LightLo = 40000

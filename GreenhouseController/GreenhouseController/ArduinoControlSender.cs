@@ -75,7 +75,7 @@ namespace GreenhouseController
             if (_output == null)
             {
                 //_output = new SerialPort("/dev/ttyACM0", _BAUD, _PARITY, _DATABITS, _STOPBITS);
-                _output = new SerialPort("COM3", _BAUD, _PARITY, _DATABITS, _STOPBITS);
+                _output = new SerialPort("COM4", _BAUD, _PARITY, _DATABITS, _STOPBITS);
             }
 
             // Open the serial port
@@ -95,6 +95,7 @@ namespace GreenhouseController
         /// <param name="_commandsToSend">State to convert to commands and send to Arduino</param>
         public void SendCommand(KeyValuePair<IStateMachine, GreenhouseState> statePair)
         {
+            // TODO: add correct sequencing of commands
             byte[] buffer = new byte[1];
             List<Commands> commandsToSend = new List<Commands>();
             
