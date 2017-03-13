@@ -63,6 +63,7 @@ namespace GreenhouseController
             }
 
             // Process data and take into account if we were already lighting when we received the data
+            // TODO: fix processing data bug!
             if (value < LowLimit && CurrentState != GreenhouseState.PROCESSING_LIGHTING)
             {
                 return GreenhouseState.LIGHTING;
