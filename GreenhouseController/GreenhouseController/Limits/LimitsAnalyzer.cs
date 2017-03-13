@@ -29,6 +29,10 @@ namespace GreenhouseController
             {
                 StateMachineContainer.Instance.Lighting.LowLimit = limits.LightLo;
             }
+            if (StateMachineContainer.Instance.Lighting.HighLimit != limits.LightHi)
+            {
+                StateMachineContainer.Instance.Lighting.HighLimit = limits.LightHi;
+            }
             if (StateMachineContainer.Instance.Watering.LowLimit != limits.MoistLim)
             {
                 StateMachineContainer.Instance.Watering.LowLimit = limits.MoistLim;
@@ -36,8 +40,9 @@ namespace GreenhouseController
 
             Console.WriteLine($"Temperature High Limit: {StateMachineContainer.Instance.Temperature.HighLimit}");
             Console.WriteLine($"Temperature Low Limit: {StateMachineContainer.Instance.Temperature.LowLimit}");
+            Console.WriteLine($"Lighting High Limit: {StateMachineContainer.Instance.Lighting.HighLimit}");
             Console.WriteLine($"Lighting Low Limit: {StateMachineContainer.Instance.Lighting.LowLimit}");
-            Console.WriteLine($"Watering High Limit: {StateMachineContainer.Instance.Watering.LowLimit}");
+            Console.WriteLine($"Watering Low Limit: {StateMachineContainer.Instance.Watering.LowLimit}");
         }
     }
 }

@@ -40,8 +40,8 @@ namespace ConsoleApplication1
                 TempHi = 80,
                 TempLo = 65,
                 MoistLim = 40,
-                LightHi = 100000,
-                LightLo = 40000
+                LightHi = 50000,
+                LightLo = 30000
             }));
             limitStream.Write(limitsToSend, 0, limitsToSend.Length);
             limitStream.Flush();

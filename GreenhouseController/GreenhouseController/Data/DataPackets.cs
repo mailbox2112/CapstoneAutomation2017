@@ -18,5 +18,6 @@ namespace GreenhouseController
         public bool? ManualCool;
         public bool? ManualLight;
         public bool? ManualWater;
+        public bool? ManualShade;
     }
 }

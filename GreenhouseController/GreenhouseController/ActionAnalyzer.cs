@@ -17,6 +17,7 @@ namespace GreenhouseController
         private bool? _manualCool;
         private bool? _manualLight;
         private bool? _manualWater;
+        private bool? _manualShade;
         private Dictionary<IStateMachine, GreenhouseState> _statesToSend;
 
         public ActionAnalyzer()
@@ -60,6 +61,10 @@ namespace GreenhouseController
                 {
                     _manualWater = packet.ManualWater;
                 }
+                if (packet.ManualShade != null)
+                {
+                    _manualShade = packet.ManualShade;
+                }
             }
 
             List<GreenhouseState> statesToSend = new List<GreenhouseState>();
@@ -71,8 +76,10 @@ namespace GreenhouseController
             Console.WriteLine($"Manual Heating: {_manualHeat}\nManual Cooling: {_manualCool}\nManual Lighting: {_manualLight}\nManual Watering: {_manualWater}\n");
 
             // Get state machine states as long as we don't have a manual command change to send
+            // If we don't have any manual temperature commands...
             if (_manualHeat == null && _manualCool == null)
             {
+                // Determine what state we need to go to and then add a KVP to the dictionary
                 GreenhouseState goalTempState = StateMachineContainer.Instance.Temperature.DetermineState(_avgTemp);
                 if (goalTempState == GreenhouseState.HEATING || goalTempState == GreenhouseState.COOLING || goalTempState == GreenhouseState.WAITING_FOR_DATA)
                 {
@@ -81,6 +88,7 @@ namespace GreenhouseController
             }
             else
             {
+                // If we have a manual command, do that
                 if (_manualHeat == true)
                 {
                     GreenhouseState goalTempState = GreenhouseState.HEATING;
@@ -96,19 +104,27 @@ namespace GreenhouseController
                     ArduinoControlSender.Instance.SendManualOffCommand(StateMachineContainer.Instance.Temperature);
                 }
             }
-            if (_manualLight == null)
+            // If we don't have a manual light/shade command...
+            if (_manualLight == null && _manualShade == null)
             {
+                // Determine what state we need to go into and then add aa KVP to the dictionary
                 GreenhouseState goalLightState = StateMachineContainer.Instance.Lighting.DetermineState(_avgLight);
-                if (goalLightState == GreenhouseState.LIGHTING || goalLightState == GreenhouseState.WAITING_FOR_DATA)
+                if (goalLightState == GreenhouseState.LIGHTING || goalLightState == GreenhouseState.SHADING || goalLightState == GreenhouseState.WAITING_FOR_DATA)
                 {
                     _statesToSend.Add(new LightingStateMachine(), goalLightState);
                 }
             }
             else
             {
+                // If we do have a manual command, do that
                 if (_manualLight == true)
                 {
                     GreenhouseState goalLightState = GreenhouseState.LIGHTING;
+                    _statesToSend.Add(new LightingStateMachine(), goalLightState);
+                }
+                else if (_manualShade == true)
+                {
+                    GreenhouseState goalLightState = GreenhouseState.SHADING;
                     _statesToSend.Add(new LightingStateMachine(), goalLightState);
                 }
                 else
@@ -116,8 +132,10 @@ namespace GreenhouseController
                     ArduinoControlSender.Instance.SendManualOffCommand(StateMachineContainer.Instance.Lighting);
                 }
             }
+            // If we don't have a manual watering command
             if (_manualWater == null)
             {
+                // Determine what state we need to go into and then ad a KVP to the dictionary
                 GreenhouseState goalWaterState = StateMachineContainer.Instance.Watering.DetermineState(_avgMoisture);
                 if (goalWaterState == GreenhouseState.WATERING || goalWaterState == GreenhouseState.WAITING_FOR_DATA)
                 {
@@ -126,6 +144,7 @@ namespace GreenhouseController
             }
             else
             {
+                // If we have a manual command, do that
                 if (_manualWater == true)
                 {
                     GreenhouseState goalWaterState = GreenhouseState.WATERING;
@@ -145,6 +164,7 @@ namespace GreenhouseController
             }
             #endregion
 
+            // If our state ends up being in emergency
             if (StateMachineContainer.Instance.Watering.CurrentState == GreenhouseState.EMERGENCY)
             {
                 // TODO: Send an emergency message to the Data Team!

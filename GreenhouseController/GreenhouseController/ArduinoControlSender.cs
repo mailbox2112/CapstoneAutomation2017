@@ -263,7 +263,14 @@ namespace GreenhouseController
             }
             else if (stateMachine is LightingStateMachine)
             {
-                commandsToSend.Add(Commands.LIGHTS_OFF);
+                if (stateMachine.CurrentState == GreenhouseState.LIGHTING)
+                {
+                    commandsToSend.Add(Commands.LIGHTS_OFF);
+                }
+                else if (stateMachine.CurrentState == GreenhouseState.SHADING)
+                {
+                    commandsToSend.Add(Commands.SHADE_RETRACT);
+                }
             }
             else if (stateMachine is WateringStateMachine)
             {

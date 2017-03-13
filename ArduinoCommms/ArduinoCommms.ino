@@ -127,11 +127,13 @@ void processData(String command) {
   else if (command == "SHADE_EXTEND")
   {
     // TODO: shade motor stuff
+    digitalWrite(SHADE_CLK, LOW);
     ack = true;
   }
   else if (command == "SHADE_RETRACT")
   {
     // TODO: shade motor stuff
+    digitalWrite(SHADE_CLK, HIGH);
     ack = true;
   }
   else if (command == "WATER_ON")
