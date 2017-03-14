@@ -27,13 +27,6 @@ namespace ConsoleApplication1
             client = serverListener.AcceptTcpClient();
             Console.WriteLine(" >> Accept connection from client");
             NetworkStream networkStream = client.GetStream();
-
-            TcpListener limitListener = new TcpListener(IPAddress.Parse("127.0.0.1"), 8000);
-
-            TcpClient limitClient = default(TcpClient);
-            limitListener.Start();
-            limitClient = limitListener.AcceptTcpClient();
-            NetworkStream limitStream = limitClient.GetStream();
             
             byte[] limitsToSend = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new LimitPacket()
             {
@@ -43,8 +36,8 @@ namespace ConsoleApplication1
                 LightHi = 50000,
                 LightLo = 30000
             }));
-            limitStream.Write(limitsToSend, 0, limitsToSend.Length);
-            limitStream.Flush();
+            networkStream.Write(limitsToSend, 0, limitsToSend.Length);
+            networkStream.Flush();
 
             Console.WriteLine(Encoding.ASCII.GetString(limitsToSend));
 
@@ -166,7 +159,40 @@ namespace ConsoleApplication1
                 }
                 #endregion
             }
+            else if (key == "T" || key == "t")
+            {
+                int[] zones = new int[] { 1, 2, 3, 4, 5 };
+                byte[] buffer = new byte[1024];
+                while(true)
+                {
+                    networkStream.Read(buffer, 0, buffer.Length);
+                    string received = JsonConvert.DeserializeObject<string>(Encoding.ASCII.GetString(buffer));
+                    if (received == "DATA")
+                    {
+                        Console.WriteLine("Request for data received!");
+                        try
+                        {
+                            JsonSpoof jSpoof = new JsonSpoof();
 
+                            foreach (int zone in zones)
+                            {
+                                string json = jSpoof.SpoofGreenhouseData(zone);
+                                byte[] sendBytes = Encoding.ASCII.GetBytes(json);
+                                networkStream.Write(sendBytes, 0, sendBytes.Length);
+                                networkStream.Flush();
+                                Console.WriteLine(" >> " + $"{json}");
+
+                                Thread.Sleep(500);
+                            }
+                            Console.WriteLine("Data sent!");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.ToString());
+                        }
+                    }
+                }
+            }
             else if (key == "r" || key == "R")
             {
                 #region Random Data Packets

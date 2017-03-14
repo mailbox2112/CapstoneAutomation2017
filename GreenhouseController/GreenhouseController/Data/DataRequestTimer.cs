@@ -18,7 +18,7 @@ namespace GreenhouseController
 
         public void RequestData(Object state)
         {
-            DataProducer.Instance.ReadGreenhouseData(BytesToSend);
+            NetworkListener.Instance.ReadGreenhouseData(BytesToSend);
         }
 
         public void RequestLimits(Object state) { }

@@ -13,6 +13,8 @@ namespace GreenhouseController
         // TODO: RESET BUTTON?
         static void Main(string[] args)
         {
+            // Connect to the server
+            NetworkListener.Instance.TryConnect();
             // Create the blocking collection
             var dataBuffer = new BlockingCollection<byte[]>();
             var limitBuffer = new BlockingCollection<byte[]>();
@@ -26,16 +28,19 @@ namespace GreenhouseController
             StateMachineContainer.Instance.Lighting.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
             StateMachineContainer.Instance.Temperature.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
             StateMachineContainer.Instance.Watering.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
-
-            // Event handlers for when blocking collections get data
-            DataProducer.Instance.ItemInQueue += (o, i) => { Task.Run(() => DataConsumer.Instance.ReceiveGreenhouseData(i.Buffer)); };
-            LimitProducer.Instance.ItemInQueue += (o, i) => { Task.Run(() => LimitConsumer.Instance.ChangeLimits(i.Buffer)); };
-
-            // Start the data producer task
-            //DataRequestTimer dataRequester = new DataRequestTimer(buffer);
             
-            // TODO: replace this with a timer task
-            Task.WaitAll(Task.Run(new Action(() => DataProducer.Instance.ReadGreenhouseData(dataBuffer))), Task.Run(new Action(() => LimitProducer.Instance.ReceiveGreenhouseLimits(limitBuffer))));
+            // Event handlers for when blocking collections get data
+            NetworkListener.Instance.ItemInQueue += (o, i) => { Task.Run(() => PacketConsumer.Instance.ReceiveGreenhouseData(i.Buffer)); };
+
+            var time = new System.Timers.Timer();
+            time.Interval = 15000;
+            time.Elapsed += (o, i) => { NetworkListener.Instance.RequestData(); };
+            time.AutoReset = true;
+            time.Enabled = true;
+            GC.KeepAlive(time);
+            
+            // Listens for any data that comes in, be it sensor data or control data
+            Task.WaitAll(Task.Run(new Action(() => NetworkListener.Instance.ReadGreenhouseData(dataBuffer))));
         }
     }
 }

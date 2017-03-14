@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace GreenhouseUnitTests
 {
     [TestClass]
-    public class DataConsumerTests
+    public class PacketConsumerTests
     {
         [TestMethod]
         public void TestReceiveGreenhouseData()
@@ -28,7 +28,7 @@ namespace GreenhouseUnitTests
             // Take stuff from the fake collection
             while(mockCollection.Count != 0)
             {
-                DataConsumer.Instance.ReceiveGreenhouseData(mockCollection);
+                PacketConsumer.Instance.ReceiveGreenhouseData(mockCollection);
             }
 
             // Make sure stuff was taken from the collection

@@ -8,6 +8,7 @@ namespace GreenhouseController
 {
     public class DataPacket
     {
+        public int PacketType = 0;
         public int Zone;
         public double Temperature;
         public double Humidity;

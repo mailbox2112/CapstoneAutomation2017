@@ -104,8 +104,8 @@ namespace GreenhouseController
             List<Commands> commandsToSend = new List<Commands>();
             if (state == GreenhouseState.LIGHTING)
             {
-                commandsToSend.Add(Commands.SHADE_RETRACT);
                 commandsToSend.Add(Commands.LIGHTS_ON);
+                commandsToSend.Add(Commands.SHADE_RETRACT);
             }
             else if (state == GreenhouseState.WAITING_FOR_DATA)
             {
