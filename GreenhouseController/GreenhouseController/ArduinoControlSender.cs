@@ -10,6 +10,7 @@ namespace GreenhouseController
 {
     public class ArduinoControlSender
     {
+        // TODO: make this use a queue and event-based!
         // Constants for setting up serial ports
         private const int _BAUD = 9600;
         private const Parity _PARITY = Parity.None;
@@ -105,7 +106,7 @@ namespace GreenhouseController
             }
             else if (statePair.Key is LightingStateMachine)
             {
-                commandsToSend = StateMachineContainer.Instance.Lighting.ConvertStateToCommands(statePair.Value);
+                //commandsToSend = StateMachineContainer.Instance.Lighting.ConvertStateToCommands(statePair.Value);
             }
             else if (statePair.Key is WateringStateMachine)
             {

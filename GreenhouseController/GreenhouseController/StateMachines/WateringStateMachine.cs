@@ -8,6 +8,7 @@ namespace GreenhouseController
 {
     public class WateringStateMachine : IStateMachine
     {
+        // TODO: Add timer event-based watering
         private const int _emergencyMoist = 0;
 
         private GreenhouseState _currentState;

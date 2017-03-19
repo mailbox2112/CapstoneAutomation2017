@@ -12,7 +12,7 @@ namespace GreenhouseUnitTests
         [TestMethod]
         public void TestLightingStateMachineCreation()
         {
-            testMachine = new LightingStateMachine();
+            testMachine = new LightingStateMachine(1);
             Assert.IsNotNull(testMachine);
             Assert.IsInstanceOfType(testMachine, typeof(LightingStateMachine));
         }
@@ -20,7 +20,7 @@ namespace GreenhouseUnitTests
         [TestMethod]
         public void TestLightingStateDecisions()
         {
-            testMachine = new LightingStateMachine();
+            testMachine = new LightingStateMachine(1);
             testMachine.LowLimit = 50;
             testMachine.HighLimit = 120;
             GreenhouseState result = testMachine.DetermineState(30);
@@ -41,14 +41,14 @@ namespace GreenhouseUnitTests
         [TestMethod]
         public void TestConvertLightingStateToCommands()
         {
-            testMachine = new LightingStateMachine();
+            testMachine = new LightingStateMachine(1);
             GreenhouseState state = GreenhouseState.LIGHTING;
             List<Commands> results = testMachine.ConvertStateToCommands(state);
-            Assert.IsTrue(results[0] == Commands.LIGHTS_ON);
+            Assert.IsTrue(results[0] == Commands.LIGHT1_ON);
 
             state = GreenhouseState.WAITING_FOR_DATA;
             results = testMachine.ConvertStateToCommands(state);
-            Assert.IsTrue(results[0] == Commands.LIGHTS_OFF);
+            Assert.IsTrue(results[0] == Commands.LIGHT1_OFF);
         }
     }
 }

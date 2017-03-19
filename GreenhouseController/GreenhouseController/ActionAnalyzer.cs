@@ -53,6 +53,7 @@ namespace GreenhouseController
                 {
                     _manualCool = packet.ManualCool;
                 }
+                // TODO: Account for manual lighting in the different zones!
                 if (packet.ManualLight != null)
                 {
                     _manualLight = packet.ManualLight;
@@ -75,6 +76,7 @@ namespace GreenhouseController
             Console.WriteLine($"Time: {_currentTime}\nAverage Temperature: {_avgTemp}\nAverage Humidity: {_avgHumid}\nAverage Light Intensity: {_avgLight}\nAverage Soil Moisture: {_avgMoisture}\n");
             Console.WriteLine($"Manual Heating: {_manualHeat}\nManual Cooling: {_manualCool}\nManual Lighting: {_manualLight}\nManual Watering: {_manualWater}\n");
 
+            // TODO: Check data for shading state machine
             // Get state machine states as long as we don't have a manual command change to send
             // If we don't have any manual temperature commands...
             if (_manualHeat == null && _manualCool == null)
@@ -107,54 +109,69 @@ namespace GreenhouseController
             // If we don't have a manual light/shade command...
             if (_manualLight == null && _manualShade == null)
             {
-                // Determine what state we need to go into and then add aa KVP to the dictionary
-                GreenhouseState goalLightState = StateMachineContainer.Instance.Lighting.DetermineState(_avgLight);
-                if (goalLightState == GreenhouseState.LIGHTING || goalLightState == GreenhouseState.SHADING || goalLightState == GreenhouseState.WAITING_FOR_DATA)
+                // TODO: Change the lighting state machines to be timer-based
+                // Zone 1
+                GreenhouseState goalLightState1 = StateMachineContainer.Instance.LightingZone1.DetermineState(_avgLight);
+                if (goalLightState1 == GreenhouseState.LIGHTING || goalLightState1 == GreenhouseState.SHADING || goalLightState1 == GreenhouseState.WAITING_FOR_DATA)
                 {
-                    _statesToSend.Add(new LightingStateMachine(), goalLightState);
+                    _statesToSend.Add(new LightingStateMachine(1), goalLightState1);
+                }
+
+                // Zone 3
+                GreenhouseState goalLightState3 = StateMachineContainer.Instance.LightingZone3.DetermineState(_avgLight);
+                if (goalLightState3 == GreenhouseState.LIGHTING || goalLightState3 == GreenhouseState.SHADING || goalLightState3 == GreenhouseState.WAITING_FOR_DATA)
+                {
+                    _statesToSend.Add(new LightingStateMachine(3), goalLightState3);
+                }
+
+                // Zone 5
+                GreenhouseState goalLightState5 = StateMachineContainer.Instance.LightingZone5.DetermineState(_avgLight);
+                if (goalLightState5 == GreenhouseState.LIGHTING || goalLightState5 == GreenhouseState.SHADING || goalLightState5 == GreenhouseState.WAITING_FOR_DATA)
+                {
+                    _statesToSend.Add(new LightingStateMachine(5), goalLightState5);
                 }
             }
-            else
-            {
-                // If we do have a manual command, do that
-                if (_manualLight == true)
-                {
-                    GreenhouseState goalLightState = GreenhouseState.LIGHTING;
-                    _statesToSend.Add(new LightingStateMachine(), goalLightState);
-                }
-                else if (_manualShade == true)
-                {
-                    GreenhouseState goalLightState = GreenhouseState.SHADING;
-                    _statesToSend.Add(new LightingStateMachine(), goalLightState);
-                }
-                else
-                {
-                    ArduinoControlSender.Instance.SendManualOffCommand(StateMachineContainer.Instance.Lighting);
-                }
-            }
+            //else
+            //{
+            //    // If we do have a manual command, do that
+            //    if (_manualLight == true)
+            //    {
+            //        GreenhouseState goalLightState = GreenhouseState.LIGHTING;
+            //        _statesToSend.Add(new LightingStateMachine(), goalLightState);
+            //    }
+            //    else if (_manualShade == true)
+            //    {
+            //        GreenhouseState goalLightState = GreenhouseState.SHADING;
+            //        _statesToSend.Add(new LightingStateMachine(), goalLightState);
+            //    }
+            //    else
+            //    {
+            //        ArduinoControlSender.Instance.SendManualOffCommand(StateMachineContainer.Instance.Lighting);
+            //    }
+            //}
             // If we don't have a manual watering command
             if (_manualWater == null)
             {
-                // Determine what state we need to go into and then ad a KVP to the dictionary
+                // TODO: change the watering state machines to be timer based
                 GreenhouseState goalWaterState = StateMachineContainer.Instance.Watering.DetermineState(_avgMoisture);
                 if (goalWaterState == GreenhouseState.WATERING || goalWaterState == GreenhouseState.WAITING_FOR_DATA)
                 {
                     _statesToSend.Add(new WateringStateMachine(), goalWaterState);
                 }
             }
-            else
-            {
-                // If we have a manual command, do that
-                if (_manualWater == true)
-                {
-                    GreenhouseState goalWaterState = GreenhouseState.WATERING;
-                    _statesToSend.Add(new WateringStateMachine(), goalWaterState);
-                }
-                else
-                {
-                    ArduinoControlSender.Instance.SendManualOffCommand(StateMachineContainer.Instance.Watering);
-                }
-            }
+            //else
+            //{
+            //    // If we have a manual command, do that
+            //    if (_manualWater == true)
+            //    {
+            //        GreenhouseState goalWaterState = GreenhouseState.WATERING;
+            //        _statesToSend.Add(new WateringStateMachine(), goalWaterState);
+            //    }
+            //    else
+            //    {
+            //        ArduinoControlSender.Instance.SendManualOffCommand(StateMachineContainer.Instance.Watering);
+            //    }
+            //}
 
             // Send commands
             foreach (var state in _statesToSend)

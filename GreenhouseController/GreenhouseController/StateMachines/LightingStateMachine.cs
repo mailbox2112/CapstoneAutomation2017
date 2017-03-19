@@ -8,6 +8,7 @@ namespace GreenhouseController
 {
     public class LightingStateMachine : IStateMachine
     {
+        // TODO: Add timer event-based lighting state changes
         // Private member for implementing custom get/set using the event handler
         private GreenhouseState _currentState;
 
@@ -33,13 +34,16 @@ namespace GreenhouseController
         public int? LowLimit { get; set; }
 
         public EventHandler<StateEventArgs> StateChanged;
+
+        public int Zone { get; set; }
         
         /// <summary>
         /// Initialize the state machine
         /// </summary>
-        public LightingStateMachine()
+        public LightingStateMachine(int zone)
         {
             CurrentState = GreenhouseState.WAITING_FOR_DATA;
+            Zone = zone;
         }
 
         /// <summary>
@@ -104,13 +108,43 @@ namespace GreenhouseController
             List<Commands> commandsToSend = new List<Commands>();
             if (state == GreenhouseState.LIGHTING)
             {
-                commandsToSend.Add(Commands.LIGHTS_ON);
-                commandsToSend.Add(Commands.SHADE_RETRACT);
+                switch (Zone)
+                {
+                    case 1:
+                        commandsToSend.Add(Commands.LIGHT1_ON);
+                        commandsToSend.Add(Commands.SHADE_RETRACT);
+                        break;
+                    case 3:
+                        commandsToSend.Add(Commands.LIGHT2_ON);
+                        commandsToSend.Add(Commands.SHADE_RETRACT);
+                        break;
+                    case 5:
+                        commandsToSend.Add(Commands.LIGHT3_ON);
+                        commandsToSend.Add(Commands.SHADE_RETRACT);
+                        break;
+                    default:
+                        break;
+                }
             }
             else if (state == GreenhouseState.WAITING_FOR_DATA)
             {
-                commandsToSend.Add(Commands.LIGHTS_OFF);
-                commandsToSend.Add(Commands.SHADE_RETRACT);
+                switch (Zone)
+                {
+                    case 1:
+                        commandsToSend.Add(Commands.LIGHT1_OFF);
+                        commandsToSend.Add(Commands.SHADE_RETRACT);
+                        break;
+                    case 3:
+                        commandsToSend.Add(Commands.LIGHT2_OFF);
+                        commandsToSend.Add(Commands.SHADE_RETRACT);
+                        break;
+                    case 5:
+                        commandsToSend.Add(Commands.LIGHT3_OFF);
+                        commandsToSend.Add(Commands.SHADE_RETRACT);
+                        break;
+                    default:
+                        break;
+                }
             }
             else if (state == GreenhouseState.SHADING)
             {
