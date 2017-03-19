@@ -92,7 +92,6 @@ namespace GreenhouseController
         /// </summary>
         public void ReadGreenhouseData(BlockingCollection<byte[]> target)
         {
-            // Change this to request some data once every specified amount of time
             while (_break != true)
             {
                 // The read command is blocking, so this just waits until data is available
