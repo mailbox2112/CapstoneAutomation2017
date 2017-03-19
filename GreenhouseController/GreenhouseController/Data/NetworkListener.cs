@@ -11,12 +11,12 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    public class DataProducer
+    public class NetworkListener
     {
         // TODO: implement RPC or whatever matt wants to use to communicate with me
         public event EventHandler<DataEventArgs> ItemInQueue;
 
-        private static volatile DataProducer _instance;
+        private static volatile NetworkListener _instance;
         private static object _syncRoot = new object();
         
         private byte[] _buffer = new byte[1024];
@@ -30,33 +30,16 @@ namespace GreenhouseController
         /// </summary>
         /// <param name="hostEndpoint">Endpoint to be reached</param>
         /// <param name="hostAddress">IP address we're trying to connect to</param>
-        private DataProducer()
+        private NetworkListener()
         {
             Console.WriteLine("Constructing data producer...");
-
-            _client = new TcpClient();
-            while(!_client.Connected)
-            {
-                try
-                {
-                    _client.Connect("127.0.0.1", 8888);
-                    Console.WriteLine("Connected to data server.");
-                }
-                catch(Exception ex)
-                {
-                    Console.WriteLine($"Could not connect to data server, retrying. {ex.Message}");
-                    Thread.Sleep(1000);
-                }
-            }
-            _dataStream = _client.GetStream();
-            _break = false;
             Console.WriteLine("Data producer constructed.\n");
         }
 
         /// <summary>
         /// Instance property, used for singleton pattern
         /// </summary>
-        public static DataProducer Instance
+        public static NetworkListener Instance
         {
             get
             {
@@ -66,12 +49,42 @@ namespace GreenhouseController
                     {
                         if (_instance == null)
                         {
-                            _instance = new DataProducer();
+                            _instance = new NetworkListener();
                         }
                     }
                 }
                 return _instance;
             }
+        }
+
+        public void TryConnect()
+        {
+            _client = new TcpClient();
+            while (!_client.Connected)
+            {
+                try
+                {
+                    _client.Connect("127.0.0.1", 8888);
+                    Console.WriteLine("Connected to data server.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Could not connect to data server, retrying. {ex.Message}");
+                    Thread.Sleep(1000);
+                }
+            }
+            _dataStream = _client.GetStream();
+            _break = false;
+        }
+
+        public void RequestData()
+        {
+            Console.WriteLine("Requesting data...");
+            string request = "DATA";
+            byte[] data = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(request));
+            _dataStream.Write(data, 0, data.Length);
+            _dataStream.Flush();
+            Console.WriteLine("Request sent!");
         }
 
         /// <summary>
@@ -93,6 +106,7 @@ namespace GreenhouseController
                         target.TryAdd(_tempBuffer);
                         EventHandler<DataEventArgs> handler = ItemInQueue;
                         handler(this, new DataEventArgs() { Buffer = target });
+
                         Array.Clear(_buffer, 0, _buffer.Length);
                     }
                 }

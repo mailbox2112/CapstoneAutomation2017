@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -9,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    public class DataConsumer
+    public class PacketConsumer
     {
-        private static volatile DataConsumer _instance;
+        private static volatile PacketConsumer _instance;
         private static object _syncRoot = new object();
         private byte[] _data;
         private List<DataPacket> _zoneInformation;
@@ -19,7 +20,7 @@ namespace GreenhouseController
         /// <summary>
         /// Private constructor for singleton pattern
         /// </summary>
-        private DataConsumer()
+        private PacketConsumer()
         {
             Console.WriteLine("Constructing greenhouse data analyzer...");
             _zoneInformation = new List<DataPacket>(5);
@@ -29,7 +30,7 @@ namespace GreenhouseController
         /// <summary>
         /// Instance property, used for singleton pattern
         /// </summary>
-        public static DataConsumer Instance
+        public static PacketConsumer Instance
         {
             get
             {
@@ -39,7 +40,7 @@ namespace GreenhouseController
                     {
                         if (_instance == null)
                         {
-                            _instance = new DataConsumer();
+                            _instance = new PacketConsumer();
                         }
                     }
                 }
@@ -58,14 +59,11 @@ namespace GreenhouseController
                 try
                 {
                     source.TryTake(out _data);
-                    var deserializedData = JsonConvert.DeserializeObject<DataPacket>(Encoding.ASCII.GetString(_data));
+                    var data = JObject.Parse(Encoding.ASCII.GetString(_data));
+                    if (data["PacketType"].Value<int>() == 0)
+                    {
+                        var deserializedData = JsonConvert.DeserializeObject<DataPacket>(Encoding.ASCII.GetString(_data));
 
-                    if (deserializedData.Zone == 0)
-                    {
-                        SendLimitsToAnalyzer(deserializedData);
-                    }
-                    else
-                    {
                         // Check for repeat zones, and if we have any, throw out the old zone data
                         if (_zoneInformation.Where(p => p.Zone == deserializedData.Zone) != null)
                         {
@@ -78,6 +76,13 @@ namespace GreenhouseController
                         {
                             SendDataToAnalyzer(_zoneInformation);
                         }
+                    }
+                    else if (data["PacketType"].Value<int>() == 1)
+                    {
+                        var deserializedData = JsonConvert.DeserializeObject<LimitPacket>(Encoding.ASCII.GetString(_data));
+
+                        LimitsAnalyzer analyzeLimits = new LimitsAnalyzer();
+                        analyzeLimits.ChangeGreenhouseLimits(deserializedData);
                     }
                 }
                 catch (Exception ex)
@@ -102,16 +107,6 @@ namespace GreenhouseController
             // Send array
             ActionAnalyzer analyze = new ActionAnalyzer();
             Task.Run(() => analyze.AnalyzeData(tempZoneInfo));
-        }
-
-        /// <summary>
-        /// If we receive a packet of just limits, use this to find them
-        /// </summary>
-        /// <param name="limits"></param>
-        public void SendLimitsToAnalyzer(DataPacket limits)
-        {
-            ActionAnalyzer analyzeLimits = new ActionAnalyzer();
-            analyzeLimits.GetGreenhouseLimits(limits);
         }
     }
 }

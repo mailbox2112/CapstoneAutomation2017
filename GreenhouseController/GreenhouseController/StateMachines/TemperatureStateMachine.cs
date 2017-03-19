@@ -113,27 +113,25 @@ namespace GreenhouseController
         /// <returns></returns>
         public List<Commands> ConvertStateToCommands(GreenhouseState state)
         {
+            // TODO: check the state of the fans, heat, etc. so we know what commands to send
             List<Commands> commandsToSend = new List<Commands>();
             if (state == GreenhouseState.COOLING)
             {
                 commandsToSend.Add(Commands.HEAT_OFF);
                 commandsToSend.Add(Commands.FANS_ON);
                 commandsToSend.Add(Commands.VENT_OPEN);
-                commandsToSend.Add(Commands.SHADE_EXTEND);
             }
             else if (state == GreenhouseState.HEATING)
             {
                 commandsToSend.Add(Commands.FANS_OFF);
                 commandsToSend.Add(Commands.HEAT_ON);
                 commandsToSend.Add(Commands.VENT_CLOSE);
-                commandsToSend.Add(Commands.SHADE_RETRACT);
             }
             else if (state == GreenhouseState.WAITING_FOR_DATA)
             {
                 commandsToSend.Add(Commands.HEAT_OFF);
                 commandsToSend.Add(Commands.FANS_OFF);
                 commandsToSend.Add(Commands.VENT_CLOSE);
-                commandsToSend.Add(Commands.SHADE_RETRACT);
             }
 
             return commandsToSend;

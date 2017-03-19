@@ -13,8 +13,9 @@ namespace ConsoleApplication1
 {
     // Adapted from:
     // http://csharp.net-informations.com/communications/csharp-client-socket.htm
-    class SimpleTCPServerTest
+    public class SimpleTCPServerTest
     {
+        // TODO: Make this broadcast UDP for the limits
         static void Main(string[] args)
         {
             Thread.Sleep(1000);
@@ -26,7 +27,21 @@ namespace ConsoleApplication1
             client = serverListener.AcceptTcpClient();
             Console.WriteLine(" >> Accept connection from client");
             NetworkStream networkStream = client.GetStream();
+            
+            byte[] limitsToSend = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new LimitPacket()
+            {
+                TempHi = 80,
+                TempLo = 65,
+                MoistLim = 40,
+                LightHi = 50000,
+                LightLo = 30000
+            }));
+            networkStream.Write(limitsToSend, 0, limitsToSend.Length);
+            networkStream.Flush();
 
+            Console.WriteLine(Encoding.ASCII.GetString(limitsToSend));
+
+            // TODO: add ability to change greenhouse limits
             Console.WriteLine("Would you like to use manual or random mode? Press M for manual, R for random.");
             var key = Console.ReadLine();
             Console.WriteLine();
@@ -48,21 +63,13 @@ namespace ConsoleApplication1
                 bool water = false;
                 bool stop = false;
                 bool invalidCommand = false;
-                int tempHi;
-                int tempLo;
-                int lightLim;
-                int moistLim;
                 string command = null;
-                while(stop == false)
+                while (stop == false)
                 {
-                    tempHi = 0;
-                    tempLo = 0;
-                    lightLim = 0;
-                    moistLim = 0;
                     invalidCommand = false;
                     command = Console.ReadLine();
                     Console.WriteLine();
-                    foreach(char c in command)
+                    foreach (char c in command)
                     {
                         if (c == 'h' || c == 'H')
                         {
@@ -122,49 +129,6 @@ namespace ConsoleApplication1
                     }
                     if (invalidCommand == false)
                     {
-                        //if (heat == true)
-                        //{
-                        //    tempHi = 1000;
-                        //    tempLo = 150;
-
-                        //}
-                        //else
-                        //{
-                        //    if (cool != true)
-                        //    {
-                                tempHi = 100;
-                                tempLo = 0;
-                        //    }
-                        //}
-                        //if (cool == true)
-                        //{
-                        //    tempLo = 0;
-                        //    tempHi = 10;
-                        //}
-                        //else
-                        //{
-                        //    if (heat != true)
-                        //    {
-                        //        tempHi = 100;
-                        //        tempLo = 0;
-                        //    }
-                        //}
-                        //if (light == true)
-                        //{
-                        //    lightLim = 100000;
-                        //}
-                        //else
-                        //{
-                            lightLim = 0;
-                        //}
-                        //if (water == true)
-                        //{
-                        //    moistLim = 150;
-                        //}
-                        //else
-                        //{
-                            moistLim = 0;
-                        //}
                         for (int i = 1; i < 6; i++)
                         {
                             packetsToSend.Add(
@@ -175,10 +139,6 @@ namespace ConsoleApplication1
                                     Temperature = 50,
                                     Light = 50,
                                     Moisture = 50,
-                                    LightLim = lightLim,
-                                    MoistLim = moistLim,
-                                    TempHi = tempHi,
-                                    TempLo = tempLo,
                                     ManualCool = cool,
                                     ManualHeat = heat,
                                     ManualLight = light,
@@ -199,27 +159,45 @@ namespace ConsoleApplication1
                 }
                 #endregion
             }
-            
+            else if (key == "T" || key == "t")
+            {
+                int[] zones = new int[] { 1, 2, 3, 4, 5 };
+                byte[] buffer = new byte[1024];
+                while(true)
+                {
+                    networkStream.Read(buffer, 0, buffer.Length);
+                    string received = JsonConvert.DeserializeObject<string>(Encoding.ASCII.GetString(buffer));
+                    if (received == "DATA")
+                    {
+                        Console.WriteLine("Request for data received!");
+                        try
+                        {
+                            JsonSpoof jSpoof = new JsonSpoof();
+
+                            foreach (int zone in zones)
+                            {
+                                string json = jSpoof.SpoofGreenhouseData(zone);
+                                byte[] sendBytes = Encoding.ASCII.GetBytes(json);
+                                networkStream.Write(sendBytes, 0, sendBytes.Length);
+                                networkStream.Flush();
+                                Console.WriteLine(" >> " + $"{json}");
+
+                                Thread.Sleep(500);
+                            }
+                            Console.WriteLine("Data sent!");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.ToString());
+                        }
+                    }
+                }
+            }
             else if (key == "r" || key == "R")
             {
                 #region Random Data Packets
                 int[] zones = new int[] { 1, 2, 3, 4, 5 };
                 byte[] bytesFrom = new byte[1024];
-
-                DataPacket limits = new DataPacket()
-                {
-                    TempHi = 120,
-                    TempLo = 50,
-                    MoistLim = 40,
-                    LightLim = 60000
-                };
-
-                string pack = JsonConvert.SerializeObject(limits);
-                byte[] limitBytes = Encoding.ASCII.GetBytes(pack);
-                networkStream.Write(limitBytes, 0, limitBytes.Length);
-                networkStream.Flush();
-                Console.WriteLine(" >> " + $"{pack}\n");
-                Thread.Sleep(500);
 
                 while ((true))
                 {

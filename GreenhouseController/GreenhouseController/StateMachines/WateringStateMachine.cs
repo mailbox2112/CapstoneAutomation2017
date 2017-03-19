@@ -91,6 +91,7 @@ namespace GreenhouseController
 
         public List<Commands> ConvertStateToCommands(GreenhouseState state)
         {
+            // check the state of the solenoids
             List<Commands> commandsToSend = new List<Commands>();
             
             if (state == GreenhouseState.WATERING)

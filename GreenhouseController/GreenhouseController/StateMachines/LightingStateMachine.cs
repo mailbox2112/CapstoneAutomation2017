@@ -53,22 +53,36 @@ namespace GreenhouseController
             {
                 CurrentState = GreenhouseState.PROCESSING_LIGHTING;
             }
+            else if (CurrentState == GreenhouseState.SHADING)
+            {
+                CurrentState = GreenhouseState.PROCESSING_SHADING;
+            }
             else
             {
                 CurrentState = GreenhouseState.PROCESSING_DATA;
             }
 
             // Process data and take into account if we were already lighting when we received the data
+            // TODO: fix processing data bug!
             if (value < LowLimit && CurrentState != GreenhouseState.PROCESSING_LIGHTING)
             {
                 return GreenhouseState.LIGHTING;
+            }
+            else if (value > HighLimit && CurrentState != GreenhouseState.PROCESSING_SHADING)
+            {
+                return GreenhouseState.SHADING;
             }
             else if (value < LowLimit && CurrentState == GreenhouseState.PROCESSING_LIGHTING)
             {
                 CurrentState = GreenhouseState.LIGHTING;
                 return GreenhouseState.NO_CHANGE;
             }
-            else if (value > LowLimit && CurrentState == GreenhouseState.PROCESSING_DATA)
+            else if (value > HighLimit && CurrentState == GreenhouseState.PROCESSING_SHADING)
+            {
+                CurrentState = GreenhouseState.SHADING;
+                return GreenhouseState.NO_CHANGE;
+            }
+            else if (value > LowLimit && value < HighLimit && CurrentState == GreenhouseState.PROCESSING_DATA)
             {
                 CurrentState = GreenhouseState.WAITING_FOR_DATA;
                 return GreenhouseState.NO_CHANGE;
@@ -86,14 +100,21 @@ namespace GreenhouseController
         /// <returns></returns>
         public List<Commands> ConvertStateToCommands(GreenhouseState state)
         {
+            // TODO: check the state of the lights so we don't have to send the command if it's already off
             List<Commands> commandsToSend = new List<Commands>();
             if (state == GreenhouseState.LIGHTING)
             {
                 commandsToSend.Add(Commands.LIGHTS_ON);
+                commandsToSend.Add(Commands.SHADE_RETRACT);
             }
             else if (state == GreenhouseState.WAITING_FOR_DATA)
             {
                 commandsToSend.Add(Commands.LIGHTS_OFF);
+                commandsToSend.Add(Commands.SHADE_RETRACT);
+            }
+            else if (state == GreenhouseState.SHADING)
+            {
+                commandsToSend.Add(Commands.SHADE_EXTEND);
             }
 
             return commandsToSend;

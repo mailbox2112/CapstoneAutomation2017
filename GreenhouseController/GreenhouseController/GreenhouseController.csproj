@@ -51,16 +51,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands.cs" />
+    <Compile Include="Data\DataRequestTimer.cs" />
+    <Compile Include="Limits\LimitPacket.cs" />
+    <Compile Include="Limits\LimitsAnalyzer.cs" />
     <Compile Include="StateEventArgs.cs" />
     <Compile Include="UnitTestClasses\ArduinoControlSenderSimulator.cs" />
     <Compile Include="ArduinoControlSender.cs" />
-    <Compile Include="DataEventArgs.cs" />
-    <Compile Include="DataPackets.cs" />
+    <Compile Include="Data\DataEventArgs.cs" />
+    <Compile Include="Data\DataPackets.cs" />
     <Compile Include="ActionAnalyzer.cs" />
-    <Compile Include="DataProducer.cs" />
+    <Compile Include="Data\NetworkListener.cs" />
     <Compile Include="GreenhouseController.cs" />
     <Compile Include="GreenhouseState.cs" />
-    <Compile Include="DataConsumer.cs" />
+    <Compile Include="Data\PacketConsumer.cs" />
     <Compile Include="StateMachines\LightingStateMachine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StateMachines\IStateMachine.cs" />

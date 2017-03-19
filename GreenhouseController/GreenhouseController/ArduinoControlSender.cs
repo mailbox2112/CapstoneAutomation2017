@@ -95,6 +95,7 @@ namespace GreenhouseController
         /// <param name="_commandsToSend">State to convert to commands and send to Arduino</param>
         public void SendCommand(KeyValuePair<IStateMachine, GreenhouseState> statePair)
         {
+            // TODO: add correct sequencing of commands
             byte[] buffer = new byte[1];
             List<Commands> commandsToSend = new List<Commands>();
             
@@ -262,7 +263,14 @@ namespace GreenhouseController
             }
             else if (stateMachine is LightingStateMachine)
             {
-                commandsToSend.Add(Commands.LIGHTS_OFF);
+                if (stateMachine.CurrentState == GreenhouseState.LIGHTING)
+                {
+                    commandsToSend.Add(Commands.LIGHTS_OFF);
+                }
+                else if (stateMachine.CurrentState == GreenhouseState.SHADING)
+                {
+                    commandsToSend.Add(Commands.SHADE_RETRACT);
+                }
             }
             else if (stateMachine is WateringStateMachine)
             {

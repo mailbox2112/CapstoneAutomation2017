@@ -13,8 +13,11 @@ namespace GreenhouseController
         // TODO: RESET BUTTON?
         static void Main(string[] args)
         {
+            // Connect to the server
+            NetworkListener.Instance.TryConnect();
             // Create the blocking collection
-            var buffer = new BlockingCollection<byte[]>();
+            var dataBuffer = new BlockingCollection<byte[]>();
+            var limitBuffer = new BlockingCollection<byte[]>();
 
             // Print out the state of the state machine at the start of the program
             Console.WriteLine($"Temperature State: {StateMachineContainer.Instance.Temperature.CurrentState.ToString()}");
@@ -22,25 +25,22 @@ namespace GreenhouseController
             Console.WriteLine($"Watering State: {StateMachineContainer.Instance.Watering.CurrentState.ToString()}");
 
             // Event handlers for printing state changes
-            StateMachineContainer.Instance.Lighting.StateChanged += StateChanged;
-            StateMachineContainer.Instance.Temperature.StateChanged += StateChanged;
-            StateMachineContainer.Instance.Watering.StateChanged += StateChanged;
+            StateMachineContainer.Instance.Lighting.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
+            StateMachineContainer.Instance.Temperature.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
+            StateMachineContainer.Instance.Watering.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
+            
+            // Event handlers for when blocking collections get data
+            NetworkListener.Instance.ItemInQueue += (o, i) => { Task.Run(() => PacketConsumer.Instance.ReceiveGreenhouseData(i.Buffer)); };
 
-            // Event handler for when blocking collection gets data
-            DataProducer.Instance.ItemInQueue += (o, i) => { Task.Run(() => DataConsumer.Instance.ReceiveGreenhouseData(i.Buffer)); };
-
-            // Start the data producer task
-            Task.WaitAll(Task.Run(new Action(() => DataProducer.Instance.ReadGreenhouseData(buffer))));
-        }
-
-        //static void ItemInQueue(object sender, DataEventArgs e)
-        //{
-        //    Task.Run(() => DataConsumer.Instance.ReceiveGreenhouseData(e.Buffer));
-        //}
-        
-        static void StateChanged(object sender, StateEventArgs e)
-        {
-            Console.WriteLine($"{sender}: {e.State}");
+            var time = new System.Timers.Timer();
+            time.Interval = 15000;
+            time.Elapsed += (o, i) => { NetworkListener.Instance.RequestData(); };
+            time.AutoReset = true;
+            time.Enabled = true;
+            GC.KeepAlive(time);
+            
+            // Listens for any data that comes in, be it sensor data or control data
+            Task.WaitAll(Task.Run(new Action(() => NetworkListener.Instance.ReadGreenhouseData(dataBuffer))));
         }
     }
 }

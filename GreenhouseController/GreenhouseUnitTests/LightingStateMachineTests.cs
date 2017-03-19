@@ -22,6 +22,7 @@ namespace GreenhouseUnitTests
         {
             testMachine = new LightingStateMachine();
             testMachine.LowLimit = 50;
+            testMachine.HighLimit = 120;
             GreenhouseState result = testMachine.DetermineState(30);
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.PROCESSING_DATA);
             Assert.IsTrue(result == GreenhouseState.LIGHTING);
