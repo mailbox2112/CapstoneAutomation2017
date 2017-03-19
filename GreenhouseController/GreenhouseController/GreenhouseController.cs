@@ -20,11 +20,15 @@ namespace GreenhouseController
 
             // Print out the state of the state machine at the start of the program
             Console.WriteLine($"Temperature State: {StateMachineContainer.Instance.Temperature.CurrentState.ToString()}");
-            Console.WriteLine($"Lighting State: {StateMachineContainer.Instance.Lighting.CurrentState.ToString()}");
+            Console.WriteLine($"Lighting Zone 1 State: {StateMachineContainer.Instance.LightingZone1.CurrentState.ToString()}");
+            Console.WriteLine($"Lighting Zone 3 State: {StateMachineContainer.Instance.LightingZone3.CurrentState.ToString()}");
+            Console.WriteLine($"Lighting Zone 5 State: {StateMachineContainer.Instance.LightingZone5.CurrentState.ToString()}");
             Console.WriteLine($"Watering State: {StateMachineContainer.Instance.Watering.CurrentState.ToString()}");
 
             // Event handlers for printing state changes
-            StateMachineContainer.Instance.Lighting.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
+            StateMachineContainer.Instance.LightingZone1.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
+            StateMachineContainer.Instance.LightingZone3.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
+            StateMachineContainer.Instance.LightingZone5.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
             StateMachineContainer.Instance.Temperature.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
             StateMachineContainer.Instance.Watering.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
             

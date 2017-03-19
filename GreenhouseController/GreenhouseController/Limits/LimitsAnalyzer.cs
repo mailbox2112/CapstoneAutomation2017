@@ -25,17 +25,47 @@ namespace GreenhouseController
             {
                 StateMachineContainer.Instance.Temperature.LowLimit = limits.TempLo;
             }
-            if (StateMachineContainer.Instance.Lighting.LowLimit != limits.LightLo)
+            foreach(KeyValuePair<int, DateTime> kvp in limits.LightStarts)
             {
-                StateMachineContainer.Instance.Lighting.LowLimit = limits.LightLo;
+                switch(kvp.Key)
+                {
+                    case 1:
+                        StateMachineContainer.Instance.LightingZone1.BeginLighting = kvp.Value;
+                        break;
+                    case 3:
+                        StateMachineContainer.Instance.LightingZone3.BeginLighting = kvp.Value;
+                        break;
+                    case 5:
+                        StateMachineContainer.Instance.LightingZone5.BeginLighting = kvp.Value;
+                        break;
+                    default:
+                        break;
+                }
             }
-            if (StateMachineContainer.Instance.Lighting.HighLimit != limits.LightHi)
+            foreach(KeyValuePair<int, DateTime> kvp in limits.LightEnds)
             {
-                StateMachineContainer.Instance.Lighting.HighLimit = limits.LightHi;
+                switch (kvp.Key)
+                {
+                    case 1:
+                        StateMachineContainer.Instance.LightingZone1.EndLighting = kvp.Value;
+                        break;
+                    case 3:
+                        StateMachineContainer.Instance.LightingZone3.EndLighting = kvp.Value;
+                        break;
+                    case 5:
+                        StateMachineContainer.Instance.LightingZone5.EndLighting = kvp.Value;
+                        break;
+                    default:
+                        break;
+                }
             }
-            if (StateMachineContainer.Instance.Watering.LowLimit != limits.MoistLim)
+            foreach(KeyValuePair<int, DateTime> kvp in limits.WaterStarts)
             {
-                StateMachineContainer.Instance.Watering.LowLimit = limits.MoistLim;
+
+            }
+            foreach(KeyValuePair<int, DateTime> kvp in limits.WaterEnds)
+            {
+
             }
 
             Console.WriteLine($"Temperature High Limit: {StateMachineContainer.Instance.Temperature.HighLimit}");

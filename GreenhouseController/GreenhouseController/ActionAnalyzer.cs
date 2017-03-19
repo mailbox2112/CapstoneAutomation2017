@@ -9,29 +9,24 @@ namespace GreenhouseController
     public class ActionAnalyzer
     {
         private double _avgTemp;
-        private double _avgHumid;
-        private double _avgLight;
-        private double _avgMoisture;
         private DateTime _currentTime;
         private bool? _manualHeat;
         private bool? _manualCool;
         private bool? _manualLight;
         private bool? _manualWater;
         private bool? _manualShade;
-        private Dictionary<IStateMachine, GreenhouseState> _statesToSend;
+        private KeyValuePair<TemperatureStateMachine, GreenhouseState> _tempState;
+        private KeyValuePair<LightingStateMachine, GreenhouseState> _lightState;
+        private KeyValuePair<WateringStateMachine, GreenhouseState> _waterState;
 
         public ActionAnalyzer()
         {
             _avgTemp = new double();
-            _avgLight = new double();
-            _avgHumid = new double();
-            _avgMoisture = new double();
             _manualCool = null;
             _manualHeat = null;
             _manualLight = null;
             _manualWater = null;
             _currentTime = DateTime.Now;
-            _statesToSend = new Dictionary<IStateMachine, GreenhouseState>();
         }
 
         /// <summary>
@@ -73,39 +68,40 @@ namespace GreenhouseController
             #region Automation Decision Making
             // Get the averages of greenhouse readings
             GetGreenhouseAverages(data);
-            Console.WriteLine($"Time: {_currentTime}\nAverage Temperature: {_avgTemp}\nAverage Humidity: {_avgHumid}\nAverage Light Intensity: {_avgLight}\nAverage Soil Moisture: {_avgMoisture}\n");
-            Console.WriteLine($"Manual Heating: {_manualHeat}\nManual Cooling: {_manualCool}\nManual Lighting: {_manualLight}\nManual Watering: {_manualWater}\n");
 
             // TODO: Check data for shading state machine
             // Get state machine states as long as we don't have a manual command change to send
             // If we don't have any manual temperature commands...
             if (_manualHeat == null && _manualCool == null)
             {
-                // Determine what state we need to go to and then add a KVP to the dictionary
+                // Determine what state we need to go to and then create a KVP for it
                 GreenhouseState goalTempState = StateMachineContainer.Instance.Temperature.DetermineState(_avgTemp);
                 if (goalTempState == GreenhouseState.HEATING || goalTempState == GreenhouseState.COOLING || goalTempState == GreenhouseState.WAITING_FOR_DATA)
                 {
-                    _statesToSend.Add(new TemperatureStateMachine(), goalTempState);
+                    _tempState = new KeyValuePair<TemperatureStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, goalTempState);
                 }
+
+                // Send the KVP to the control sender
+                ArduinoControlSender.Instance.SendCommand(_tempState);
             }
-            else
-            {
-                // If we have a manual command, do that
-                if (_manualHeat == true)
-                {
-                    GreenhouseState goalTempState = GreenhouseState.HEATING;
-                    _statesToSend.Add(new TemperatureStateMachine(), goalTempState);
-                }
-                else if (_manualCool == true)
-                {
-                    GreenhouseState goalTempState = GreenhouseState.COOLING;
-                    _statesToSend.Add(new TemperatureStateMachine(), goalTempState);
-                }
-                else if (_manualHeat == false || _manualCool == false)
-                {
-                    ArduinoControlSender.Instance.SendManualOffCommand(StateMachineContainer.Instance.Temperature);
-                }
-            }
+            //else
+            //{
+            //    // If we have a manual command, do that
+            //    if (_manualHeat == true)
+            //    {
+            //        GreenhouseState goalTempState = GreenhouseState.HEATING;
+            //        _tempState = new KeyValuePair<TemperatureStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, goalTempState);
+            //    }
+            //    else if (_manualCool == true)
+            //    {
+            //        GreenhouseState goalTempState = GreenhouseState.COOLING;
+            //        _tempState = new KeyValuePair<TemperatureStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, goalTempState);
+            //    }
+            //    else if (_manualHeat == false || _manualCool == false)
+            //    {
+            //        ArduinoControlSender.Instance.SendManualOffCommand(StateMachineContainer.Instance.Temperature);
+            //    }
+            //}
             // If we don't have a manual light/shade command...
             if (_manualLight == null && _manualShade == null)
             {
@@ -114,22 +110,25 @@ namespace GreenhouseController
                 GreenhouseState goalLightState1 = StateMachineContainer.Instance.LightingZone1.DetermineState(_avgLight);
                 if (goalLightState1 == GreenhouseState.LIGHTING || goalLightState1 == GreenhouseState.SHADING || goalLightState1 == GreenhouseState.WAITING_FOR_DATA)
                 {
-                    _statesToSend.Add(new LightingStateMachine(1), goalLightState1);
+                    _lightState = new KeyValuePair<LightingStateMachine, GreenhouseState>(StateMachineContainer.Instance.LightingZone1, goalLightState1);
                 }
+                ArduinoControlSender.Instance.SendCommand(_lightState);
 
                 // Zone 3
                 GreenhouseState goalLightState3 = StateMachineContainer.Instance.LightingZone3.DetermineState(_avgLight);
                 if (goalLightState3 == GreenhouseState.LIGHTING || goalLightState3 == GreenhouseState.SHADING || goalLightState3 == GreenhouseState.WAITING_FOR_DATA)
                 {
-                    _statesToSend.Add(new LightingStateMachine(3), goalLightState3);
+                    _lightState = new KeyValuePair<LightingStateMachine, GreenhouseState>(StateMachineContainer.Instance.LightingZone3, goalLightState3);
                 }
+                ArduinoControlSender.Instance.SendCommand(_lightState);
 
                 // Zone 5
                 GreenhouseState goalLightState5 = StateMachineContainer.Instance.LightingZone5.DetermineState(_avgLight);
                 if (goalLightState5 == GreenhouseState.LIGHTING || goalLightState5 == GreenhouseState.SHADING || goalLightState5 == GreenhouseState.WAITING_FOR_DATA)
                 {
-                    _statesToSend.Add(new LightingStateMachine(5), goalLightState5);
+                    _lightState = new KeyValuePair<LightingStateMachine, GreenhouseState>(StateMachineContainer.Instance.LightingZone5, goalLightState5);
                 }
+                ArduinoControlSender.Instance.SendCommand(_lightState);
             }
             //else
             //{
@@ -156,8 +155,9 @@ namespace GreenhouseController
                 GreenhouseState goalWaterState = StateMachineContainer.Instance.Watering.DetermineState(_avgMoisture);
                 if (goalWaterState == GreenhouseState.WATERING || goalWaterState == GreenhouseState.WAITING_FOR_DATA)
                 {
-                    _statesToSend.Add(new WateringStateMachine(), goalWaterState);
+                    _waterState = new KeyValuePair<WateringStateMachine, GreenhouseState>(StateMachineContainer.Instance.Watering, goalWaterState);
                 }
+                ArduinoControlSender.Instance.SendCommand(_waterState);
             }
             //else
             //{
@@ -174,11 +174,11 @@ namespace GreenhouseController
             //}
 
             // Send commands
-            foreach (var state in _statesToSend)
-            {
-                // Send commands
-                ArduinoControlSender.Instance.SendCommand(state);
-            }
+            //foreach (var state in _statesToSend)
+            //{
+            //    // Send commands
+            //    ArduinoControlSender.Instance.SendCommand(state);
+            //}
             #endregion
 
             // If our state ends up being in emergency
@@ -209,14 +209,8 @@ namespace GreenhouseController
             foreach (DataPacket pack in data)
             {
                 _avgTemp += pack.Temperature;
-                _avgHumid += pack.Humidity;
-                _avgLight += pack.Light;
-                _avgMoisture += pack.Moisture;
             }
             _avgTemp /= 5;
-            _avgHumid /= 5;
-            _avgLight /= 5;
-            _avgMoisture /= 5;
         }
     }
 }

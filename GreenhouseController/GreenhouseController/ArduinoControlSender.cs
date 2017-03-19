@@ -91,27 +91,16 @@ namespace GreenhouseController
         }
 
         /// <summary>
-        /// Takes a list of commands to be sent to the arduino and sends them over the pi's serial port
+        /// Takes a Key-Value pair of TemperatureStateMachine and the state we're going to, then sends the required commands
         /// </summary>
-        /// <param name="_commandsToSend">State to convert to commands and send to Arduino</param>
-        public void SendCommand(KeyValuePair<IStateMachine, GreenhouseState> statePair)
+        /// <param name="statePair">KeyValuePair of temperature state machine and the state it needs to go to</param>
+        public void SendCommand(KeyValuePair<TemperatureStateMachine, GreenhouseState> statePair)
         {
             // TODO: add correct sequencing of commands
             byte[] buffer = new byte[1];
             List<Commands> commandsToSend = new List<Commands>();
             
-            if (statePair.Key is TemperatureStateMachine)
-            {
-                commandsToSend = StateMachineContainer.Instance.Temperature.ConvertStateToCommands(statePair.Value);
-            }
-            else if (statePair.Key is LightingStateMachine)
-            {
-                //commandsToSend = StateMachineContainer.Instance.Lighting.ConvertStateToCommands(statePair.Value);
-            }
-            else if (statePair.Key is WateringStateMachine)
-            {
-                commandsToSend = StateMachineContainer.Instance.Watering.ConvertStateToCommands(statePair.Value);
-            }
+            commandsToSend = StateMachineContainer.Instance.Temperature.ConvertStateToCommands(statePair.Value);
             
             foreach (var command in commandsToSend)
             {
@@ -124,18 +113,7 @@ namespace GreenhouseController
                     Console.WriteLine("Send finished.");
 
                     // Change states based on the key/value pair we passed in
-                    if (statePair.Key is TemperatureStateMachine)
-                    {
-                        StateMachineContainer.Instance.Temperature.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
-                    }
-                    else if (statePair.Key is LightingStateMachine)
-                    {
-                        StateMachineContainer.Instance.Lighting.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
-                    }
-                    else if (statePair.Key is WateringStateMachine)
-                    {
-                        StateMachineContainer.Instance.Watering.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
-                    }
+                    StateMachineContainer.Instance.Temperature.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
 
                     // Wait for response
                     Console.WriteLine($"Waiting for response...");
@@ -200,34 +178,252 @@ namespace GreenhouseController
                 // If we never successfully sent the command on retries, we go to the error state
                 if (_success == false)
                 {
-                    if (statePair.Key is TemperatureStateMachine)
+                    StateMachineContainer.Instance.Temperature.CurrentState = GreenhouseState.ERROR;
+                }
+                // If the command WAS sent successfully, we set the state accordingly and proceed as normal.
+                else if (_success == true)
+                {
+                    StateMachineContainer.Instance.Temperature.CurrentState = statePair.Value;
+                    Console.WriteLine($"State change {statePair.Value} executed successfully\n");
+                }
+                _retryCount = 0;
+                _success = false;
+            }
+        }
+
+        public void SendCommand(KeyValuePair<LightingStateMachine, GreenhouseState> statePair)
+        {
+            // TODO: add correct sequencing of commands
+            byte[] buffer = new byte[1];
+            List<Commands> commandsToSend = new List<Commands>();
+            int zone = statePair.Key.Zone;
+            switch (zone)
+            {
+                case 1:
+                    commandsToSend = StateMachineContainer.Instance.LightingZone1.ConvertStateToCommands(statePair.Value);
+                    break;
+                case 3:
+                    commandsToSend = StateMachineContainer.Instance.LightingZone3.ConvertStateToCommands(statePair.Value);
+                    break;
+                case 5:
+                    commandsToSend = StateMachineContainer.Instance.LightingZone5.ConvertStateToCommands(statePair.Value);
+                    break;
+                default:
+                    break;
+            }
+            
+
+            foreach (var command in commandsToSend)
+            {
+                // Send commands
+                try
+                {
+                    Console.WriteLine($"Attempting to send command {command}");
+                    _output.Write(command.ToString());
+                    Thread.Sleep(1250);
+                    Console.WriteLine("Send finished.");
+
+                    // Change states based on the key/value pair we passed in
+                    switch (zone)
                     {
-                        StateMachineContainer.Instance.Temperature.CurrentState = GreenhouseState.ERROR;
+                        case 1:
+                            StateMachineContainer.Instance.LightingZone1.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
+                            break;
+                        case 3:
+                            StateMachineContainer.Instance.LightingZone3.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
+                            break;
+                        case 5:
+                            StateMachineContainer.Instance.LightingZone5.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
+                            break;
+                        default:
+                            break;
                     }
-                    else if (statePair.Key is LightingStateMachine)
+
+                    // Wait for response
+                    Console.WriteLine($"Waiting for response...");
+                    _output.Read(buffer, 0, buffer.Length);
+                    Console.WriteLine($"{buffer.GetValue(0)} received.");
+
+                    //buffer = _NACK;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+
+                // Check the response from the Arduino
+                // ACK = success
+                if (buffer.SequenceEqual(_ACK))
+                {
+                    Console.WriteLine($"Command {command} sent successfully");
+                    _success = true;
+                }
+                // NACK = command wasn't acknowledged
+                else if (buffer.SequenceEqual(_NACK) || buffer == null)
+                {
+                    Console.WriteLine($"Command {command} returned unsuccessful response, attempting to resend.");
+
+                    // Attempt to resend the command 5 more times
+                    while (_retryCount != 5 && _success == false)
                     {
-                        StateMachineContainer.Instance.Lighting.CurrentState = GreenhouseState.ERROR;
+                        // Try-catch so thread doesn't explode if it fails to send/receive
+                        try
+                        {
+                            Console.WriteLine("Retrying send...");
+                            _output.Write(command.ToString());
+                            Thread.Sleep(1250);
+                            Console.WriteLine("Awaiting response...");
+
+                            _output.Read(buffer, 0, buffer.Length);
+                            Console.WriteLine($"{buffer.GetValue(0)} received");
+                            //buffer = ACK;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message, "Retrying again...");
+                        }
+
+                        // If we succeeded this time, break out of the loop!
+                        if (buffer.SequenceEqual(_ACK))
+                        {
+                            Console.WriteLine($"Command {command} sent successfully.");
+                            _success = true;
+                        }
+                        // If not, we keep going!
+                        else if (buffer.SequenceEqual(_NACK) || buffer.SequenceEqual(null) && _retryCount != 5)
+                        {
+                            Console.WriteLine("Retrying again...");
+                            _retryCount++;
+                        }
                     }
-                    else if (statePair.Key is WateringStateMachine)
+                }
+
+                // Change state based on results of sending commands
+                // If we never successfully sent the command on retries, we go to the error state
+                if (_success == false)
+                {
+                    switch (zone)
                     {
-                        StateMachineContainer.Instance.Watering.CurrentState = GreenhouseState.ERROR;
+                        case 1:
+                            StateMachineContainer.Instance.LightingZone1.CurrentState = GreenhouseState.ERROR;
+                            break;
+                        case 3:
+                            StateMachineContainer.Instance.LightingZone3.CurrentState = GreenhouseState.ERROR;
+                            break;
+                        case 5:
+                            StateMachineContainer.Instance.LightingZone5.CurrentState = GreenhouseState.ERROR;
+                            break;
+                        default:
+                            break;
                     }
                 }
                 // If the command WAS sent successfully, we set the state accordingly and proceed as normal.
                 else if (_success == true)
                 {
-                    if (statePair.Key is TemperatureStateMachine)
+                    StateMachineContainer.Instance.Temperature.CurrentState = statePair.Value;
+                    Console.WriteLine($"State change {statePair.Value} executed successfully\n");
+                }
+                _retryCount = 0;
+                _success = false;
+            }
+        }
+
+
+        /// <summary>
+        /// Takes a Key-Value pair of WateringStateMachine and the state we're going to, then sends the required commands
+        /// </summary>
+        /// <param name="statePair">KeyValuePair of temperature state machine and the state it needs to go to</param>
+        public void SendCommand(KeyValuePair<WateringStateMachine, GreenhouseState> statePair)
+        {
+            // TODO: add correct sequencing of commands
+            // TODO: account for multiple watering state machines
+            byte[] buffer = new byte[1];
+            List<Commands> commandsToSend = new List<Commands>();
+
+            commandsToSend = StateMachineContainer.Instance.Temperature.ConvertStateToCommands(statePair.Value);
+
+            foreach (var command in commandsToSend)
+            {
+                // Send commands
+                try
+                {
+                    Console.WriteLine($"Attempting to send command {command}");
+                    _output.Write(command.ToString());
+                    Thread.Sleep(1250);
+                    Console.WriteLine("Send finished.");
+
+                    // Change states based on the key/value pair we passed in
+                    StateMachineContainer.Instance.Watering.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
+
+                    // Wait for response
+                    Console.WriteLine($"Waiting for response...");
+                    _output.Read(buffer, 0, buffer.Length);
+                    Console.WriteLine($"{buffer.GetValue(0)} received.");
+
+                    //buffer = _NACK;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+
+                // Check the response from the Arduino
+                // ACK = success
+                if (buffer.SequenceEqual(_ACK))
+                {
+                    Console.WriteLine($"Command {command} sent successfully");
+                    _success = true;
+                }
+                // NACK = command wasn't acknowledged
+                else if (buffer.SequenceEqual(_NACK) || buffer == null)
+                {
+                    Console.WriteLine($"Command {command} returned unsuccessful response, attempting to resend.");
+
+                    // Attempt to resend the command 5 more times
+                    while (_retryCount != 5 && _success == false)
                     {
-                        StateMachineContainer.Instance.Temperature.CurrentState = statePair.Value;
+                        // Try-catch so thread doesn't explode if it fails to send/receive
+                        try
+                        {
+                            Console.WriteLine("Retrying send...");
+                            _output.Write(command.ToString());
+                            Thread.Sleep(1250);
+                            Console.WriteLine("Awaiting response...");
+
+                            _output.Read(buffer, 0, buffer.Length);
+                            Console.WriteLine($"{buffer.GetValue(0)} received");
+                            //buffer = ACK;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message, "Retrying again...");
+                        }
+
+                        // If we succeeded this time, break out of the loop!
+                        if (buffer.SequenceEqual(_ACK))
+                        {
+                            Console.WriteLine($"Command {command} sent successfully.");
+                            _success = true;
+                        }
+                        // If not, we keep going!
+                        else if (buffer.SequenceEqual(_NACK) || buffer.SequenceEqual(null) && _retryCount != 5)
+                        {
+                            Console.WriteLine("Retrying again...");
+                            _retryCount++;
+                        }
                     }
-                    else if (statePair.Key is LightingStateMachine)
-                    {
-                        StateMachineContainer.Instance.Lighting.CurrentState = statePair.Value;
-                    }
-                    else if (statePair.Key is WateringStateMachine)
-                    {
-                        StateMachineContainer.Instance.Watering.CurrentState = statePair.Value;
-                    }
+                }
+
+                // Change state based on results of sending commands
+                // If we never successfully sent the command on retries, we go to the error state
+                if (_success == false)
+                {
+                    StateMachineContainer.Instance.Watering.CurrentState = GreenhouseState.ERROR;
+                }
+                // If the command WAS sent successfully, we set the state accordingly and proceed as normal.
+                else if (_success == true)
+                {
+                    StateMachineContainer.Instance.Watering.CurrentState = statePair.Value;
                     Console.WriteLine($"State change {statePair.Value} executed successfully\n");
                 }
                 _retryCount = 0;
@@ -243,6 +439,7 @@ namespace GreenhouseController
         {
             // TODO: implement this with a key/value pair like above. Can probably reduce the commands
             // we need to send that way.
+            // TODO: Account for multiple zones!
             byte[] buffer = new byte[1];
             List<Commands> commandsToSend = new List<Commands>();
 
@@ -262,21 +459,21 @@ namespace GreenhouseController
                     commandsToSend.Add(Commands.SHADE_RETRACT);
                 }
             }
-            else if (stateMachine is LightingStateMachine)
-            {
-                if (stateMachine.CurrentState == GreenhouseState.LIGHTING)
-                {
-                    commandsToSend.Add(Commands.LIGHTS_OFF);
-                }
-                else if (stateMachine.CurrentState == GreenhouseState.SHADING)
-                {
-                    commandsToSend.Add(Commands.SHADE_RETRACT);
-                }
-            }
-            else if (stateMachine is WateringStateMachine)
-            {
-                commandsToSend.Add(Commands.WATER_OFF);
-            }
+            //else if (stateMachine is LightingStateMachine)
+            //{
+            //    if (stateMachine.CurrentState == GreenhouseState.LIGHTING)
+            //    {
+            //        commandsToSend.Add(Commands.LIGHTS_OFF);
+            //    }
+            //    else if (stateMachine.CurrentState == GreenhouseState.SHADING)
+            //    {
+            //        commandsToSend.Add(Commands.SHADE_RETRACT);
+            //    }
+            //}
+            //else if (stateMachine is WateringStateMachine)
+            //{
+            //    commandsToSend.Add(Commands.WATER_OFF);
+            //}
 
             foreach (var command in commandsToSend)
             {
@@ -353,14 +550,14 @@ namespace GreenhouseController
                     {
                         StateMachineContainer.Instance.Temperature.CurrentState = GreenhouseState.ERROR;
                     }
-                    else if (stateMachine is LightingStateMachine)
-                    {
-                        StateMachineContainer.Instance.Lighting.CurrentState = GreenhouseState.ERROR;
-                    }
-                    else if (stateMachine is WateringStateMachine)
-                    {
-                        StateMachineContainer.Instance.Watering.CurrentState = GreenhouseState.ERROR;
-                    }
+                    //else if (stateMachine is LightingStateMachine)
+                    //{
+                    //    StateMachineContainer.Instance.Lighting.CurrentState = GreenhouseState.ERROR;
+                    //}
+                    //else if (stateMachine is WateringStateMachine)
+                    //{
+                    //    StateMachineContainer.Instance.Watering.CurrentState = GreenhouseState.ERROR;
+                    //}
                 }
                 else if (_success == true)
                 {
@@ -368,14 +565,14 @@ namespace GreenhouseController
                     {
                         StateMachineContainer.Instance.Temperature.CurrentState = GreenhouseState.WAITING_FOR_DATA;
                     }
-                    else if (stateMachine is LightingStateMachine)
-                    {
-                        StateMachineContainer.Instance.Lighting.CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                    }
-                    else if (stateMachine is WateringStateMachine)
-                    {
-                        StateMachineContainer.Instance.Watering.CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                    }
+                    //else if (stateMachine is LightingStateMachine)
+                    //{
+                    //    StateMachineContainer.Instance.Lighting.CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                    //}
+                    //else if (stateMachine is WateringStateMachine)
+                    //{
+                    //    StateMachineContainer.Instance.Watering.CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                    //}
                     Console.WriteLine($"State change {GreenhouseState.WAITING_FOR_DATA} executed successfully\n");
                 }
                 _retryCount = 0;
