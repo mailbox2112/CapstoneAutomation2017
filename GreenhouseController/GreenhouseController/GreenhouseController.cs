@@ -17,7 +17,6 @@ namespace GreenhouseController
             NetworkListener.Instance.TryConnect();
             // Create the blocking collection
             var dataBuffer = new BlockingCollection<byte[]>();
-            var limitBuffer = new BlockingCollection<byte[]>();
 
             // Print out the state of the state machine at the start of the program
             Console.WriteLine($"Temperature State: {StateMachineContainer.Instance.Temperature.CurrentState.ToString()}");
