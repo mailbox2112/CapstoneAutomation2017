@@ -51,7 +51,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands.cs" />
-    <Compile Include="Data\DataRequestTimer.cs" />
     <Compile Include="Limits\LimitPacket.cs" />
     <Compile Include="Limits\LimitsAnalyzer.cs" />
     <Compile Include="StateEventArgs.cs" />
