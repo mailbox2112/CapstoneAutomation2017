@@ -8,7 +8,7 @@ namespace GreenhouseController
 {
     public class TLHPacket
     {
-        public int Type;
+        public int Type = 0;
         public int ID;
         public int Temperature;
         public int Light;

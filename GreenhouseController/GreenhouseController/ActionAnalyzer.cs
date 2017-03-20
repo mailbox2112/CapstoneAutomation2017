@@ -32,41 +32,41 @@ namespace GreenhouseController
         /// Processes the data received from the packets
         /// </summary>
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
-        public void AnalyzeData(DataPacket[] data)
+        public void AnalyzeData(TLHPacket[] tlhData, MoisturePacket[] moistData, DateTime currentTime)
         {
             ArduinoControlSender.Instance.TryConnect();
             // If any of the packets have a value for manual control in them, we change the manual variables
             // otherwise they stay null
-            foreach (var packet in data)
-            {
-                if (packet.ManualHeat != null)
-                {
-                    _manualHeat = packet.ManualHeat;
-                }
-                if (packet.ManualCool != null)
-                {
-                    _manualCool = packet.ManualCool;
-                }
-                // TODO: Account for manual lighting in the different zones!
-                if (packet.ManualLight != null)
-                {
-                    _manualLight = packet.ManualLight;
-                }
-                if (packet.ManualWater != null)
-                {
-                    _manualWater = packet.ManualWater;
-                }
-                if (packet.ManualShade != null)
-                {
-                    _manualShade = packet.ManualShade;
-                }
-            }
+            //foreach (var packet in data)
+            //{
+            //    if (packet.ManualHeat != null)
+            //    {
+            //        _manualHeat = packet.ManualHeat;
+            //    }
+            //    if (packet.ManualCool != null)
+            //    {
+            //        _manualCool = packet.ManualCool;
+            //    }
+            //    // TODO: Account for manual lighting in the different zones!
+            //    if (packet.ManualLight != null)
+            //    {
+            //        _manualLight = packet.ManualLight;
+            //    }
+            //    if (packet.ManualWater != null)
+            //    {
+            //        _manualWater = packet.ManualWater;
+            //    }
+            //    if (packet.ManualShade != null)
+            //    {
+            //        _manualShade = packet.ManualShade;
+            //    }
+            //}
 
             List<GreenhouseState> statesToSend = new List<GreenhouseState>();
 
             #region Automation Decision Making
             // Get the averages of greenhouse readings
-            GetTemperatureAverage(data);
+            GetTemperatureAverage(tlhData);
 
             // TODO: Check data for shading state machine
             // Get state machine states as long as we don't have a manual command change to send
@@ -106,7 +106,7 @@ namespace GreenhouseController
             {
                 // TODO: Change the lighting state machines to be timer-based
                 // Zone 1
-                GreenhouseState goalLightState1 = StateMachineContainer.Instance.LightingZone1.DetermineState(_avgLight);
+                GreenhouseState goalLightState1 = StateMachineContainer.Instance.LightingZone1.DetermineState(currentTime);
                 if (goalLightState1 == GreenhouseState.LIGHTING || goalLightState1 == GreenhouseState.SHADING || goalLightState1 == GreenhouseState.WAITING_FOR_DATA)
                 {
                     _lightState = new KeyValuePair<LightingStateMachine, GreenhouseState>(StateMachineContainer.Instance.LightingZone1, goalLightState1);
@@ -114,7 +114,7 @@ namespace GreenhouseController
                 ArduinoControlSender.Instance.SendCommand(_lightState);
 
                 // Zone 3
-                GreenhouseState goalLightState3 = StateMachineContainer.Instance.LightingZone3.DetermineState(_avgLight);
+                GreenhouseState goalLightState3 = StateMachineContainer.Instance.LightingZone3.DetermineState(currentTime);
                 if (goalLightState3 == GreenhouseState.LIGHTING || goalLightState3 == GreenhouseState.SHADING || goalLightState3 == GreenhouseState.WAITING_FOR_DATA)
                 {
                     _lightState = new KeyValuePair<LightingStateMachine, GreenhouseState>(StateMachineContainer.Instance.LightingZone3, goalLightState3);
@@ -122,7 +122,7 @@ namespace GreenhouseController
                 ArduinoControlSender.Instance.SendCommand(_lightState);
 
                 // Zone 5
-                GreenhouseState goalLightState5 = StateMachineContainer.Instance.LightingZone5.DetermineState(_avgLight);
+                GreenhouseState goalLightState5 = StateMachineContainer.Instance.LightingZone5.DetermineState(currentTime);
                 if (goalLightState5 == GreenhouseState.LIGHTING || goalLightState5 == GreenhouseState.SHADING || goalLightState5 == GreenhouseState.WAITING_FOR_DATA)
                 {
                     _lightState = new KeyValuePair<LightingStateMachine, GreenhouseState>(StateMachineContainer.Instance.LightingZone5, goalLightState5);
@@ -151,7 +151,7 @@ namespace GreenhouseController
             if (_manualWater == null)
             {
                 // TODO: change the watering state machines to be timer based
-                GreenhouseState goalWaterState = StateMachineContainer.Instance.Watering.DetermineState(_avgMoisture);
+                GreenhouseState goalWaterState = StateMachineContainer.Instance.Watering.DetermineState(new int());
                 if (goalWaterState == GreenhouseState.WATERING || goalWaterState == GreenhouseState.WAITING_FOR_DATA)
                 {
                     _waterState = new KeyValuePair<WateringStateMachine, GreenhouseState>(StateMachineContainer.Instance.Watering, goalWaterState);
@@ -203,9 +203,9 @@ namespace GreenhouseController
         /// Helper method for averaging greenhouse data
         /// </summary>
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
-        private void GetTemperatureAverage(DataPacket[] data)
+        private void GetTemperatureAverage(TLHPacket[] data)
         {
-            foreach (DataPacket pack in data)
+            foreach (TLHPacket pack in data)
             {
                 _avgTemp += pack.Temperature;
             }

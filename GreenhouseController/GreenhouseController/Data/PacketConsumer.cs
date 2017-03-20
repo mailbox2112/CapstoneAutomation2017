@@ -15,7 +15,9 @@ namespace GreenhouseController
         private static volatile PacketConsumer _instance;
         private static object _syncRoot = new object();
         private byte[] _data;
-        private List<DataPacket> _zoneInformation;
+        private List<TLHPacket> _tlhInformation;
+        private List<MoisturePacket> _moistureInformation;
+        private DateTime _curTime;
 
         /// <summary>
         /// Private constructor for singleton pattern
@@ -23,7 +25,6 @@ namespace GreenhouseController
         private PacketConsumer()
         {
             Console.WriteLine("Constructing greenhouse data analyzer...");
-            _zoneInformation = new List<DataPacket>(5);
             Console.WriteLine("Greenhouse data analyzer constructed.\n");
         }
 
@@ -60,29 +61,41 @@ namespace GreenhouseController
                 {
                     source.TryTake(out _data);
                     var data = JObject.Parse(Encoding.ASCII.GetString(_data));
+                    // If it's a TLH array...
+
+                    _curTime = data["TimeOfSend"].Value<DateTime>();
+
                     if (data["PacketType"].Value<int>() == 0)
                     {
-                        var deserializedData = JsonConvert.DeserializeObject<DataPacket>(Encoding.ASCII.GetString(_data));
+                        _tlhInformation = JsonConvert.DeserializeObject<List<TLHPacket>>(Encoding.ASCII.GetString(_data));
 
-                        // Check for repeat zones, and if we have any, throw out the old zone data
-                        if (_zoneInformation.Where(p => p.Zone == deserializedData.Zone) != null)
-                        {
-                            _zoneInformation.RemoveAll(p => p.Zone == deserializedData.Zone);
-                        }
+                        //var deserializedData = JsonConvert.DeserializeObject<DataPacket>(Encoding.ASCII.GetString(_data));
 
-                        _zoneInformation.Add(deserializedData);
+                        //// Check for repeat zones, and if we have any, throw out the old zone data
+                        //if (_zoneInformation.Where(p => p.Zone == deserializedData.Zone) != null)
+                        //{
+                        //    _zoneInformation.RemoveAll(p => p.Zone == deserializedData.Zone);
+                        //}
 
-                        if (_zoneInformation.Count == 5)
-                        {
-                            SendDataToAnalyzer(_zoneInformation);
-                        }
+                        //_zoneInformation.Add(deserializedData);
+
+                        //if (_zoneInformation.Count == 5)
+                        //{
+                        //    SendDataToAnalyzer(_zoneInformation);
+                        //}
                     }
+                    // if it's a moisture packet
                     else if (data["PacketType"].Value<int>() == 1)
                     {
-                        var deserializedData = JsonConvert.DeserializeObject<LimitPacket>(Encoding.ASCII.GetString(_data));
+                        _moistureInformation = JsonConvert.DeserializeObject<List<MoisturePacket>>(Encoding.ASCII.GetString(_data));
+                        //var deserializedData = JsonConvert.DeserializeObject<LimitPacket>(Encoding.ASCII.GetString(_data));
 
-                        LimitsAnalyzer analyzeLimits = new LimitsAnalyzer();
-                        analyzeLimits.ChangeGreenhouseLimits(deserializedData);
+                        //LimitsAnalyzer analyzeLimits = new LimitsAnalyzer();
+                        //analyzeLimits.ChangeGreenhouseLimits(deserializedData);
+                    }
+                    else if (data["PacketType"].Value<int>() == 2)
+                    {
+
                     }
                 }
                 catch (Exception ex)
@@ -97,16 +110,21 @@ namespace GreenhouseController
         /// </summary>
         /// <param name="data">Packet object representing the data contained in JSON sent over TCP</param>
         /// <returns></returns>
-        public void SendDataToAnalyzer(List<DataPacket> data)
+        public void SendDataToAnalyzer(List<TLHPacket> tlhData, List<MoisturePacket> moistureData)
         {
             // Copy info to an array so we don't modify list as we use it in another thread
-            DataPacket[] tempZoneInfo = new DataPacket[data.Count];
-            data.CopyTo(tempZoneInfo);
-            data.Clear();
+            TLHPacket[] tempZoneInfo = new TLHPacket[tlhData.Count];
+            tlhData.CopyTo(tempZoneInfo);
+            tlhData.Clear();
+
+            MoisturePacket[] moistZoneInfo = new MoisturePacket[moistureData.Count];
+            moistureData.CopyTo(moistZoneInfo);
+            moistureData.Clear();
             
+
             // Send array
             ActionAnalyzer analyze = new ActionAnalyzer();
-            Task.Run(() => analyze.AnalyzeData(tempZoneInfo));
+            Task.Run(() => analyze.AnalyzeData(tempZoneInfo, moistZoneInfo, _curTime));
         }
     }
 }
