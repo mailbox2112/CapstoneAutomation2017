@@ -70,9 +70,9 @@ namespace GreenhouseController
 
             Console.WriteLine($"Temperature High Limit: {StateMachineContainer.Instance.Temperature.HighLimit}");
             Console.WriteLine($"Temperature Low Limit: {StateMachineContainer.Instance.Temperature.LowLimit}");
-            Console.WriteLine($"Lighting High Limit: {StateMachineContainer.Instance.Lighting.HighLimit}");
-            Console.WriteLine($"Lighting Low Limit: {StateMachineContainer.Instance.Lighting.LowLimit}");
-            Console.WriteLine($"Watering Low Limit: {StateMachineContainer.Instance.Watering.LowLimit}");
+            //Console.WriteLine($"Lighting High Limit: {StateMachineContainer.Instance.Lighting.HighLimit}");
+            //Console.WriteLine($"Lighting Low Limit: {StateMachineContainer.Instance.Lighting.LowLimit}");
+            //Console.WriteLine($"Watering Low Limit: {StateMachineContainer.Instance.Watering.LowLimit}");
         }
     }
 }

@@ -26,7 +26,6 @@ namespace GreenhouseController
             _manualHeat = null;
             _manualLight = null;
             _manualWater = null;
-            _currentTime = DateTime.Now;
         }
 
         /// <summary>
@@ -67,7 +66,7 @@ namespace GreenhouseController
 
             #region Automation Decision Making
             // Get the averages of greenhouse readings
-            GetGreenhouseAverages(data);
+            GetTemperatureAverage(data);
 
             // TODO: Check data for shading state machine
             // Get state machine states as long as we don't have a manual command change to send
@@ -204,13 +203,18 @@ namespace GreenhouseController
         /// Helper method for averaging greenhouse data
         /// </summary>
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
-        private void GetGreenhouseAverages(DataPacket[] data)
+        private void GetTemperatureAverage(DataPacket[] data)
         {
             foreach (DataPacket pack in data)
             {
                 _avgTemp += pack.Temperature;
             }
             _avgTemp /= 5;
+        }
+
+        private void GetCurrentTime(DataPacket[] data)
+        {
+            // Get the approximate time from the data packet array
         }
     }
 }
