@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GreenhouseController.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -31,36 +32,32 @@ namespace GreenhouseController
         /// Processes the data received from the packets
         /// </summary>
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
-        public void AnalyzeData(TLHPacket[] tlhData, MoisturePacket[] moistData, DateTime currentTime)
+        public void AnalyzeData(TLHPacket[] tlhData, MoisturePacket[] moistData, DateTime currentTime, ManualPacket manualData)
         {
             _currentTime = currentTime;
             ArduinoControlSender.Instance.TryConnect();
             // If any of the packets have a value for manual control in them, we change the manual variables
             // otherwise they stay null
-            //foreach (var packet in data)
-            //{
-            //    if (packet.ManualHeat != null)
-            //    {
-            //        _manualHeat = packet.ManualHeat;
-            //    }
-            //    if (packet.ManualCool != null)
-            //    {
-            //        _manualCool = packet.ManualCool;
-            //    }
-            //    // TODO: Account for manual lighting in the different zones!
-            //    if (packet.ManualLight != null)
-            //    {
-            //        _manualLight = packet.ManualLight;
-            //    }
-            //    if (packet.ManualWater != null)
-            //    {
-            //        _manualWater = packet.ManualWater;
-            //    }
-            //    if (packet.ManualShade != null)
-            //    {
-            //        _manualShade = packet.ManualShade;
-            //    }
-            //}
+            if (manualData.ManualHeat != null)
+            {
+                _manualHeat = manualData.ManualHeat;
+            }
+            if (manualData.ManualCool != null)
+            {
+                _manualCool = manualData.ManualCool;
+            }
+            if (manualData.ManualLight != null)
+            {
+                _manualLight = manualData.ManualLight;
+            }
+            if (manualData.ManualWater != null)
+            {
+                _manualWater = manualData.ManualWater;
+            }
+            if (manualData.ManualShade != null)
+            {
+                _manualShade = manualData.ManualShade;
+            }
 
             List<GreenhouseState> statesToSend = new List<GreenhouseState>();
 
@@ -83,24 +80,24 @@ namespace GreenhouseController
                 // Send the KVP to the control sender
                 ArduinoControlSender.Instance.SendCommand(_tempState);
             }
-            //else
-            //{
-            //    // If we have a manual command, do that
-            //    if (_manualHeat == true)
-            //    {
-            //        GreenhouseState goalTempState = GreenhouseState.HEATING;
-            //        _tempState = new KeyValuePair<TemperatureStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, goalTempState);
-            //    }
-            //    else if (_manualCool == true)
-            //    {
-            //        GreenhouseState goalTempState = GreenhouseState.COOLING;
-            //        _tempState = new KeyValuePair<TemperatureStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, goalTempState);
-            //    }
-            //    else if (_manualHeat == false || _manualCool == false)
-            //    {
-            //        ArduinoControlSender.Instance.SendManualOffCommand(StateMachineContainer.Instance.Temperature);
-            //    }
-            //}
+            else
+            {
+                // If we have a manual command, do that
+                if (_manualHeat == true)
+                {
+                    GreenhouseState goalTempState = GreenhouseState.HEATING;
+                    _tempState = new KeyValuePair<TemperatureStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, goalTempState);
+                }
+                else if (_manualCool == true)
+                {
+                    GreenhouseState goalTempState = GreenhouseState.COOLING;
+                    _tempState = new KeyValuePair<TemperatureStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, goalTempState);
+                }
+                else if (_manualHeat == false || _manualCool == false)
+                {
+                    ArduinoControlSender.Instance.SendManualOffCommand(StateMachineContainer.Instance.Temperature);
+                }
+            }
             // If we don't have a manual light/shade command...
             if (_manualLight == null && _manualShade == null)
             {
@@ -127,24 +124,30 @@ namespace GreenhouseController
                     ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.LightingZone5, goalLightState5);
                 }
             }
-            //else
-            //{
-            //    // If we do have a manual command, do that
-            //    if (_manualLight == true)
-            //    {
-            //        GreenhouseState goalLightState = GreenhouseState.LIGHTING;
-            //        _statesToSend.Add(new LightingStateMachine(), goalLightState);
-            //    }
-            //    else if (_manualShade == true)
-            //    {
-            //        GreenhouseState goalLightState = GreenhouseState.SHADING;
-            //        _statesToSend.Add(new LightingStateMachine(), goalLightState);
-            //    }
-            //    else
-            //    {
-            //        ArduinoControlSender.Instance.SendManualOffCommand(StateMachineContainer.Instance.Lighting);
-            //    }
-            //}
+            else
+            {
+                // If we do have a manual command, do that
+                if (_manualLight == true)
+                {
+                    GreenhouseState goalLightState = GreenhouseState.LIGHTING;
+                    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.LightingZone1, goalLightState);
+                    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.LightingZone3, goalLightState);
+                    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.LightingZone5, goalLightState);
+                }
+                // TODO: Move this to the shading state machine portion!
+                else if (_manualShade == true)
+                {
+                    GreenhouseState goalLightState = GreenhouseState.SHADING;
+                    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.LightingZone1, goalLightState);
+                    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.LightingZone3, goalLightState);
+                    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.LightingZone5, goalLightState);
+                }
+                else
+                {
+                    // TODO: Add overload for different types of state machines to SendManualOffCommand
+                    ArduinoControlSender.Instance.SendManualOffCommand(StateMachineContainer.Instance.LightingZone1);
+                }
+            }
             // If we don't have a manual watering command
             if (_manualWater == null)
             {
