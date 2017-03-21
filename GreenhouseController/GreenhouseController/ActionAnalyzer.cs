@@ -8,6 +8,7 @@ namespace GreenhouseController
 {
     public class ActionAnalyzer
     {
+        //TODO: Fix manual control
         private double _avgTemp;
         private DateTime _currentTime;
         private bool? _manualHeat;
@@ -16,8 +17,6 @@ namespace GreenhouseController
         private bool? _manualWater;
         private bool? _manualShade;
         private KeyValuePair<TemperatureStateMachine, GreenhouseState> _tempState;
-        private KeyValuePair<LightingStateMachine, GreenhouseState> _lightState;
-        private KeyValuePair<WateringStateMachine, GreenhouseState> _waterState;
 
         public ActionAnalyzer()
         {
@@ -34,6 +33,7 @@ namespace GreenhouseController
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
         public void AnalyzeData(TLHPacket[] tlhData, MoisturePacket[] moistData, DateTime currentTime)
         {
+            _currentTime = currentTime;
             ArduinoControlSender.Instance.TryConnect();
             // If any of the packets have a value for manual control in them, we change the manual variables
             // otherwise they stay null
@@ -104,30 +104,28 @@ namespace GreenhouseController
             // If we don't have a manual light/shade command...
             if (_manualLight == null && _manualShade == null)
             {
-                // TODO: Change the lighting state machines to be timer-based
                 // Zone 1
-                GreenhouseState goalLightState1 = StateMachineContainer.Instance.LightingZone1.DetermineState(currentTime);
+                GreenhouseState goalLightState1 = StateMachineContainer.Instance.LightingZone1.DetermineState(_currentTime);
                 if (goalLightState1 == GreenhouseState.LIGHTING || goalLightState1 == GreenhouseState.SHADING || goalLightState1 == GreenhouseState.WAITING_FOR_DATA)
                 {
-                    _lightState = new KeyValuePair<LightingStateMachine, GreenhouseState>(StateMachineContainer.Instance.LightingZone1, goalLightState1);
+                    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.LightingZone1, goalLightState1);
                 }
-                ArduinoControlSender.Instance.SendCommand(_lightState);
+                
 
                 // Zone 3
-                GreenhouseState goalLightState3 = StateMachineContainer.Instance.LightingZone3.DetermineState(currentTime);
+                GreenhouseState goalLightState3 = StateMachineContainer.Instance.LightingZone3.DetermineState(_currentTime);
                 if (goalLightState3 == GreenhouseState.LIGHTING || goalLightState3 == GreenhouseState.SHADING || goalLightState3 == GreenhouseState.WAITING_FOR_DATA)
                 {
-                    _lightState = new KeyValuePair<LightingStateMachine, GreenhouseState>(StateMachineContainer.Instance.LightingZone3, goalLightState3);
+                    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.LightingZone3, goalLightState3);
                 }
-                ArduinoControlSender.Instance.SendCommand(_lightState);
+                
 
                 // Zone 5
-                GreenhouseState goalLightState5 = StateMachineContainer.Instance.LightingZone5.DetermineState(currentTime);
+                GreenhouseState goalLightState5 = StateMachineContainer.Instance.LightingZone5.DetermineState(_currentTime);
                 if (goalLightState5 == GreenhouseState.LIGHTING || goalLightState5 == GreenhouseState.SHADING || goalLightState5 == GreenhouseState.WAITING_FOR_DATA)
                 {
-                    _lightState = new KeyValuePair<LightingStateMachine, GreenhouseState>(StateMachineContainer.Instance.LightingZone5, goalLightState5);
+                    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.LightingZone5, goalLightState5);
                 }
-                ArduinoControlSender.Instance.SendCommand(_lightState);
             }
             //else
             //{
@@ -150,13 +148,42 @@ namespace GreenhouseController
             // If we don't have a manual watering command
             if (_manualWater == null)
             {
-                // TODO: change the watering state machines to be timer based
-                GreenhouseState goalWaterState = StateMachineContainer.Instance.Watering.DetermineState(new int());
-                if (goalWaterState == GreenhouseState.WATERING || goalWaterState == GreenhouseState.WAITING_FOR_DATA)
+                // Zone 1
+                GreenhouseState goalWaterState1 = StateMachineContainer.Instance.WateringZone1.DetermineState(_currentTime);
+                if (goalWaterState1 == GreenhouseState.WATERING || goalWaterState1 == GreenhouseState.WAITING_FOR_DATA)
                 {
-                    _waterState = new KeyValuePair<WateringStateMachine, GreenhouseState>(StateMachineContainer.Instance.Watering, goalWaterState);
+                    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.WateringZone1, goalWaterState1);
                 }
-                ArduinoControlSender.Instance.SendCommand(_waterState);
+                // Zone 2
+                GreenhouseState goalWaterState2 = StateMachineContainer.Instance.WateringZone2.DetermineState(_currentTime);
+                if (goalWaterState2 == GreenhouseState.WATERING || goalWaterState2 == GreenhouseState.WAITING_FOR_DATA)
+                {
+                    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.WateringZone2, goalWaterState2);
+                }
+                // Zone 3
+                GreenhouseState goalWaterState3 = StateMachineContainer.Instance.WateringZone3.DetermineState(_currentTime);
+                if (goalWaterState3 == GreenhouseState.WATERING || goalWaterState3 == GreenhouseState.WAITING_FOR_DATA)
+                {
+                    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.WateringZone3, goalWaterState3);
+                }
+                // Zone 4
+                GreenhouseState goalWaterState4 = StateMachineContainer.Instance.WateringZone4.DetermineState(_currentTime);
+                if (goalWaterState4 == GreenhouseState.WATERING || goalWaterState4 == GreenhouseState.WAITING_FOR_DATA)
+                {
+                    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.WateringZone4, goalWaterState4);
+                }
+                // Zone 5
+                GreenhouseState goalWaterState5 = StateMachineContainer.Instance.WateringZone5.DetermineState(_currentTime);
+                if (goalWaterState5 == GreenhouseState.WATERING || goalWaterState5 == GreenhouseState.WAITING_FOR_DATA)
+                {
+                    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.WateringZone5, goalWaterState5);
+                }
+                // Zone 6
+                GreenhouseState goalWaterState6 = StateMachineContainer.Instance.WateringZone6.DetermineState(_currentTime);
+                if (goalWaterState6 == GreenhouseState.WATERING || goalWaterState6 == GreenhouseState.WAITING_FOR_DATA)
+                {
+                    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.WateringZone6, goalWaterState6);
+                }
             }
             //else
             //{
@@ -180,23 +207,23 @@ namespace GreenhouseController
             //}
             #endregion
 
-            // If our state ends up being in emergency
-            if (StateMachineContainer.Instance.Watering.CurrentState == GreenhouseState.EMERGENCY)
-            {
-                // TODO: Send an emergency message to the Data Team!
-            }
-            else if (StateMachineContainer.Instance.Watering.CurrentState == GreenhouseState.ERROR)
-            {
-                // TODO: Set a flag somewhere!
-            }
-            if (StateMachineContainer.Instance.Temperature.CurrentState == GreenhouseState.EMERGENCY)
-            {
-                // TODO: Send an emergency message to the Data Team!
-            }
-            else if (StateMachineContainer.Instance.Temperature.CurrentState == GreenhouseState.ERROR)
-            {
-                // TODO: Set a flag somewhere!
-            }
+            //// If our state ends up being in emergency
+            //if (StateMachineContainer.Instance.Watering.CurrentState == GreenhouseState.EMERGENCY)
+            //{
+            //    // TODO: Send an emergency message to the Data Team!
+            //}
+            //else if (StateMachineContainer.Instance.Watering.CurrentState == GreenhouseState.ERROR)
+            //{
+            //    // TODO: Set a flag somewhere!
+            //}
+            //if (StateMachineContainer.Instance.Temperature.CurrentState == GreenhouseState.EMERGENCY)
+            //{
+            //    // TODO: Send an emergency message to the Data Team!
+            //}
+            //else if (StateMachineContainer.Instance.Temperature.CurrentState == GreenhouseState.ERROR)
+            //{
+            //    // TODO: Set a flag somewhere!
+            //}
         }
 
         /// <summary>

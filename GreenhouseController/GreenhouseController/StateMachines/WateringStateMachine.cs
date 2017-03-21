@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    public class WateringStateMachine : IStateMachine
+    public class WateringStateMachine : ITimeBasedStateMachine
     {
-        // TODO: Add timer event-based watering
         private const int _emergencyMoist = 0;
 
         private GreenhouseState _currentState;
@@ -27,16 +26,19 @@ namespace GreenhouseController
 
         public EventHandler<StateEventArgs> StateChanged { get; set; }
 
-        public int? HighLimit { get; set; }
+        public DateTime Begin { get; set; }
 
-        public int? LowLimit { get; set; }
+        public DateTime End { get; set; }
+
+        public int Zone { get; set; }
 
         /// <summary>
         /// Initialize the state machine
         /// </summary>
-        public WateringStateMachine()
+        public WateringStateMachine(int zone)
         {
             CurrentState = GreenhouseState.WAITING_FOR_DATA;
+            Zone = zone;
         }
 
         /// <summary>
@@ -44,7 +46,7 @@ namespace GreenhouseController
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public GreenhouseState DetermineState(double value)
+        public GreenhouseState DetermineState(DateTime currentTime)
         {
             if (CurrentState == GreenhouseState.WATERING)
             {
@@ -56,30 +58,17 @@ namespace GreenhouseController
             }
 
             // Check the states based on data, and if we were already watering take that into account
-            if (value < LowLimit && CurrentState != GreenhouseState.PROCESSING_WATER)
+            if (currentTime < End && currentTime > Begin && CurrentState != GreenhouseState.PROCESSING_WATER)
             {
-                if (value == _emergencyMoist)
-                {
-                    return GreenhouseState.EMERGENCY;
-                }
-                else 
-                {
+
                     return GreenhouseState.WATERING;
-                }
             }
-            else if (value < LowLimit && CurrentState == GreenhouseState.PROCESSING_WATER)
+            else if (currentTime < End && currentTime > Begin && CurrentState == GreenhouseState.PROCESSING_WATER)
             {
-                if (value == _emergencyMoist)
-                {
-                    return GreenhouseState.EMERGENCY;
-                }
-                else
-                {
                     CurrentState = GreenhouseState.WATERING;
                     return GreenhouseState.NO_CHANGE;
-                }
             }
-            else if (value > LowLimit && CurrentState == GreenhouseState.PROCESSING_DATA)
+            else if ((currentTime > End || currentTime < Begin) && CurrentState == GreenhouseState.PROCESSING_DATA)
             {
                 CurrentState = GreenhouseState.WAITING_FOR_DATA;
                 return GreenhouseState.NO_CHANGE;
@@ -90,23 +79,75 @@ namespace GreenhouseController
             }
         }
 
+        /// <summary>
+        /// Return a list of commands appropriate for the action required by the state
+        /// </summary>
+        /// <param name="state"></param>
+        /// <returns></returns>
         public List<Commands> ConvertStateToCommands(GreenhouseState state)
         {
             // check the state of the solenoids
             List<Commands> commandsToSend = new List<Commands>();
-            
             if (state == GreenhouseState.WATERING)
-            {
-                commandsToSend.Add(Commands.WATER_ON);
+            { 
+                switch (Zone)
+                {
+                    case 1:
+                        commandsToSend.Add(Commands.WATER1_ON);
+                        break;
+                    case 2:
+                        commandsToSend.Add(Commands.WATER2_ON);
+                        break;
+                    case 3:
+                        commandsToSend.Add(Commands.WATER3_ON);
+                        break;
+                    case 4:
+                        commandsToSend.Add(Commands.WATER4_ON);
+                        break;
+                    case 5:
+                        commandsToSend.Add(Commands.WATER5_ON);
+                        break;
+                    case 6:
+                        commandsToSend.Add(Commands.WATER6_ON);
+                        break;
+                    default:
+                        break;
+                }
             }
             else if (state == GreenhouseState.WAITING_FOR_DATA)
             {
-                commandsToSend.Add(Commands.WATER_OFF);
+                switch (Zone)
+                {
+                    case 1:
+                        commandsToSend.Add(Commands.WATER1_OFF);
+                        break;
+                    case 2:
+                        commandsToSend.Add(Commands.WATER2_OFF);
+                        break;
+                    case 3:
+                        commandsToSend.Add(Commands.WATER3_OFF);
+                        break;
+                    case 4:
+                        commandsToSend.Add(Commands.WATER4_OFF);
+                        break;
+                    case 5:
+                        commandsToSend.Add(Commands.WATER5_OFF);
+                        break;
+                    case 6:
+                        commandsToSend.Add(Commands.WATER6_OFF);
+                        break;
+                    default:
+                        break;
+                }
             }
 
             return commandsToSend;
         }
 
+        /// <summary>
+        /// When the greenhouse state changes, invoke this event handler
+        /// </summary>
+        /// <param name="e"></param>
         public void OnStateChange(StateEventArgs e)
         {
             StateChanged?.Invoke(this, e);

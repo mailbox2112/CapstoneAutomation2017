@@ -13,5 +13,6 @@ namespace GreenhouseController
         public int Temperature;
         public int Light;
         public int Humidity;
+        public DateTime TimeOfSend = DateTime.Now;
     }
 }

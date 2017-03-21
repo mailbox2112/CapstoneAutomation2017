@@ -56,6 +56,7 @@
     <Compile Include="Data\MoisturePacket.cs" />
     <Compile Include="StateEventArgs.cs" />
     <Compile Include="Data\TLHPacket.cs" />
+    <Compile Include="StateMachines\ITimeBasedStateMachine.cs" />
     <Compile Include="UnitTestClasses\ArduinoControlSenderSimulator.cs" />
     <Compile Include="ArduinoControlSender.cs" />
     <Compile Include="Data\DataEventArgs.cs" />

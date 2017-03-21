@@ -28,14 +28,24 @@ namespace ConsoleApplication1
             Console.WriteLine(" >> Accept connection from client");
             NetworkStream networkStream = client.GetStream();
 
+            int[] tlhZones = new int[] { 1, 2, 3, 4, 5 };
+            int[] mZones = new int[] { 1, 2, 3, 4, 5, 6 };
+
             Dictionary<int, DateTime> waterStart = new Dictionary<int, DateTime>();
-            waterStart.Add(1, DateTime.Now);
             Dictionary<int, DateTime> waterEnd = new Dictionary<int, DateTime>();
-            waterEnd.Add(1, DateTime.Now);
             Dictionary<int, DateTime> lightStart = new Dictionary<int, DateTime>();
-            lightStart.Add(1, DateTime.Now);
             Dictionary<int, DateTime> lightEnd = new Dictionary<int, DateTime>();
-            lightEnd.Add(1, DateTime.Now);
+            foreach(int zone in tlhZones)
+            {
+                lightStart.Add(zone, new DateTime(2017, 3, 20, 20, 0, 0));
+                lightEnd.Add(zone, new DateTime(2017, 3, 20, 20, 50, 0));
+            }
+
+            foreach(int zone in mZones)
+            {
+                waterStart.Add(zone, new DateTime(2017, 3, 20, 20, 0, 0));
+                waterEnd.Add(zone, new DateTime(2017, 3, 20, 20, 50, 0));
+            }
             
             byte[] limitsToSend = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new LimitPacket()
             {
@@ -182,14 +192,26 @@ namespace ConsoleApplication1
                         try
                         {
                             JsonSpoof jSpoof = new JsonSpoof();
+                            foreach(int zone in tlhZones)
+                            {
+                                string json = jSpoof.TLHData(zone);
+                                byte[] sendBytes = Encoding.ASCII.GetBytes(json);
+                                networkStream.Write(sendBytes, 0, sendBytes.Length);
+                                networkStream.Flush();
+                                Console.WriteLine(" >> " + $"{json}");
 
-                            string json = jSpoof.TLHData();
-                            byte[] sendBytes = Encoding.ASCII.GetBytes(json);
-                            networkStream.Write(sendBytes, 0, sendBytes.Length);
-                            networkStream.Flush();
-                            Console.WriteLine(" >> " + $"{json}");
+                                Thread.Sleep(500);
+                            }
+                            foreach(int zone in mZones)
+                            {
+                                string mJson = jSpoof.MoistureData(zone);
+                                byte[] mSendBytes = Encoding.ASCII.GetBytes(mJson);
+                                networkStream.Write(mSendBytes, 0, mSendBytes.Length);
+                                networkStream.Flush();
+                                Console.WriteLine(" >> " + $"{mJson}");
+                                Thread.Sleep(500);
+                            }
 
-                            Thread.Sleep(500);
                             Console.WriteLine("Data sent!");
                         }
                         catch (Exception ex)
@@ -213,7 +235,7 @@ namespace ConsoleApplication1
 
                         foreach (int zone in zones)
                         {
-                            string json = jSpoof.TLHData();
+                            string json = jSpoof.TLHData(zone);
                             byte[] sendBytes = Encoding.ASCII.GetBytes(json);
                             networkStream.Write(sendBytes, 0, sendBytes.Length);
                             networkStream.Flush();
@@ -244,29 +266,39 @@ namespace ConsoleApplication1
         {
             
             public JsonSpoof() { }
-            public string TLHData()
+            public string TLHData(int zone)
             {
                 int tempMin = 0;
                 int tempMax = 120;
                 int humidMin = 0;
                 int humidMax = 100;
                 Random rand = new Random();
-                int[] zones = new int[] { 1, 2, 3, 4, 5, 6 };
-                List<TLHPacket> packets = new List<TLHPacket>();
-
-                foreach(int zone in zones)
+                TLHPacket packet = new TLHPacket()
                 {
-                    packets.Add(new TLHPacket()
-                    {
-                        Temperature = rand.Next(tempMin, tempMax),
-                        Light = rand.Next(20000, 65000),
-                        Humidity = rand.Next(humidMin, humidMax),
-                        ID = zone
-                    });
-                }
-                JArray noHeader = JArray.FromObject(packets);
-                noHeader.Add();
-                string spoofData = noHeader.ToString();
+                    Temperature = rand.Next(tempMin, tempMax),
+                    Light = rand.Next(20000, 65000),
+                    Humidity = rand.Next(humidMin, humidMax),
+                    ID = zone
+                };
+
+                string spoofData = JsonConvert.SerializeObject(packet);
+
+                return spoofData;
+            }
+
+            public string MoistureData(int zone)
+            {
+                Random rand = new Random();
+                MoisturePacket packet = new MoisturePacket()
+                {
+                    ID = zone,
+                    Probe1 = rand.Next(0,100),
+                    Probe2 = rand.Next(0, 100),
+                    Probe3 = rand.Next(0, 100),
+                    Probe4 = rand.Next(0, 100)
+                };
+
+                string spoofData = JsonConvert.SerializeObject(packet);
 
                 return spoofData;
             }

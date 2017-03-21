@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    public class LightingStateMachine : IStateMachine
+    public class LightingStateMachine : ITimeBasedStateMachine
     {
         // TODO: Add timer event-based lighting state changes
         // Private member for implementing custom get/set using the event handler
@@ -33,9 +33,9 @@ namespace GreenhouseController
         // Lower limit for lighting, causes lights to turn on
         public int? LowLimit { get; set; }
 
-        public DateTime BeginLighting { get; set; }
+        public DateTime Begin { get; set; }
 
-        public DateTime EndLighting { get; set; }
+        public DateTime End { get; set; }
 
         public EventHandler<StateEventArgs> StateChanged;
 
@@ -50,16 +50,12 @@ namespace GreenhouseController
             Zone = zone;
         }
 
-        [Obsolete]
-        public GreenhouseState DetermineState(double value)
-        { return 0; ; }
-
         /// <summary>
         /// Determinet the state of the greenhouse based on the lighting data we receive
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="currentTime"></param>
         /// <returns></returns>
-        public GreenhouseState DetermineState(DateTime value)
+        public GreenhouseState DetermineState(DateTime currentTime)
         {
             if (CurrentState == GreenhouseState.LIGHTING)
             {
@@ -72,16 +68,16 @@ namespace GreenhouseController
 
             // TODO: Change this to use the DateTimes we receive in packets
             // Process data and take into account if we were already lighting when we received the data
-            if (BeginLighting <= value && value <= EndLighting  && CurrentState != GreenhouseState.PROCESSING_LIGHTING)
+            if (Begin <= currentTime && currentTime <= End  && CurrentState != GreenhouseState.PROCESSING_LIGHTING)
             {
                 return GreenhouseState.LIGHTING;
             }
-            else if (BeginLighting <= value && value <= EndLighting && CurrentState == GreenhouseState.PROCESSING_LIGHTING)
+            else if (Begin <= currentTime && currentTime <= End && CurrentState == GreenhouseState.PROCESSING_LIGHTING)
             {
                 CurrentState = GreenhouseState.LIGHTING;
                 return GreenhouseState.NO_CHANGE;
             }
-            else if (value > EndLighting && CurrentState == GreenhouseState.PROCESSING_DATA)
+            else if (currentTime > End && CurrentState == GreenhouseState.PROCESSING_DATA)
             {
                 CurrentState = GreenhouseState.WAITING_FOR_DATA;
                 return GreenhouseState.NO_CHANGE;

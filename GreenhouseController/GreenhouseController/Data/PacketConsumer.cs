@@ -26,6 +26,8 @@ namespace GreenhouseController
         {
             Console.WriteLine("Constructing greenhouse data analyzer...");
             Console.WriteLine("Greenhouse data analyzer constructed.\n");
+            _tlhInformation = new List<TLHPacket>();
+            _moistureInformation = new List<MoisturePacket>();
         }
 
         /// <summary>
@@ -63,44 +65,50 @@ namespace GreenhouseController
                     var data = JObject.Parse(Encoding.ASCII.GetString(_data));
                     // If it's a TLH array...
 
-                    _curTime = data["TimeOfSend"].Value<DateTime>();
+                    
 
-                    if (data["PacketType"].Value<int>() == 0)
+                    if (data["Type"].Value<int>() == 0)
                     {
-                        _tlhInformation = JsonConvert.DeserializeObject<List<TLHPacket>>(Encoding.ASCII.GetString(_data));
+                        _curTime = data["TimeOfSend"].Value<DateTime>();
+                        var deserializedData = JsonConvert.DeserializeObject<TLHPacket>(Encoding.ASCII.GetString(_data));
 
-                        //var deserializedData = JsonConvert.DeserializeObject<DataPacket>(Encoding.ASCII.GetString(_data));
+                        // Check for repeat zones, and if we have any, throw out the old zone data
+                        if (_tlhInformation.Where(p => p.ID == deserializedData.ID) != null)
+                        {
+                            _tlhInformation.RemoveAll(p => p.ID == deserializedData.ID);
+                        }
 
-                        //// Check for repeat zones, and if we have any, throw out the old zone data
-                        //if (_zoneInformation.Where(p => p.Zone == deserializedData.Zone) != null)
-                        //{
-                        //    _zoneInformation.RemoveAll(p => p.Zone == deserializedData.Zone);
-                        //}
-
-                        //_zoneInformation.Add(deserializedData);
-
-                        //if (_zoneInformation.Count == 5)
-                        //{
-                        //    SendDataToAnalyzer(_zoneInformation);
-                        //}
+                        _tlhInformation.Add(deserializedData);
                     }
                     // if it's a moisture packet
-                    else if (data["PacketType"].Value<int>() == 1)
+                    else if (data["Type"].Value<int>() == 1)
                     {
-                        _moistureInformation = JsonConvert.DeserializeObject<List<MoisturePacket>>(Encoding.ASCII.GetString(_data));
-                        //var deserializedData = JsonConvert.DeserializeObject<LimitPacket>(Encoding.ASCII.GetString(_data));
+                        var deserializedData = JsonConvert.DeserializeObject<MoisturePacket>(Encoding.ASCII.GetString(_data));
 
-                        //LimitsAnalyzer analyzeLimits = new LimitsAnalyzer();
-                        //analyzeLimits.ChangeGreenhouseLimits(deserializedData);
+                        // Check for repeat zones, and if we have any, throw out the old zone data
+                        if (_moistureInformation.Where(p => p.ID == deserializedData.ID) != null)
+                        {
+                            _moistureInformation.RemoveAll(p => p.ID == deserializedData.ID);
+                        }
+
+                        _moistureInformation.Add(deserializedData);
                     }
-                    else if (data["PacketType"].Value<int>() == 2)
+                    else if (data["Type"].Value<int>() == 2)
                     {
+                        var deserializedData = JsonConvert.DeserializeObject<LimitPacket>(Encoding.ASCII.GetString(_data));
 
+                        LimitsAnalyzer analyzeLimits = new LimitsAnalyzer();
+                        analyzeLimits.ChangeGreenhouseLimits(deserializedData);
                     }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex);
+                }
+
+                if (_tlhInformation.Count == 5 && _moistureInformation.Count == 6)
+                {
+                    SendDataToAnalyzer(_tlhInformation, _moistureInformation);
                 }
             }
         }
