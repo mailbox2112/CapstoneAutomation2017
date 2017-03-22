@@ -29,13 +29,13 @@ namespace GreenhouseController
                 switch(kvp.Key)
                 {
                     case 1:
-                        StateMachineContainer.Instance.LightingZone1.Begin = kvp.Value;
+                        StateMachineContainer.Instance.LightStateMachines[0].Begin = kvp.Value;
                         break;
                     case 3:
-                        StateMachineContainer.Instance.LightingZone3.Begin = kvp.Value;
+                        StateMachineContainer.Instance.LightStateMachines[1].Begin = kvp.Value;
                         break;
                     case 5:
-                        StateMachineContainer.Instance.LightingZone5.Begin = kvp.Value;
+                        StateMachineContainer.Instance.LightStateMachines[1].Begin = kvp.Value;
                         break;
                     default:
                         break;
@@ -46,13 +46,13 @@ namespace GreenhouseController
                 switch (kvp.Key)
                 {
                     case 1:
-                        StateMachineContainer.Instance.LightingZone1.End = kvp.Value;
+                        StateMachineContainer.Instance.LightStateMachines[0].End = kvp.Value;
                         break;
                     case 3:
-                        StateMachineContainer.Instance.LightingZone3.End = kvp.Value;
+                        StateMachineContainer.Instance.LightStateMachines[1].End = kvp.Value;
                         break;
                     case 5:
-                        StateMachineContainer.Instance.LightingZone5.End = kvp.Value;
+                        StateMachineContainer.Instance.LightStateMachines[2].End = kvp.Value;
                         break;
                     default:
                         break;
@@ -63,22 +63,22 @@ namespace GreenhouseController
                 switch (kvp.Key)
                 {
                     case 1:
-                        StateMachineContainer.Instance.WateringZone1.Begin = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
                         break;
                     case 2:
-                        StateMachineContainer.Instance.WateringZone2.Begin = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
                         break;
                     case 3:
-                        StateMachineContainer.Instance.WateringZone3.Begin = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
                         break;
                     case 4:
-                        StateMachineContainer.Instance.WateringZone4.Begin = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
                         break;
                     case 5:
-                        StateMachineContainer.Instance.WateringZone5.Begin = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
                         break;
                     case 6:
-                        StateMachineContainer.Instance.WateringZone6.Begin = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
                         break;
                     default:
                         break;
@@ -89,22 +89,22 @@ namespace GreenhouseController
                 switch (kvp.Key)
                 {
                     case 1:
-                        StateMachineContainer.Instance.WateringZone1.End = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
                         break;
                     case 2:
-                        StateMachineContainer.Instance.WateringZone2.End = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
                         break;
                     case 3:
-                        StateMachineContainer.Instance.WateringZone3.End = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
                         break;
                     case 4:
-                        StateMachineContainer.Instance.WateringZone4.End = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
                         break;
                     case 5:
-                        StateMachineContainer.Instance.WateringZone5.End = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
                         break;
                     case 6:
-                        StateMachineContainer.Instance.WateringZone6.End = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
                         break;
                     default:
                         break;
@@ -113,15 +113,24 @@ namespace GreenhouseController
 
             Console.WriteLine($"Temperature High Limit: {StateMachineContainer.Instance.Temperature.HighLimit}");
             Console.WriteLine($"Temperature Low Limit: {StateMachineContainer.Instance.Temperature.LowLimit}");
-            Console.WriteLine($"LZone 1 Start: {StateMachineContainer.Instance.LightingZone1.Begin}\nLZone 1 End: {StateMachineContainer.Instance.LightingZone1.End}");
-            Console.WriteLine($"LZone 3 Start: {StateMachineContainer.Instance.LightingZone3.Begin}\nLZone 3 End: {StateMachineContainer.Instance.LightingZone3.End}");
-            Console.WriteLine($"LZone 5 Start: {StateMachineContainer.Instance.LightingZone3.Begin}\nLZone 5 End: {StateMachineContainer.Instance.LightingZone5.End}");
-            Console.WriteLine($"WZone 1 Start: {StateMachineContainer.Instance.WateringZone1.Begin}\nWZone 1 End: {StateMachineContainer.Instance.WateringZone1.End}");
-            Console.WriteLine($"WZone 2 Start: {StateMachineContainer.Instance.WateringZone2.Begin}\nWZone 2 End: {StateMachineContainer.Instance.WateringZone2.End}");
-            Console.WriteLine($"WZone 3 Start: {StateMachineContainer.Instance.WateringZone3.Begin}\nWZone 3 End: {StateMachineContainer.Instance.WateringZone3.End}");
-            Console.WriteLine($"WZone 4 Start: {StateMachineContainer.Instance.WateringZone4.Begin}\nWZone 4 End: {StateMachineContainer.Instance.WateringZone4.End}");
-            Console.WriteLine($"WZone 5 Start: {StateMachineContainer.Instance.WateringZone5.Begin}\nWZone 5 End: {StateMachineContainer.Instance.WateringZone5.End}");
-            Console.WriteLine($"WZone 6 Start: {StateMachineContainer.Instance.WateringZone6.Begin}\nWZone 6 End: {StateMachineContainer.Instance.WateringZone6.End}");
+
+            for(int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i++)
+            {
+                Console.WriteLine($"LZone {StateMachineContainer.Instance.LightStateMachines[i].Zone}"
+                    + $"Start: {StateMachineContainer.Instance.LightStateMachines[i].Begin}"
+                    + $"\nLZone {StateMachineContainer.Instance.LightStateMachines[i].Zone}"
+                    + $"End: {StateMachineContainer.Instance.LightStateMachines[i].End}"
+                    );
+            }
+            
+            for(int i = 0; i < StateMachineContainer.Instance.WateringStateMachines.Count; i++)
+            {
+                Console.WriteLine($"WZone {StateMachineContainer.Instance.WateringStateMachines[i].Zone}"
+                    + $"Start: {StateMachineContainer.Instance.WateringStateMachines[i].Begin}"
+                    + $"\nWZone {StateMachineContainer.Instance.WateringStateMachines[i].Zone}"
+                    + $"End: {StateMachineContainer.Instance.WateringStateMachines[i].End}");
+            }
+            
         }
     }
 }

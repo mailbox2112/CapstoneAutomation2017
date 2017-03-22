@@ -47,6 +47,19 @@ namespace GreenhouseController.StateMachines
             }
         }
 
+        public bool? ManualShde
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public List<Commands> ConvertStateToCommands(GreenhouseState state)
         {
             throw new NotImplementedException();

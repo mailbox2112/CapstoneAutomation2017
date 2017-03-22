@@ -8,6 +8,7 @@ namespace GreenhouseController.Data
 {
     public class ManualPacket
     {
+        public int Type = 3;
         public bool? ManualHeat;
         public bool? ManualCool;
         public bool? ManualLight;

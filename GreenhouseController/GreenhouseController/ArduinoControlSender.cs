@@ -198,19 +198,22 @@ namespace GreenhouseController
             byte[] buffer = new byte[1];
             List<Commands> commandsToSend = new List<Commands>();
             int zone = stateMachine.Zone;
-            switch (zone)
+            for (int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i++)
             {
-                case 1:
-                    commandsToSend = StateMachineContainer.Instance.LightingZone1.ConvertStateToCommands(state);
-                    break;
-                case 3:
-                    commandsToSend = StateMachineContainer.Instance.LightingZone3.ConvertStateToCommands(state);
-                    break;
-                case 5:
-                    commandsToSend = StateMachineContainer.Instance.LightingZone5.ConvertStateToCommands(state);
-                    break;
-                default:
-                    break;
+                switch (zone)
+                {
+                    case 1:
+                        commandsToSend = StateMachineContainer.Instance.LightStateMachines[i].ConvertStateToCommands(state);
+                        break;
+                    case 3:
+                        commandsToSend = StateMachineContainer.Instance.LightStateMachines[i].ConvertStateToCommands(state);
+                        break;
+                    case 5:
+                        commandsToSend = StateMachineContainer.Instance.LightStateMachines[i].ConvertStateToCommands(state);
+                        break;
+                    default:
+                        break;
+                }
             }
             
 
@@ -225,19 +228,22 @@ namespace GreenhouseController
                     Console.WriteLine("Send finished.");
 
                     // Change states based on the key/value pair we passed in
-                    switch (zone)
+                    for (int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i++)
                     {
-                        case 1:
-                            StateMachineContainer.Instance.LightingZone1.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
-                            break;
-                        case 3:
-                            StateMachineContainer.Instance.LightingZone3.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
-                            break;
-                        case 5:
-                            StateMachineContainer.Instance.LightingZone5.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
-                            break;
-                        default:
-                            break;
+                        switch (zone)
+                        {
+                            case 1:
+                                StateMachineContainer.Instance.LightStateMachines[i].CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
+                                break;
+                            case 3:
+                                StateMachineContainer.Instance.LightStateMachines[i].CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
+                                break;
+                            case 5:
+                                StateMachineContainer.Instance.LightStateMachines[i].CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
+                                break;
+                            default:
+                                break;
+                        }
                     }
 
                     // Wait for response
@@ -303,37 +309,43 @@ namespace GreenhouseController
                 // If we never successfully sent the command on retries, we go to the error state
                 if (_success == false)
                 {
-                    switch (zone)
+                    for (int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i++)
                     {
-                        case 1:
-                            StateMachineContainer.Instance.LightingZone1.CurrentState = GreenhouseState.ERROR;
-                            break;
-                        case 3:
-                            StateMachineContainer.Instance.LightingZone3.CurrentState = GreenhouseState.ERROR;
-                            break;
-                        case 5:
-                            StateMachineContainer.Instance.LightingZone5.CurrentState = GreenhouseState.ERROR;
-                            break;
-                        default:
-                            break;
+                        switch (zone)
+                        {
+                            case 1:
+                                StateMachineContainer.Instance.LightStateMachines[i].CurrentState = GreenhouseState.ERROR;
+                                break;
+                            case 3:
+                                StateMachineContainer.Instance.LightStateMachines[i].CurrentState = GreenhouseState.ERROR;
+                                break;
+                            case 5:
+                                StateMachineContainer.Instance.LightStateMachines[i].CurrentState = GreenhouseState.ERROR;
+                                break;
+                            default:
+                                break;
+                        }
                     }
                 }
                 // If the command WAS sent successfully, we set the state accordingly and proceed as normal.
                 else if (_success == true)
                 {
-                    switch (zone)
+                    for (int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i++)
                     {
-                        case 1:
-                            StateMachineContainer.Instance.LightingZone1.CurrentState = state;
-                            break;
-                        case 3:
-                            StateMachineContainer.Instance.LightingZone3.CurrentState = state;
-                            break;
-                        case 5:
-                            StateMachineContainer.Instance.LightingZone5.CurrentState = state;
-                            break;
-                        default:
-                            break;
+                        switch (zone)
+                        {
+                            case 1:
+                                StateMachineContainer.Instance.LightStateMachines[i].CurrentState = state;
+                                break;
+                            case 3:
+                                StateMachineContainer.Instance.LightStateMachines[i].CurrentState = state;
+                                break;
+                            case 5:
+                                StateMachineContainer.Instance.LightStateMachines[i].CurrentState = state;
+                                break;
+                            default:
+                                break;
+                        }
                     }
                     Console.WriteLine($"State change {state} executed successfully\n");
                 }
@@ -356,22 +368,22 @@ namespace GreenhouseController
             switch (zone)
             {
                 case 1:
-                    commandsToSend = StateMachineContainer.Instance.WateringZone1.ConvertStateToCommands(state);
+                    commandsToSend = StateMachineContainer.Instance.WateringStateMachines[zone - 1].ConvertStateToCommands(state);
                     break;
                 case 2:
-                    commandsToSend = StateMachineContainer.Instance.WateringZone2.ConvertStateToCommands(state);
+                    commandsToSend = StateMachineContainer.Instance.WateringStateMachines[zone - 1].ConvertStateToCommands(state);
                     break;
                 case 3:
-                    commandsToSend = StateMachineContainer.Instance.WateringZone3.ConvertStateToCommands(state);
+                    commandsToSend = StateMachineContainer.Instance.WateringStateMachines[zone - 1].ConvertStateToCommands(state);
                     break;
                 case 4:
-                    commandsToSend = StateMachineContainer.Instance.WateringZone4.ConvertStateToCommands(state);
+                    commandsToSend = StateMachineContainer.Instance.WateringStateMachines[zone - 1].ConvertStateToCommands(state);
                     break;
                 case 5:
-                    commandsToSend = StateMachineContainer.Instance.WateringZone5.ConvertStateToCommands(state);
+                    commandsToSend = StateMachineContainer.Instance.WateringStateMachines[zone - 1].ConvertStateToCommands(state);
                     break;
                 case 6:
-                    commandsToSend = StateMachineContainer.Instance.WateringZone6.ConvertStateToCommands(state);
+                    commandsToSend = StateMachineContainer.Instance.WateringStateMachines[zone - 1].ConvertStateToCommands(state);
                     break;
                 default:
                     break;
@@ -392,22 +404,22 @@ namespace GreenhouseController
                     switch (zone)
                     {
                         case 1:
-                            StateMachineContainer.Instance.WateringZone1.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
                             break;
                         case 2:
-                            StateMachineContainer.Instance.WateringZone2.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
                             break;
                         case 3:
-                            StateMachineContainer.Instance.WateringZone3.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
                             break;
                         case 4:
-                            StateMachineContainer.Instance.WateringZone4.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
                             break;
                         case 5:
-                            StateMachineContainer.Instance.WateringZone5.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
                             break;
                         case 6:
-                            StateMachineContainer.Instance.WateringZone6.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
                             break;
                         default:
                             break;
@@ -479,22 +491,22 @@ namespace GreenhouseController
                     switch (zone)
                     {
                         case 1:
-                            StateMachineContainer.Instance.WateringZone1.CurrentState = GreenhouseState.ERROR;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = GreenhouseState.ERROR;
                             break;
                         case 2:
-                            StateMachineContainer.Instance.WateringZone2.CurrentState = GreenhouseState.ERROR;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = GreenhouseState.ERROR;
                             break;
                         case 3:
-                            StateMachineContainer.Instance.WateringZone3.CurrentState = GreenhouseState.ERROR;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = GreenhouseState.ERROR;
                             break;
                         case 4:
-                            StateMachineContainer.Instance.WateringZone4.CurrentState = GreenhouseState.ERROR;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = GreenhouseState.ERROR;
                             break;
                         case 5:
-                            StateMachineContainer.Instance.WateringZone5.CurrentState = GreenhouseState.ERROR;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = GreenhouseState.ERROR;
                             break;
                         case 6:
-                            StateMachineContainer.Instance.WateringZone6.CurrentState = GreenhouseState.ERROR;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = GreenhouseState.ERROR;
                             break;
                         default:
                             break;
@@ -506,22 +518,22 @@ namespace GreenhouseController
                     switch (zone)
                     {
                         case 1:
-                            StateMachineContainer.Instance.WateringZone1.CurrentState = state;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = state;
                             break;
                         case 2:
-                            StateMachineContainer.Instance.WateringZone2.CurrentState = state;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = state;
                             break;
                         case 3:
-                            StateMachineContainer.Instance.WateringZone3.CurrentState = state;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = state;
                             break;
                         case 4:
-                            StateMachineContainer.Instance.WateringZone4.CurrentState = state;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = state;
                             break;
                         case 5:
-                            StateMachineContainer.Instance.WateringZone5.CurrentState = state;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = state;
                             break;
                         case 6:
-                            StateMachineContainer.Instance.WateringZone6.CurrentState = state;
+                            StateMachineContainer.Instance.WateringStateMachines[zone - 1].CurrentState = state;
                             break;
                         default:
                             break;

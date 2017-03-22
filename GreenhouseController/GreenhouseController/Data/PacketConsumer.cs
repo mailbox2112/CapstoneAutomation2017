@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using GreenhouseController.Data;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
@@ -99,6 +100,13 @@ namespace GreenhouseController
 
                         LimitsAnalyzer analyzeLimits = new LimitsAnalyzer();
                         analyzeLimits.ChangeGreenhouseLimits(deserializedData);
+                    }
+                    else if (data["Type"].Value<int>() == 3)
+                    {
+                        var deserializedData = JsonConvert.DeserializeObject<ManualPacket>(Encoding.ASCII.GetString(_data));
+
+                        ManualControlAnalyzer analyzePacket = new ManualControlAnalyzer();
+                        analyzePacket.SetManualValues(deserializedData);
                     }
                 }
                 catch (Exception ex)

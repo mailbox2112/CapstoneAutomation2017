@@ -9,33 +9,27 @@ namespace GreenhouseController
     public class StateMachineContainer
     {
         // TODO: create and add a shading state machine
-        public WateringStateMachine WateringZone1 { get; set; }
-        public WateringStateMachine WateringZone2 { get; set; }
-        public WateringStateMachine WateringZone3 { get; set; }
-        public WateringStateMachine WateringZone4 { get; set; }
-        public WateringStateMachine WateringZone5 { get; set; }
-        public WateringStateMachine WateringZone6 { get; set; }
-
-        public LightingStateMachine LightingZone1 { get; set; }
-        public LightingStateMachine LightingZone3 { get; set; }
-        public LightingStateMachine LightingZone5 { get; set; }
         public TemperatureStateMachine Temperature { get; set; }
+
+        public List<LightingStateMachine> LightStateMachines = new List<LightingStateMachine>(3);
+        public List<WateringStateMachine> WateringStateMachines = new List<WateringStateMachine>(6);
 
         private static volatile StateMachineContainer _instance;
         private static object _syncRoot = new object();
+        private int[] _wateringZones = new int[6] { 1, 2, 3, 4, 5, 6 };
+        private int[] _lightZones = new int[3] { 1, 3, 5 };
 
         private StateMachineContainer()
         {
-            WateringZone1 = new WateringStateMachine(1);
-            WateringZone2 = new WateringStateMachine(2);
-            WateringZone3 = new WateringStateMachine(3);
-            WateringZone4 = new WateringStateMachine(4);
-            WateringZone5 = new WateringStateMachine(5);
-            WateringZone6 = new WateringStateMachine(6);
+            foreach(int zone in _wateringZones)
+            {
+                WateringStateMachines.Add(new WateringStateMachine(zone));
+            }
 
-            LightingZone1 = new LightingStateMachine(1);
-            LightingZone3 = new LightingStateMachine(3);
-            LightingZone5 = new LightingStateMachine(5);
+            foreach(int zone in _lightZones)
+            {
+                LightStateMachines.Add(new LightingStateMachine(zone));
+            }
 
             Temperature = new TemperatureStateMachine();
         }

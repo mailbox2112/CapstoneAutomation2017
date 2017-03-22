@@ -32,6 +32,8 @@ namespace GreenhouseController
 
         public int Zone { get; set; }
 
+        public bool? ManualWater { get; set; }
+
         /// <summary>
         /// Initialize the state machine
         /// </summary>
@@ -48,34 +50,58 @@ namespace GreenhouseController
         /// <returns></returns>
         public GreenhouseState DetermineState(DateTime currentTime)
         {
-            if (CurrentState == GreenhouseState.WATERING)
+            if (ManualWater == null)
             {
-                CurrentState = GreenhouseState.PROCESSING_WATER;
-            }
-            else
-            {
-                CurrentState = GreenhouseState.PROCESSING_DATA;
-            }
+                if (CurrentState == GreenhouseState.WATERING)
+                {
+                    CurrentState = GreenhouseState.PROCESSING_WATER;
+                }
+                else
+                {
+                    CurrentState = GreenhouseState.PROCESSING_DATA;
+                }
 
-            // Check the states based on data, and if we were already watering take that into account
-            if (currentTime < End && currentTime > Begin && CurrentState != GreenhouseState.PROCESSING_WATER)
-            {
+                // Check the states based on data, and if we were already watering take that into account
+                if (currentTime < End && currentTime > Begin && CurrentState != GreenhouseState.PROCESSING_WATER)
+                {
 
                     return GreenhouseState.WATERING;
-            }
-            else if (currentTime < End && currentTime > Begin && CurrentState == GreenhouseState.PROCESSING_WATER)
-            {
+                }
+                else if (currentTime < End && currentTime > Begin && CurrentState == GreenhouseState.PROCESSING_WATER)
+                {
                     CurrentState = GreenhouseState.WATERING;
                     return GreenhouseState.NO_CHANGE;
+                }
+                else if ((currentTime > End || currentTime < Begin) && CurrentState == GreenhouseState.PROCESSING_DATA)
+                {
+                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                else
+                {
+                    return GreenhouseState.WAITING_FOR_DATA;
+                }
             }
-            else if ((currentTime > End || currentTime < Begin) && CurrentState == GreenhouseState.PROCESSING_DATA)
+            else if (ManualWater == true)
             {
-                CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                return GreenhouseState.NO_CHANGE;
+                if (CurrentState == GreenhouseState.PROCESSING_WATER)
+                {
+                    CurrentState = GreenhouseState.WATERING;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                else
+                {
+                    return GreenhouseState.WATERING;
+                }
+            }
+            else if (ManualWater == false)
+            {
+                ManualWater = null;
+                return GreenhouseState.WAITING_FOR_DATA;
             }
             else
             {
-                return GreenhouseState.WAITING_FOR_DATA;
+                return GreenhouseState.ERROR;
             }
         }
 

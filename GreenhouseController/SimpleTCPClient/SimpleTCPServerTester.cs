@@ -8,6 +8,7 @@ using System.Net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using GreenhouseController;
+using GreenhouseController.Data;
 
 namespace ConsoleApplication1
 {
@@ -69,7 +70,7 @@ namespace ConsoleApplication1
             {
                 #region Manual Controls
                 List<int> zones = new List<int>() { 1, 2, 3, 4, 5 };
-                List<DataPacket> packetsToSend = new List<DataPacket>();
+                List<ManualPacket> packetsToSend = new List<ManualPacket>();
                 Console.WriteLine("Manual mode selected. Currently, the following commands are supported:");
                 Console.WriteLine("Q to quit.");
                 Console.WriteLine("H for heating.");
@@ -152,13 +153,8 @@ namespace ConsoleApplication1
                         for (int i = 1; i < 6; i++)
                         {
                             packetsToSend.Add(
-                                new DataPacket()
+                                new ManualPacket()
                                 {
-                                    Zone = i,
-                                    Humidity = 50,
-                                    Temperature = 50,
-                                    Light = 50,
-                                    Moisture = 50,
                                     ManualCool = cool,
                                     ManualHeat = heat,
                                     ManualLight = light,
@@ -179,7 +175,7 @@ namespace ConsoleApplication1
                 }
                 #endregion
             }
-            else if (key == "T" || key == "t")
+            else if (key == "R" || key == "r")
             {
                 byte[] buffer = new byte[1024];
                 while(true)
@@ -220,38 +216,6 @@ namespace ConsoleApplication1
                         }
                     }
                 }
-            }
-            else if (key == "r" || key == "R")
-            {
-                #region Random Data Packets
-                int[] zones = new int[] { 1, 2, 3, 4, 5 };
-                byte[] bytesFrom = new byte[1024];
-
-                while ((true))
-                {
-                    try
-                    {
-                        JsonSpoof jSpoof = new JsonSpoof();
-
-                        foreach (int zone in zones)
-                        {
-                            string json = jSpoof.TLHData(zone);
-                            byte[] sendBytes = Encoding.ASCII.GetBytes(json);
-                            networkStream.Write(sendBytes, 0, sendBytes.Length);
-                            networkStream.Flush();
-                            Console.WriteLine(" >> " + $"{json}");
-
-                            Thread.Sleep(500);
-                        }
-                        Console.WriteLine();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.ToString());
-                    }
-                    Thread.Sleep(15000);
-                }
-                #endregion
             }
             else
             {

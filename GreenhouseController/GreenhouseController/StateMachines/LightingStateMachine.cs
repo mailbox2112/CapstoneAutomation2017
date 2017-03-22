@@ -40,6 +40,8 @@ namespace GreenhouseController
         public EventHandler<StateEventArgs> StateChanged;
 
         public int Zone { get; set; }
+
+        public bool? ManualLight { get; set; }
         
         /// <summary>
         /// Initialize the state machine
@@ -66,25 +68,49 @@ namespace GreenhouseController
                 CurrentState = GreenhouseState.PROCESSING_DATA;
             }
 
-            // TODO: Change this to use the DateTimes we receive in packets
-            // Process data and take into account if we were already lighting when we received the data
-            if (Begin <= currentTime && currentTime <= End  && CurrentState != GreenhouseState.PROCESSING_LIGHTING)
+            if (ManualLight == null)
             {
-                return GreenhouseState.LIGHTING;
+                // TODO: Change this to use the DateTimes we receive in packets
+                // Process data and take into account if we were already lighting when we received the data
+                if (Begin <= currentTime && currentTime <= End && CurrentState != GreenhouseState.PROCESSING_LIGHTING)
+                {
+                    return GreenhouseState.LIGHTING;
+                }
+                else if (Begin <= currentTime && currentTime <= End && CurrentState == GreenhouseState.PROCESSING_LIGHTING)
+                {
+                    CurrentState = GreenhouseState.LIGHTING;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                else if (currentTime > End && CurrentState == GreenhouseState.PROCESSING_DATA)
+                {
+                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                else
+                {
+                    return GreenhouseState.WAITING_FOR_DATA;
+                }
             }
-            else if (Begin <= currentTime && currentTime <= End && CurrentState == GreenhouseState.PROCESSING_LIGHTING)
+            else if (ManualLight == true)
             {
-                CurrentState = GreenhouseState.LIGHTING;
-                return GreenhouseState.NO_CHANGE;
+                if (CurrentState == GreenhouseState.PROCESSING_LIGHTING)
+                {
+                    CurrentState = GreenhouseState.LIGHTING;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                else
+                {
+                    return GreenhouseState.LIGHTING;
+                }
             }
-            else if (currentTime > End && CurrentState == GreenhouseState.PROCESSING_DATA)
+            else if (ManualLight == false)
             {
-                CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                return GreenhouseState.NO_CHANGE;
+                ManualLight = null;
+                return GreenhouseState.WAITING_FOR_DATA;
             }
             else
             {
-                return GreenhouseState.WAITING_FOR_DATA;
+                return GreenhouseState.ERROR;
             }
         }
 

@@ -79,12 +79,16 @@ namespace GreenhouseController
 
         public void RequestData()
         {
-            Console.WriteLine("Requesting data...");
-            string request = "DATA";
-            byte[] data = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(request));
-            _dataStream.Write(data, 0, data.Length);
-            _dataStream.Flush();
-            Console.WriteLine("Request sent!");
+            if (!_dataStream.DataAvailable)
+            {
+                Console.WriteLine("Requesting data...");
+                string request = "DATA";
+                byte[] data = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(request));
+                _dataStream.Write(data, 0, data.Length);
+                _dataStream.Flush();
+                Console.WriteLine("Request sent!");
+            }
+            
         }
 
         /// <summary>
