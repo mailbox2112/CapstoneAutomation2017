@@ -232,7 +232,7 @@ namespace ConsoleApplication1
             public JsonSpoof() { }
             public string TLHData(int zone)
             {
-                int tempMin = 0;
+                int tempMin = 30;
                 int tempMax = 120;
                 int humidMin = 0;
                 int humidMax = 100;
@@ -258,8 +258,6 @@ namespace ConsoleApplication1
                     ID = zone,
                     Probe1 = rand.Next(0,100),
                     Probe2 = rand.Next(0, 100),
-                    Probe3 = rand.Next(0, 100),
-                    Probe4 = rand.Next(0, 100)
                 };
 
                 string spoofData = JsonConvert.SerializeObject(packet);

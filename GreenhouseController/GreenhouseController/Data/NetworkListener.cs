@@ -13,17 +13,18 @@ namespace GreenhouseController
 {
     public class NetworkListener
     {
-        // TODO: implement RPC or whatever matt wants to use to communicate with me
-        public event EventHandler<DataEventArgs> ItemInQueue;
-
         private static volatile NetworkListener _instance;
         private static object _syncRoot = new object();
+        private const string IP = "192.168.1.103";
+        private const int PORT = 8888;
         
         private byte[] _buffer = new byte[1024];
         private byte[] _tempBuffer = new byte[1024];
         private NetworkStream _dataStream;
         private TcpClient _client;
         private bool _break;
+
+        public event EventHandler<DataEventArgs> ItemInQueue;
 
         /// <summary>
         /// Private constructor for singleton pattern
@@ -64,7 +65,8 @@ namespace GreenhouseController
             {
                 try
                 {
-                    _client.Connect("127.0.0.1", 8888);
+                    //_client.Connect(IP, PORT);
+                    _client.Connect("127.0.0.1", PORT);
                     Console.WriteLine("Connected to data server.");
                 }
                 catch (Exception ex)

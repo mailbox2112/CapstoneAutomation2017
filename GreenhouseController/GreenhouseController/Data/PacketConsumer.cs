@@ -65,7 +65,7 @@ namespace GreenhouseController
                     source.TryTake(out _data);
                     var data = JObject.Parse(Encoding.ASCII.GetString(_data));
                     // If it's a TLH array...
-
+                    Console.WriteLine(data.ToString());
                     
 
                     if (data["Type"].Value<int>() == 0)
@@ -107,6 +107,8 @@ namespace GreenhouseController
 
                         ManualControlAnalyzer analyzePacket = new ManualControlAnalyzer();
                         analyzePacket.SetManualValues(deserializedData);
+                        ActionAnalyzer analyzer = new ActionAnalyzer();
+                        analyzer.ActivateManualControl();
                     }
                 }
                 catch (Exception ex)

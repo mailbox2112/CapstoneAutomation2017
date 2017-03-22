@@ -83,6 +83,40 @@ namespace GreenhouseController
         }
 
         /// <summary>
+        /// Activate manual control of devices in the greenhouse
+        /// </summary>
+        public void ActivateManualControl()
+        {
+            if (StateMachineContainer.Instance.Temperature.ManualCool != null)
+            {
+                GreenhouseState goalTempState = StateMachineContainer.Instance.Temperature.DetermineState();
+                ArduinoControlSender.Instance.SendCommand(new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, goalTempState));
+            }
+            if (StateMachineContainer.Instance.Shading.ManualShde != null)
+            {
+                // TODO: Implement shading state machine!
+            }
+            for(int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i++)
+            {
+                if (StateMachineContainer.Instance.LightStateMachines[i].ManualLight != null)
+                {
+                    GreenhouseState goalLightState = StateMachineContainer.Instance.LightStateMachines[i].DetermineState(DateTime.Now);
+                    ArduinoControlSender.Instance.SendCommand(
+                        new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(StateMachineContainer.Instance.LightStateMachines[i], goalLightState));
+                }
+            }
+            for(int i = 0; i < StateMachineContainer.Instance.WateringStateMachines.Count; i++)
+            {
+                if (StateMachineContainer.Instance.WateringStateMachines[i].ManualWater != null)
+                {
+                    GreenhouseState goalWaterState = StateMachineContainer.Instance.WateringStateMachines[i].DetermineState(DateTime.Now);
+                    ArduinoControlSender.Instance.SendCommand(
+                        new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(StateMachineContainer.Instance.WateringStateMachines[i], goalWaterState));
+                }
+            }
+        }
+
+        /// <summary>
         /// Helper method for averaging greenhouse data
         /// </summary>
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
@@ -97,9 +131,10 @@ namespace GreenhouseController
             _avgLight /= 5;
         }
 
-        private void GetCurrentTime(DataPacket[] data)
+        private DateTime GetCurrentTime()
         {
             // Get the approximate time from the data packet array
+            return DateTime.Now;
         }
     }
 }

@@ -47,7 +47,7 @@ namespace GreenhouseController
         /// </summary>
         /// <param name="value">Average value of temperature data from each zone</param>
         /// <returns></returns>
-        public GreenhouseState DetermineState(double value)
+        public GreenhouseState DetermineState(double value = 0)
         {
             // Determine which processing state we're in
             if (CurrentState == GreenhouseState.HEATING)
