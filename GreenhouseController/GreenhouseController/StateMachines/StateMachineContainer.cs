@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GreenhouseController.StateMachines;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,7 @@ namespace GreenhouseController
     {
         // TODO: create and add a shading state machine
         public TemperatureStateMachine Temperature { get; set; }
+        public ShadingStateMachine Shading { get; set; }
 
         public List<LightingStateMachine> LightStateMachines = new List<LightingStateMachine>(3);
         public List<WateringStateMachine> WateringStateMachines = new List<WateringStateMachine>(6);
@@ -32,6 +34,7 @@ namespace GreenhouseController
             }
 
             Temperature = new TemperatureStateMachine();
+            Shading = new ShadingStateMachine();
         }
 
         public static StateMachineContainer Instance

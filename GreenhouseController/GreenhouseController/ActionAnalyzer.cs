@@ -11,12 +11,17 @@ namespace GreenhouseController
     {
         //TODO: Fix manual control
         private double _avgTemp;
+        private double _avgLight;
         private DateTime _currentTime;
-        private KeyValuePair<TemperatureStateMachine, GreenhouseState> _tempState;
+        private KeyValuePair<IStateMachine, GreenhouseState> _tempState;
+        private KeyValuePair<IStateMachine, GreenhouseState> _shadeState;
+        private KeyValuePair<ITimeBasedStateMachine, GreenhouseState> _lightState;
+        private KeyValuePair<ITimeBasedStateMachine, GreenhouseState> _waterState;
 
         public ActionAnalyzer()
         {
             _avgTemp = new double();
+            _avgLight = new double();
         }
 
         /// <summary>
@@ -42,89 +47,38 @@ namespace GreenhouseController
             GreenhouseState goalTempState = StateMachineContainer.Instance.Temperature.DetermineState(_avgTemp);
             if (goalTempState == GreenhouseState.HEATING || goalTempState == GreenhouseState.COOLING || goalTempState == GreenhouseState.WAITING_FOR_DATA)
             {
-                _tempState = new KeyValuePair<TemperatureStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, goalTempState);
+                _tempState = new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, goalTempState);
+                // Send the KVP to the control sender
+                ArduinoControlSender.Instance.SendCommand(_tempState);
             }
 
-            // Send the KVP to the control sender
-            ArduinoControlSender.Instance.SendCommand(_tempState);
+            //GreenhouseState goalShadeState = StateMachineContainer.Instance.Shading.DetermineState(_avgLight);
+            //if (goalShadeState == GreenhouseState.SHADING || goalShadeState == GreenhouseState.WAITING_FOR_DATA)
+            //{
+            //    _shadeState = new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Shading, goalShadeState);
+            //}
+            
             // If we don't have a manual light/shade command...
-            // Zone 1
             for(int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i ++)
             {
                 GreenhouseState goalLightState = StateMachineContainer.Instance.LightStateMachines[i].DetermineState(_currentTime);
                 if (goalLightState == GreenhouseState.LIGHTING || goalLightState == GreenhouseState.SHADING || goalLightState == GreenhouseState.WAITING_FOR_DATA)
                 {
-                    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.LightStateMachines[i], goalLightState);
+                    _lightState = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(StateMachineContainer.Instance.LightStateMachines[i], goalLightState);
+                    ArduinoControlSender.Instance.SendCommand(_lightState);
                 }
             }
 
-            //GreenhouseState goalLightState1 = StateMachineContainer.Instance.LightingZone1.DetermineState(_currentTime);
-            //if (goalLightState1 == GreenhouseState.LIGHTING || goalLightState1 == GreenhouseState.SHADING || goalLightState1 == GreenhouseState.WAITING_FOR_DATA)
-            //{
-            //    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.LightingZone1, goalLightState1);
-            //}
-                
-
-            //// Zone 3
-            //GreenhouseState goalLightState3 = StateMachineContainer.Instance.LightingZone3.DetermineState(_currentTime);
-            //if (goalLightState3 == GreenhouseState.LIGHTING || goalLightState3 == GreenhouseState.SHADING || goalLightState3 == GreenhouseState.WAITING_FOR_DATA)
-            //{
-            //    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.LightingZone3, goalLightState3);
-            //}
-                
-
-            //// Zone 5
-            //GreenhouseState goalLightState5 = StateMachineContainer.Instance.LightingZone5.DetermineState(_currentTime);
-            //if (goalLightState5 == GreenhouseState.LIGHTING || goalLightState5 == GreenhouseState.SHADING || goalLightState5 == GreenhouseState.WAITING_FOR_DATA)
-            //{
-            //    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.LightingZone5, goalLightState5);
-            //}
-
             // If we don't have a manual watering command
-            // Zone 1
             for(int i = 0; i < StateMachineContainer.Instance.WateringStateMachines.Count; i ++)
             {
                 GreenhouseState goalWaterState = StateMachineContainer.Instance.WateringStateMachines[i].DetermineState(_currentTime);
                 if (goalWaterState == GreenhouseState.WATERING || goalWaterState == GreenhouseState.WAITING_FOR_DATA)
                 {
-                    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.WateringStateMachines[i], goalWaterState);
+                    _waterState = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(StateMachineContainer.Instance.WateringStateMachines[i], goalWaterState);
+                    ArduinoControlSender.Instance.SendCommand(_waterState);
                 }
             }
-            //GreenhouseState goalWaterState1 = StateMachineContainer.Instance.WateringZone1.DetermineState(_currentTime);
-            //if (goalWaterState1 == GreenhouseState.WATERING || goalWaterState1 == GreenhouseState.WAITING_FOR_DATA)
-            //{
-            //    ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.WateringZone1, goalWaterState1);
-//        }
-//        // Zone 2
-//        GreenhouseState goalWaterState2 = StateMachineContainer.Instance.WateringZone2.DetermineState(_currentTime);
-//            if (goalWaterState2 == GreenhouseState.WATERING || goalWaterState2 == GreenhouseState.WAITING_FOR_DATA)
-//            {
-//                ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.WateringZone2, goalWaterState2);
-//            }
-//            // Zone 3
-//            GreenhouseState goalWaterState3 = StateMachineContainer.Instance.WateringZone3.DetermineState(_currentTime);
-//            if (goalWaterState3 == GreenhouseState.WATERING || goalWaterState3 == GreenhouseState.WAITING_FOR_DATA)
-//            {
-//                ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.WateringZone3, goalWaterState3);
-//            }
-//            // Zone 4
-//            GreenhouseState goalWaterState4 = StateMachineContainer.Instance.WateringZone4.DetermineState(_currentTime);
-//            if (goalWaterState4 == GreenhouseState.WATERING || goalWaterState4 == GreenhouseState.WAITING_FOR_DATA)
-//            {
-//                ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.WateringZone4, goalWaterState4);
-//            }
-//            // Zone 5
-//            GreenhouseState goalWaterState5 = StateMachineContainer.Instance.WateringZone5.DetermineState(_currentTime);
-//            if (goalWaterState5 == GreenhouseState.WATERING || goalWaterState5 == GreenhouseState.WAITING_FOR_DATA)
-//            {
-//                ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.WateringZone5, goalWaterState5);
-//            }
-//            // Zone 6
-//            GreenhouseState goalWaterState6 = StateMachineContainer.Instance.WateringZone6.DetermineState(_currentTime);
-//            if (goalWaterState6 == GreenhouseState.WATERING || goalWaterState6 == GreenhouseState.WAITING_FOR_DATA)
-//            {
-//                ArduinoControlSender.Instance.SendCommand(StateMachineContainer.Instance.WateringZone6, goalWaterState6);
-//            }
             #endregion
         }
 
@@ -137,8 +91,10 @@ namespace GreenhouseController
             foreach (TLHPacket pack in data)
             {
                 _avgTemp += pack.Temperature;
+                _avgLight += pack.Light;
             }
             _avgTemp /= 5;
+            _avgLight /= 5;
         }
 
         private void GetCurrentTime(DataPacket[] data)
