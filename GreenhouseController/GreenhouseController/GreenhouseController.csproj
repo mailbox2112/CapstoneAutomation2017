@@ -56,7 +56,7 @@
     <Compile Include="Limits\LimitPacket.cs" />
     <Compile Include="Limits\LimitsAnalyzer.cs" />
     <Compile Include="Data\MoisturePacket.cs" />
-    <Compile Include="StateEventArgs.cs" />
+    <Compile Include="StateMachines\StateEventArgs.cs" />
     <Compile Include="Data\TLHPacket.cs" />
     <Compile Include="StateMachines\ITimeBasedStateMachine.cs" />
     <Compile Include="StateMachines\ShadingStateMachine.cs" />
@@ -64,10 +64,10 @@
     <Compile Include="ArduinoControlSender.cs" />
     <Compile Include="Data\DataEventArgs.cs" />
     <Compile Include="Data\DataPackets.cs" />
-    <Compile Include="ActionAnalyzer.cs" />
+    <Compile Include="Data\DataAnalyzer.cs" />
     <Compile Include="Data\NetworkListener.cs" />
     <Compile Include="GreenhouseController.cs" />
-    <Compile Include="GreenhouseState.cs" />
+    <Compile Include="StateMachines\GreenhouseState.cs" />
     <Compile Include="Data\PacketConsumer.cs" />
     <Compile Include="StateMachines\LightingStateMachine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

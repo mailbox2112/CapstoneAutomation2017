@@ -63,17 +63,17 @@ namespace GreenhouseController.StateMachines
         /// <returns></returns>
         public GreenhouseState DetermineState(double value = 0)
         {
+            if (CurrentState == GreenhouseState.SHADING)
+            {
+                CurrentState = GreenhouseState.PROCESSING_SHADING;
+            }
+            else
+            {
+                CurrentState = GreenhouseState.PROCESSING_DATA;
+            }
+
             if (ManualShade == null)
             {
-                if (CurrentState == GreenhouseState.SHADING)
-                {
-                    CurrentState = GreenhouseState.PROCESSING_SHADING;
-                }
-                else
-                {
-                    CurrentState = GreenhouseState.PROCESSING_DATA;
-                }
-
                 if (value >= HighLimit && CurrentState != GreenhouseState.PROCESSING_SHADING)
                 {
                     return GreenhouseState.SHADING;
@@ -108,7 +108,15 @@ namespace GreenhouseController.StateMachines
             else if (ManualShade == false)
             {
                 ManualShade = null;
-                return GreenhouseState.WAITING_FOR_DATA;
+                if (CurrentState == GreenhouseState.PROCESSING_DATA)
+                {
+                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                else
+                {
+                    return GreenhouseState.WAITING_FOR_DATA;
+                }
             }
             else
             {

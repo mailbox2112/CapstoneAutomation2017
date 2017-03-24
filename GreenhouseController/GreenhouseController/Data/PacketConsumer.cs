@@ -18,6 +18,8 @@ namespace GreenhouseController
         private byte[] _data;
         private List<TLHPacket> _tlhInformation;
         private List<MoisturePacket> _moistureInformation;
+        private ManualPacket _manual;
+        private LimitPacket _limits;
         private DateTime _currentTime;
 
         /// <summary>
@@ -66,7 +68,7 @@ namespace GreenhouseController
                     source.TryTake(out _data);
                     var data = JObject.Parse(Encoding.ASCII.GetString(_data));
 
-                    //Console.WriteLine(data.ToString());
+                    Console.WriteLine(data.ToString());
                     
 
                     if (data["Type"].Value<int>() == 0)
@@ -99,17 +101,13 @@ namespace GreenhouseController
                     {
                         var deserializedData = JsonConvert.DeserializeObject<LimitPacket>(Encoding.ASCII.GetString(_data));
 
-                        LimitsAnalyzer analyzeLimits = new LimitsAnalyzer();
-                        analyzeLimits.ChangeGreenhouseLimits(deserializedData);
+                        _limits = deserializedData;
                     }
                     else if (data["Type"].Value<int>() == 3)
                     {
                         var deserializedData = JsonConvert.DeserializeObject<ManualPacket>(Encoding.ASCII.GetString(_data));
 
-                        ManualControlAnalyzer analyzePacket = new ManualControlAnalyzer();
-                        analyzePacket.SetManualValues(deserializedData);
-                        ActionAnalyzer analyzer = new ActionAnalyzer();
-                        analyzer.ActivateManualControl();
+                        _manual = deserializedData;
                     }
                 }
                 catch (Exception ex)
@@ -117,32 +115,25 @@ namespace GreenhouseController
                     Console.WriteLine(ex);
                 }
 
-                if (_tlhInformation.Count == 5 && _moistureInformation.Count == 6)
+                if (_tlhInformation.Count == 5 && _moistureInformation.Count == 6 && _limits != null && _manual != null)
                 {
-                    SendDataToAnalyzer(_tlhInformation, _moistureInformation);
+                    TLHPacket[] tlhToSend = new TLHPacket[_tlhInformation.Count];
+                    _tlhInformation.CopyTo(tlhToSend);
+                    _tlhInformation.Clear();
+
+                    MoisturePacket[] moistureToSend = new MoisturePacket[_moistureInformation.Count];
+                    _moistureInformation.CopyTo(moistureToSend);
+                    _moistureInformation.Clear();
+
+                    ManualPacket tempManual = _manual;
+                    _manual = null;
+                    LimitPacket tempLimits = _limits;
+                    _limits = null;
+
+                    DataAnalyzer data = new DataAnalyzer();
+                    Task.Run(() => data.ExecuteActions(tlhToSend, moistureToSend, tempManual, tempLimits));
                 }
             }
-        }
-
-        /// <summary>
-        /// Sends the data off to be analyzed
-        /// </summary>
-        /// <param name="data">Packet object representing the data contained in JSON sent over TCP</param>
-        /// <returns></returns>
-        public void SendDataToAnalyzer(List<TLHPacket> tlhData, List<MoisturePacket> moistureData)
-        {
-            // Copy info to an array so we don't modify list as we use it in another thread
-            TLHPacket[] tempZoneInfo = new TLHPacket[tlhData.Count];
-            tlhData.CopyTo(tempZoneInfo);
-            tlhData.Clear();
-
-            MoisturePacket[] moistZoneInfo = new MoisturePacket[moistureData.Count];
-            moistureData.CopyTo(moistZoneInfo);
-            moistureData.Clear();
-
-            // Send array
-            ActionAnalyzer analyze = new ActionAnalyzer();
-            analyze.AnalyzeData(tempZoneInfo, moistZoneInfo, _currentTime);
         }
     }
 }

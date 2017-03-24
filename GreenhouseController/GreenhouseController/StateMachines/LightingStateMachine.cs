@@ -100,7 +100,15 @@ namespace GreenhouseController
             else if (ManualLight == false)
             {
                 ManualLight = null;
-                return GreenhouseState.WAITING_FOR_DATA;
+                if (CurrentState == GreenhouseState.PROCESSING_DATA)
+                {
+                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                else
+                {
+                    return GreenhouseState.WAITING_FOR_DATA;
+                }
             }
             else
             {

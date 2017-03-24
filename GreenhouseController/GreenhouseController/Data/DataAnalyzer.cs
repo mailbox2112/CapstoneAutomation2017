@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    public class ActionAnalyzer
+    public class DataAnalyzer
     {
         //TODO: Fix manual control
         private double _avgTemp;
@@ -18,19 +18,31 @@ namespace GreenhouseController
         private KeyValuePair<ITimeBasedStateMachine, GreenhouseState> _lightState;
         private KeyValuePair<ITimeBasedStateMachine, GreenhouseState> _waterState;
 
-        public ActionAnalyzer()
+        public DataAnalyzer()
         {
             _avgTemp = new double();
             _avgLight = new double();
+        }
+
+        public void ExecuteActions(TLHPacket[] temperature, MoisturePacket[] moisture, ManualPacket manual, LimitPacket limits)
+        {
+            // Process limit changes
+            LimitsAnalyzer limitAnalyzer = new LimitsAnalyzer();
+            limitAnalyzer.ChangeGreenhouseLimits(limits);
+            // Process manual controls
+            ManualControlAnalyzer manualAnalyzer = new ManualControlAnalyzer();
+            manualAnalyzer.SetManualValues(manual);
+            // Process sensor data
+            AnalyzeData(temperature, moisture);
         }
 
         /// <summary>
         /// Processes the data received from the packets
         /// </summary>
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
-        public void AnalyzeData(TLHPacket[] tlhData, MoisturePacket[] moistData, DateTime currentTime)
+        private void AnalyzeData(TLHPacket[] tlhData, MoisturePacket[] moistData)
         {
-            _currentTime = currentTime;
+            _currentTime = GetCurrentTime(tlhData);
             ArduinoControlSender.Instance.TryConnect();
 
             List<GreenhouseState> statesToSend = new List<GreenhouseState>();
@@ -81,53 +93,6 @@ namespace GreenhouseController
         }
 
         /// <summary>
-        /// Activate manual control of devices in the greenhouse
-        /// </summary>
-        public void ActivateManualControl()
-        {
-            // If we have manual commands from temperature state machines
-            if (StateMachineContainer.Instance.Temperature.ManualCool != null)
-            {
-                GreenhouseState goalTempState = StateMachineContainer.Instance.Temperature.DetermineState();
-                ArduinoControlSender.Instance.SendCommand(new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, goalTempState));
-            }
-            else if (StateMachineContainer.Instance.Temperature.ManualHeat != null)
-            {
-                GreenhouseState goalTempState = StateMachineContainer.Instance.Temperature.DetermineState();
-                ArduinoControlSender.Instance.SendCommand(new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, goalTempState));
-            }
-
-            // If we have a manual command for the shading state machine
-            if (StateMachineContainer.Instance.Shading.ManualShade != null)
-            {
-                GreenhouseState goalShadeState = StateMachineContainer.Instance.Shading.DetermineState();
-                ArduinoControlSender.Instance.SendCommand(new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Shading, goalShadeState));
-            }
-
-            // If we have manual commands for the lighting state machines
-            for (int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i++)
-            {
-                if (StateMachineContainer.Instance.LightStateMachines[i].ManualLight != null)
-                {
-                    GreenhouseState goalLightState = StateMachineContainer.Instance.LightStateMachines[i].DetermineState(DateTime.Now);
-                    ArduinoControlSender.Instance.SendCommand(
-                        new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(StateMachineContainer.Instance.LightStateMachines[i], goalLightState));
-                }
-            }
-            
-            // If we have manual commands for the watering state machines
-            for(int i = 0; i < StateMachineContainer.Instance.WateringStateMachines.Count; i++)
-            {
-                if (StateMachineContainer.Instance.WateringStateMachines[i].ManualWater != null)
-                {
-                    GreenhouseState goalWaterState = StateMachineContainer.Instance.WateringStateMachines[i].DetermineState(DateTime.Now);
-                    ArduinoControlSender.Instance.SendCommand(
-                        new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(StateMachineContainer.Instance.WateringStateMachines[i], goalWaterState));
-                }
-            }
-        }
-
-        /// <summary>
         /// Helper method for averaging greenhouse data
         /// </summary>
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
@@ -142,10 +107,17 @@ namespace GreenhouseController
             _avgLight /= 5;
         }
 
-        private DateTime GetCurrentTime()
+        private DateTime GetCurrentTime(TLHPacket[] data)
         {
-            // Get the approximate time from the data packet array
-            return DateTime.Now;
+            DateTime now = new DateTime();
+            foreach(TLHPacket packet in data)
+            {
+                if (packet.TimeOfSend > now)
+                {
+                    now = packet.TimeOfSend;
+                }
+            }
+            return now;
         }
     }
 }

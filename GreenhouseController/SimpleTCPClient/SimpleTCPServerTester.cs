@@ -58,10 +58,8 @@ namespace ConsoleApplication1
                 LightEnds = lightEnd,
                 ShadeLim = 50000
             }));
-            networkStream.Write(limitsToSend, 0, limitsToSend.Length);
-            networkStream.Flush();
 
-            Console.WriteLine(Encoding.ASCII.GetString(limitsToSend));
+            //Console.WriteLine(Encoding.ASCII.GetString(limitsToSend));
 
             // TODO: add ability to change greenhouse limits
             Console.WriteLine("Would you like to use manual or random mode? Press M for manual, R for random.");
@@ -181,25 +179,63 @@ namespace ConsoleApplication1
                     }
                     if (invalidCommand == false)
                     {
-                        ManualPacket packet = new ManualPacket()
+                        byte[] buffer = new byte[1024];
+                        networkStream.Read(buffer, 0, buffer.Length);
+                        string received = JsonConvert.DeserializeObject<string>(Encoding.ASCII.GetString(buffer));
+                        if (received == "DATA")
                         {
-                            ManualCool = cool,
-                            ManualHeat = heat,
-                            ManualLight = light,
-                            ManualWater = water
-                        };
-                        string pack = JsonConvert.SerializeObject(packet);
-                        byte[] sendBytes = Encoding.ASCII.GetBytes(pack);
-                        networkStream.Write(sendBytes, 0, sendBytes.Length);
-                        networkStream.Flush();
-                        Console.WriteLine(" >> " + $"{pack}");
-                        Thread.Sleep(500);
+                            Console.WriteLine("Request for data received!");
+                            try
+                            {
+                                JsonSpoof jSpoof = new JsonSpoof();
+                                foreach (int zone in tlhZones)
+                                {
+                                    string json = jSpoof.TLHData(zone);
+                                    byte[] sendBytes = Encoding.ASCII.GetBytes(json);
+                                    networkStream.Write(sendBytes, 0, sendBytes.Length);
+                                    networkStream.Flush();
+                                    Console.WriteLine(" >> " + $"{json}");
+
+                                    Thread.Sleep(500);
+                                }
+                                foreach (int zone in mZones)
+                                {
+                                    string mJson = jSpoof.MoistureData(zone);
+                                    byte[] mSendBytes = Encoding.ASCII.GetBytes(mJson);
+                                    networkStream.Write(mSendBytes, 0, mSendBytes.Length);
+                                    networkStream.Flush();
+                                    Console.WriteLine(" >> " + $"{mJson}");
+                                    Thread.Sleep(500);
+                                }
+                                networkStream.Write(limitsToSend, 0, limitsToSend.Length);
+                                Thread.Sleep(500);
+
+                                ManualPacket packet = new ManualPacket()
+                                {
+                                    ManualCool = cool,
+                                    ManualHeat = heat,
+                                    ManualLight = light,
+                                    ManualWater = water
+                                };
+                                string manual = JsonConvert.SerializeObject(packet);
+                                byte[] manualBytes = Encoding.ASCII.GetBytes(manual);
+                                networkStream.Write(manualBytes, 0, manualBytes.Length);
+                                networkStream.Flush();
+
+                                Console.WriteLine("Data sent!");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                            }
+                        }
                     }
                 }
                 #endregion
             }
             else if (key == "R" || key == "r")
             {
+                #region Random Data
                 byte[] buffer = new byte[1024];
                 while(true)
                 {
@@ -230,6 +266,14 @@ namespace ConsoleApplication1
                                 Console.WriteLine(" >> " + $"{mJson}");
                                 Thread.Sleep(500);
                             }
+                            networkStream.Write(limitsToSend, 0, limitsToSend.Length);
+                            Thread.Sleep(500);
+                            
+                            ManualPacket manual = new ManualPacket() { ManualWater = true, ManualCool = false, ManualHeat = false, ManualLight = false, ManualShade = false };
+                            string manualJson = JsonConvert.SerializeObject(manual);
+                            byte[] manualBytes = Encoding.ASCII.GetBytes(manualJson);
+                            networkStream.Write(manualBytes, 0, manualBytes.Length);
+                            networkStream.Flush();
 
                             Console.WriteLine("Data sent!");
                         }
@@ -239,10 +283,11 @@ namespace ConsoleApplication1
                         }
                     }
                 }
+                #endregion
             }
             else
             {
-                Console.WriteLine("Invalid character, restarting!");
+                Console.WriteLine("Invalid character, exiting!");
             }
             client.Close();
             serverListener.Stop();
@@ -255,8 +300,8 @@ namespace ConsoleApplication1
             public JsonSpoof() { }
             public string TLHData(int zone)
             {
-                int tempMin = 30;
-                int tempMax = 120;
+                int tempMin = 80;
+                int tempMax = 90;
                 int humidMin = 0;
                 int humidMax = 100;
                 Random rand = new Random();

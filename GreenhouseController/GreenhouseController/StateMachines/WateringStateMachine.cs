@@ -50,17 +50,17 @@ namespace GreenhouseController
         /// <returns></returns>
         public GreenhouseState DetermineState(DateTime currentTime)
         {
+            if (CurrentState == GreenhouseState.WATERING)
+            {
+                CurrentState = GreenhouseState.PROCESSING_WATER;
+            }
+            else
+            {
+                CurrentState = GreenhouseState.PROCESSING_DATA;
+            }
+
             if (ManualWater == null)
             {
-                if (CurrentState == GreenhouseState.WATERING)
-                {
-                    CurrentState = GreenhouseState.PROCESSING_WATER;
-                }
-                else
-                {
-                    CurrentState = GreenhouseState.PROCESSING_DATA;
-                }
-
                 // Check the states based on data, and if we were already watering take that into account
                 if (currentTime < End && currentTime > Begin && CurrentState != GreenhouseState.PROCESSING_WATER)
                 {
@@ -97,7 +97,15 @@ namespace GreenhouseController
             else if (ManualWater == false)
             {
                 ManualWater = null;
-                return GreenhouseState.WAITING_FOR_DATA;
+                if (CurrentState == GreenhouseState.PROCESSING_DATA)
+                {
+                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                else
+                {
+                    return GreenhouseState.WAITING_FOR_DATA;
+                }
             }
             else
             {

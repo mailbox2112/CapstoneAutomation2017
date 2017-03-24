@@ -9,6 +9,11 @@ namespace GreenhouseController
     public class TemperatureStateMachine : IStateMachine
     {
         private const int _emergencyTemp = 120;
+        // True = on, false = off
+        // Keeps track of what commands we need to send on and off
+        private bool _fanState = false;
+        private bool _heatState = false;
+        private bool _ventState = false;
 
         private GreenhouseState _currentState;
         public GreenhouseState CurrentState
@@ -64,7 +69,7 @@ namespace GreenhouseController
             }
            
             // If the state machine isn't in manual control mode
-            if (ManualHeat == null && ManualCool == null)
+            if (ManualHeat != true && ManualCool != true)
             {
                 // Determine what state to return/change to
                 // If we're coming from an action state and we meet action criteria,
@@ -173,21 +178,57 @@ namespace GreenhouseController
             List<Commands> commandsToSend = new List<Commands>();
             if (state == GreenhouseState.COOLING)
             {
-                commandsToSend.Add(Commands.HEAT_OFF);
-                commandsToSend.Add(Commands.FANS_ON);
-                commandsToSend.Add(Commands.VENT_OPEN);
+                if (_heatState == true)
+                {
+                    commandsToSend.Add(Commands.HEAT_OFF);
+                    _heatState = false;
+                }
+                if (_fanState == false)
+                {
+                    commandsToSend.Add(Commands.FANS_ON);
+                    _fanState = true;
+                }
+                if (_ventState == false)
+                {
+                    commandsToSend.Add(Commands.VENT_OPEN);
+                    _ventState = true;
+                }
             }
             else if (state == GreenhouseState.HEATING)
             {
-                commandsToSend.Add(Commands.FANS_OFF);
-                commandsToSend.Add(Commands.HEAT_ON);
-                commandsToSend.Add(Commands.VENT_CLOSE);
+                if (_fanState == true)
+                {
+                    commandsToSend.Add(Commands.FANS_OFF);
+                    _fanState = false;
+                }
+                if (_heatState == false)
+                {
+                    commandsToSend.Add(Commands.HEAT_ON);
+                    _heatState = true;
+                }
+                if (_ventState == true)
+                {
+                    commandsToSend.Add(Commands.VENT_CLOSE);
+                    _ventState = false;
+                }
             }
             else if (state == GreenhouseState.WAITING_FOR_DATA)
             {
-                commandsToSend.Add(Commands.HEAT_OFF);
-                commandsToSend.Add(Commands.FANS_OFF);
-                commandsToSend.Add(Commands.VENT_CLOSE);
+                if (_heatState == true)
+                {
+                    commandsToSend.Add(Commands.HEAT_OFF);
+                    _heatState = false;
+                }
+                if (_fanState == true)
+                {
+                    commandsToSend.Add(Commands.FANS_OFF);
+                    _fanState = false;
+                }
+                if (_ventState == true)
+                {
+                    commandsToSend.Add(Commands.VENT_CLOSE);
+                    _ventState = false;
+                }
             }
 
             return commandsToSend;
