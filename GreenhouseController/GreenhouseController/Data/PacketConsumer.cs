@@ -18,7 +18,7 @@ namespace GreenhouseController
         private byte[] _data;
         private List<TLHPacket> _tlhInformation;
         private List<MoisturePacket> _moistureInformation;
-        private DateTime _curTime;
+        private DateTime _currentTime;
 
         /// <summary>
         /// Private constructor for singleton pattern
@@ -58,19 +58,20 @@ namespace GreenhouseController
         /// <param name="source">Blocking collection used to hold data for producer consumer pattern</param>
         public void ReceiveGreenhouseData(BlockingCollection<byte[]> source)
         {
+            // TODO: Fix this up so that it doesn't mess with things already happening within state machines, etc.
             if (source.Count != 0)
             {
                 try
                 {
                     source.TryTake(out _data);
                     var data = JObject.Parse(Encoding.ASCII.GetString(_data));
-                    // If it's a TLH array...
-                    Console.WriteLine(data.ToString());
+
+                    //Console.WriteLine(data.ToString());
                     
 
                     if (data["Type"].Value<int>() == 0)
                     {
-                        _curTime = data["TimeOfSend"].Value<DateTime>();
+                        _currentTime = data["TimeOfSend"].Value<DateTime>();
                         var deserializedData = JsonConvert.DeserializeObject<TLHPacket>(Encoding.ASCII.GetString(_data));
 
                         // Check for repeat zones, and if we have any, throw out the old zone data
@@ -138,11 +139,10 @@ namespace GreenhouseController
             MoisturePacket[] moistZoneInfo = new MoisturePacket[moistureData.Count];
             moistureData.CopyTo(moistZoneInfo);
             moistureData.Clear();
-            
 
             // Send array
             ActionAnalyzer analyze = new ActionAnalyzer();
-            Task.Run(() => analyze.AnalyzeData(tempZoneInfo, moistZoneInfo, _curTime));
+            analyze.AnalyzeData(tempZoneInfo, moistZoneInfo, _currentTime);
         }
     }
 }

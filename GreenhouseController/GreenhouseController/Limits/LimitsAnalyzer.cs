@@ -24,6 +24,10 @@ namespace GreenhouseController
             {
                 StateMachineContainer.Instance.Temperature.LowLimit = limits.TempLo;
             }
+            if (StateMachineContainer.Instance.Shading.HighLimit != limits.ShadeLim)
+            {
+                StateMachineContainer.Instance.Shading.HighLimit = limits.ShadeLim;
+            }
             foreach(KeyValuePair<int, DateTime> kvp in limits.LightStarts)
             {
                 switch(kvp.Key)
@@ -113,6 +117,7 @@ namespace GreenhouseController
 
             Console.WriteLine($"Temperature High Limit: {StateMachineContainer.Instance.Temperature.HighLimit}");
             Console.WriteLine($"Temperature Low Limit: {StateMachineContainer.Instance.Temperature.LowLimit}");
+            Console.WriteLine($"Shading Limit: {StateMachineContainer.Instance.Shading.HighLimit}");
 
             for(int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i++)
             {

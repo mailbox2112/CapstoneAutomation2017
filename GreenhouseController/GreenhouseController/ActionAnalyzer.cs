@@ -32,8 +32,6 @@ namespace GreenhouseController
         {
             _currentTime = currentTime;
             ArduinoControlSender.Instance.TryConnect();
-            // If any of the packets have a value for manual control in them, we change the manual variables
-            // otherwise they stay null
 
             List<GreenhouseState> statesToSend = new List<GreenhouseState>();
 
@@ -41,9 +39,7 @@ namespace GreenhouseController
             // Get the averages of greenhouse readings
             GetTemperatureAverage(tlhData);
 
-            // TODO: Check data for shading state machine
-            // Get state machine states as long as we don't have a manual command change to send
-            // Determine what state we need to go to and then create a KVP for it
+            // Determine what state we need to go to and then create a KVP for it and send it
             GreenhouseState goalTempState = StateMachineContainer.Instance.Temperature.DetermineState(_avgTemp);
             if (goalTempState == GreenhouseState.HEATING || goalTempState == GreenhouseState.COOLING || goalTempState == GreenhouseState.WAITING_FOR_DATA)
             {
@@ -52,14 +48,16 @@ namespace GreenhouseController
                 ArduinoControlSender.Instance.SendCommand(_tempState);
             }
 
-            //GreenhouseState goalShadeState = StateMachineContainer.Instance.Shading.DetermineState(_avgLight);
-            //if (goalShadeState == GreenhouseState.SHADING || goalShadeState == GreenhouseState.WAITING_FOR_DATA)
-            //{
-            //    _shadeState = new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Shading, goalShadeState);
-            //}
-            
-            // If we don't have a manual light/shade command...
-            for(int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i ++)
+            // Get state for shading state machine, send commands
+            GreenhouseState goalShadeState = StateMachineContainer.Instance.Shading.DetermineState(_avgLight);
+            if (goalShadeState == GreenhouseState.SHADING || goalShadeState == GreenhouseState.WAITING_FOR_DATA)
+            {
+                _shadeState = new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Shading, goalShadeState);
+                ArduinoControlSender.Instance.SendCommand(_shadeState);
+            }
+
+            // Get state for lighting state machines, send commands
+            for (int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i ++)
             {
                 GreenhouseState goalLightState = StateMachineContainer.Instance.LightStateMachines[i].DetermineState(_currentTime);
                 if (goalLightState == GreenhouseState.LIGHTING || goalLightState == GreenhouseState.SHADING || goalLightState == GreenhouseState.WAITING_FOR_DATA)
@@ -69,7 +67,7 @@ namespace GreenhouseController
                 }
             }
 
-            // If we don't have a manual watering command
+            // Get states for watering state machines, send commands
             for(int i = 0; i < StateMachineContainer.Instance.WateringStateMachines.Count; i ++)
             {
                 GreenhouseState goalWaterState = StateMachineContainer.Instance.WateringStateMachines[i].DetermineState(_currentTime);
@@ -87,16 +85,27 @@ namespace GreenhouseController
         /// </summary>
         public void ActivateManualControl()
         {
+            // If we have manual commands from temperature state machines
             if (StateMachineContainer.Instance.Temperature.ManualCool != null)
             {
                 GreenhouseState goalTempState = StateMachineContainer.Instance.Temperature.DetermineState();
                 ArduinoControlSender.Instance.SendCommand(new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, goalTempState));
             }
-            if (StateMachineContainer.Instance.Shading.ManualShde != null)
+            else if (StateMachineContainer.Instance.Temperature.ManualHeat != null)
             {
-                // TODO: Implement shading state machine!
+                GreenhouseState goalTempState = StateMachineContainer.Instance.Temperature.DetermineState();
+                ArduinoControlSender.Instance.SendCommand(new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, goalTempState));
             }
-            for(int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i++)
+
+            // If we have a manual command for the shading state machine
+            if (StateMachineContainer.Instance.Shading.ManualShade != null)
+            {
+                GreenhouseState goalShadeState = StateMachineContainer.Instance.Shading.DetermineState();
+                ArduinoControlSender.Instance.SendCommand(new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Shading, goalShadeState));
+            }
+
+            // If we have manual commands for the lighting state machines
+            for (int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i++)
             {
                 if (StateMachineContainer.Instance.LightStateMachines[i].ManualLight != null)
                 {
@@ -105,6 +114,8 @@ namespace GreenhouseController
                         new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(StateMachineContainer.Instance.LightStateMachines[i], goalLightState));
                 }
             }
+            
+            // If we have manual commands for the watering state machines
             for(int i = 0; i < StateMachineContainer.Instance.WateringStateMachines.Count; i++)
             {
                 if (StateMachineContainer.Instance.WateringStateMachines[i].ManualWater != null)

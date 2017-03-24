@@ -8,11 +8,16 @@ namespace GreenhouseController.Data
 {
     public class ManualControlAnalyzer
     {
+        /// <summary>
+        /// Empty constructor
+        /// </summary>
         public ManualControlAnalyzer()
-        {
+        { }
 
-        }
-
+        /// <summary>
+        /// Set the values for each manual command that we received, in the appropriate state machine(s)
+        /// </summary>
+        /// <param name="packet"></param>
         public void SetManualValues(ManualPacket packet)
         {
             if (packet.ManualHeat != StateMachineContainer.Instance.Temperature.ManualHeat)
@@ -22,6 +27,10 @@ namespace GreenhouseController.Data
             if (packet.ManualCool != StateMachineContainer.Instance.Temperature.ManualCool)
             {
                 StateMachineContainer.Instance.Temperature.ManualCool = packet.ManualCool;
+            }
+            if (packet.ManualShade != StateMachineContainer.Instance.Shading.ManualShade)
+            {
+                StateMachineContainer.Instance.Shading.ManualShade = packet.ManualShade;
             }
             for (int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i++)
             {

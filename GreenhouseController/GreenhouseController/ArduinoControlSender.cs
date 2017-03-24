@@ -63,7 +63,7 @@ namespace GreenhouseController
         /// </summary>
         public void TryConnect()
         {
-            //TODO: loop through to find serial ports, and establish the fact we're connected
+            // TODO: loop through to find serial ports, and establish the fact we're connected
             // We might need to start an external script to do this properly in linux,
             // SerialPort.GetPortNames() only ever returns ttyS0
             // Find ports
@@ -114,7 +114,7 @@ namespace GreenhouseController
                     Console.WriteLine("Send finished.");
 
                     // Change states based on the key/value pair we passed in
-                    StateMachineContainer.Instance.Temperature.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
+                    statePair.Key.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
 
                     // Wait for response
                     Console.WriteLine($"Waiting for response...");

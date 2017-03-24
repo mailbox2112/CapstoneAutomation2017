@@ -35,6 +35,7 @@ namespace GreenhouseController
 
             // Event handlers for printing state changes
             StateMachineContainer.Instance.Temperature.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
+            StateMachineContainer.Instance.Shading.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
             for (int j = 0; j < StateMachineContainer.Instance.LightStateMachines.Count; j++)
             {
                 StateMachineContainer.Instance.LightStateMachines[j].StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };

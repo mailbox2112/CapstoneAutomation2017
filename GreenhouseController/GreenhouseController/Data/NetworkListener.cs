@@ -83,14 +83,13 @@ namespace GreenhouseController
         {
             if (!_dataStream.DataAvailable)
             {
-                Console.WriteLine("Requesting data...");
+                Console.WriteLine("\nRequesting data...");
                 string request = "DATA";
                 byte[] data = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(request));
                 _dataStream.Write(data, 0, data.Length);
                 _dataStream.Flush();
-                Console.WriteLine("Request sent!");
+                Console.WriteLine("Request sent!\n");
             }
-            
         }
 
         /// <summary>
@@ -125,7 +124,8 @@ namespace GreenhouseController
                     {
                         try
                         {
-                            _client.Connect("127.0.0.1", 8888);
+                            //_client.Connect(IP, PORT);
+                            _client.Connect("127.0.0.1", PORT);
                             Console.WriteLine("Connected to data server.");
                         }
                         catch (Exception ex)

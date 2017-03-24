@@ -8,71 +8,121 @@ namespace GreenhouseController.StateMachines
 {
     public class ShadingStateMachine : IStateMachine
     {
+        private GreenhouseState _currentState;
+
         public GreenhouseState CurrentState
         {
             get
             {
-                throw new NotImplementedException();
+                return _currentState;
             }
-
             set
             {
-                throw new NotImplementedException();
+                // Set the value and fire off event
+                _currentState = value;
+                OnStateChange(new StateEventArgs() { State = CurrentState });
             }
         }
 
-        public int? HighLimit
+        public int? HighLimit { get; set; }
+
+        public int? LowLimit { get; set; }
+
+        public bool? ManualShade { get; set; }
+
+        public EventHandler<StateEventArgs> StateChanged;
+
+        public ShadingStateMachine()
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-
-            set
-            {
-                throw new NotImplementedException();
-            }
+            CurrentState = GreenhouseState.WAITING_FOR_DATA;
         }
 
-        public int? LowLimit
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public bool? ManualShde
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
-
+        /// <summary>
+        /// Converts a greenhouse state into a set of commands
+        /// </summary>
+        /// <param name="state"></param>
+        /// <returns></returns>
         public List<Commands> ConvertStateToCommands(GreenhouseState state)
         {
-            throw new NotImplementedException();
+            List<Commands> commandsToSend = new List<Commands>();
+            if (state == GreenhouseState.SHADING)
+            {
+                commandsToSend.Add(Commands.SHADE_EXTEND);
+            }
+            else
+            {
+                commandsToSend.Add(Commands.SHADE_RETRACT);
+            }
+            return commandsToSend;
         }
 
-        public GreenhouseState DetermineState(double value)
+        /// <summary>
+        /// Determines the state of the shading state machine based on lighting sensor value
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public GreenhouseState DetermineState(double value = 0)
         {
-            throw new NotImplementedException();
+            if (ManualShade == null)
+            {
+                if (CurrentState == GreenhouseState.SHADING)
+                {
+                    CurrentState = GreenhouseState.PROCESSING_SHADING;
+                }
+                else
+                {
+                    CurrentState = GreenhouseState.PROCESSING_DATA;
+                }
+
+                if (value >= HighLimit && CurrentState != GreenhouseState.PROCESSING_SHADING)
+                {
+                    return GreenhouseState.SHADING;
+                }
+                else if (value >= HighLimit && CurrentState == GreenhouseState.PROCESSING_SHADING)
+                {
+                    CurrentState = GreenhouseState.SHADING;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                else if (value < HighLimit && CurrentState == GreenhouseState.PROCESSING_DATA)
+                {
+                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                else
+                {
+                    return GreenhouseState.WAITING_FOR_DATA;
+                }
+            }
+            else if (ManualShade == true)
+            {
+                if (CurrentState == GreenhouseState.PROCESSING_SHADING)
+                {
+                    CurrentState = GreenhouseState.SHADING;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                else
+                {
+                    return GreenhouseState.SHADING;
+                }
+            }
+            else if (ManualShade == false)
+            {
+                ManualShade = null;
+                return GreenhouseState.WAITING_FOR_DATA;
+            }
+            else
+            {
+                return GreenhouseState.ERROR;
+            }
         }
 
+        /// <summary>
+        /// Invokes the eventhandler when our state changes
+        /// </summary>
+        /// <param name="e"></param>
         public void OnStateChange(StateEventArgs e)
         {
-            throw new NotImplementedException();
+            StateChanged?.Invoke(this, e);
         }
     }
 }

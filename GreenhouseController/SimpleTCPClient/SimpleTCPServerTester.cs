@@ -38,14 +38,14 @@ namespace ConsoleApplication1
             Dictionary<int, DateTime> lightEnd = new Dictionary<int, DateTime>();
             foreach(int zone in tlhZones)
             {
-                lightStart.Add(zone, new DateTime(2017, 3, 20, 20, 0, 0));
-                lightEnd.Add(zone, new DateTime(2017, 3, 20, 20, 50, 0));
+                lightStart.Add(zone, new DateTime(2017, 3, 23, 20, 0, 0));
+                lightEnd.Add(zone, new DateTime(2017, 3, 23, 20, 50, 0));
             }
 
             foreach(int zone in mZones)
             {
-                waterStart.Add(zone, new DateTime(2017, 3, 20, 20, 0, 0));
-                waterEnd.Add(zone, new DateTime(2017, 3, 20, 20, 50, 0));
+                waterStart.Add(zone, new DateTime(2017, 3, 23, 20, 0, 0));
+                waterEnd.Add(zone, new DateTime(2017, 3, 23, 20, 50, 0));
             }
             
             byte[] limitsToSend = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new LimitPacket()
@@ -55,7 +55,8 @@ namespace ConsoleApplication1
                 WaterStarts = waterStart,
                 WaterEnds = waterEnd,
                 LightStarts = lightStart,
-                LightEnds = lightEnd
+                LightEnds = lightEnd,
+                ShadeLim = 50000
             }));
             networkStream.Write(limitsToSend, 0, limitsToSend.Length);
             networkStream.Flush();
@@ -78,10 +79,10 @@ namespace ConsoleApplication1
                 Console.WriteLine("L for lighting.");
                 Console.WriteLine("W for watering.");
 
-                bool heat = false;
-                bool cool = false;
-                bool light = false;
-                bool water = false;
+                bool? heat = false;
+                bool? cool = false;
+                bool? light = false;
+                bool? water = false;
                 bool stop = false;
                 bool invalidCommand = false;
                 string command = null;
@@ -94,19 +95,27 @@ namespace ConsoleApplication1
                     {
                         if (c == 'h' || c == 'H')
                         {
-                            if (cool != true)
+                            if (heat == null)
                             {
-                                heat = !heat;
+                                heat = true;
+                            }
+                            else if (heat == true)
+                            {
+                                heat = false;
+                            }
+                            else if (heat == true && cool == true)
+                            {
+                                Console.WriteLine("Invalid command, cannot heat and cool simultaneously! Please try again.");
+                                heat = null;
+                                cool = null;
+                                light = null;
+                                water = null;
+                                invalidCommand = true;
+                                break;
                             }
                             else
                             {
-                                Console.WriteLine("Invalid command, cannot heat and cool simultaneously! Please try again.");
-                                heat = false;
-                                cool = false;
-                                light = false;
-                                water = false;
-                                invalidCommand = true;
-                                break;
+                                heat = null;
                             }
                         }
                         else if (c == 'c' || c == 'C')
@@ -128,11 +137,33 @@ namespace ConsoleApplication1
                         }
                         else if (c == 'l' || c == 'L')
                         {
-                            light = !light;
+                            if (light == null)
+                            {
+                                light = true;
+                            }
+                            else if (light == true)
+                            {
+                                light = false;
+                            }
+                            else
+                            {
+                                light = null;
+                            }
                         }
                         else if (c == 'w' || c == 'W')
                         {
-                            water = !water;
+                            if (water == null)
+                            {
+                                water = true;
+                            } 
+                            else if (water == true)
+                            {
+                                water = false;
+                            }
+                            else
+                            {
+                                water = null;
+                            }
                         }
                         else if (command == "q" || command == "Q")
                         {
@@ -150,27 +181,19 @@ namespace ConsoleApplication1
                     }
                     if (invalidCommand == false)
                     {
-                        for (int i = 1; i < 6; i++)
+                        ManualPacket packet = new ManualPacket()
                         {
-                            packetsToSend.Add(
-                                new ManualPacket()
-                                {
-                                    ManualCool = cool,
-                                    ManualHeat = heat,
-                                    ManualLight = light,
-                                    ManualWater = water
-                                });
-                        }
-                        foreach (var packet in packetsToSend)
-                        {
-                            string pack = JsonConvert.SerializeObject(packet);
-                            byte[] sendBytes = Encoding.ASCII.GetBytes(pack);
-                            networkStream.Write(sendBytes, 0, sendBytes.Length);
-                            networkStream.Flush();
-                            Console.WriteLine(" >> " + $"{pack}");
-                            Thread.Sleep(500);
-                        }
-                        packetsToSend.Clear();
+                            ManualCool = cool,
+                            ManualHeat = heat,
+                            ManualLight = light,
+                            ManualWater = water
+                        };
+                        string pack = JsonConvert.SerializeObject(packet);
+                        byte[] sendBytes = Encoding.ASCII.GetBytes(pack);
+                        networkStream.Write(sendBytes, 0, sendBytes.Length);
+                        networkStream.Flush();
+                        Console.WriteLine(" >> " + $"{pack}");
+                        Thread.Sleep(500);
                     }
                 }
                 #endregion
