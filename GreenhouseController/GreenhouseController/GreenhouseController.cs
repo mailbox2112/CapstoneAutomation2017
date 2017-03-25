@@ -17,8 +17,6 @@ namespace GreenhouseController
             NetworkListener.Instance.TryConnect();
             // Create the blocking collection
             var dataBuffer = new BlockingCollection<byte[]>();
-            int[] moistureZones = new int[] { 1, 3, 5 };
-            
 
             // Print out the state of the state machine at the start of the program
             Console.WriteLine($"Temperature State: {StateMachineContainer.Instance.Temperature.CurrentState.ToString()}");
@@ -50,7 +48,7 @@ namespace GreenhouseController
 
             // Timer for requesting sensor data
             var time = new System.Timers.Timer();
-            time.Interval = 10000;
+            time.Interval = 30000;
             time.Elapsed += (o, i) => { NetworkListener.Instance.RequestData(); };
             time.AutoReset = true;
             time.Enabled = true;

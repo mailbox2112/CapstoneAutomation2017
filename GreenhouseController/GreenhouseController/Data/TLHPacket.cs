@@ -10,9 +10,9 @@ namespace GreenhouseController
     {
         public int Type = 0;
         public int ID;
-        public int Temperature;
-        public int Light;
-        public int Humidity;
+        public double Temperature;
+        public double Light;
+        public double Humidity;
         public DateTime TimeOfSend = DateTime.Now;
     }
 }

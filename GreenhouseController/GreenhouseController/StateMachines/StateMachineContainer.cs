@@ -19,7 +19,7 @@ namespace GreenhouseController
         private static volatile StateMachineContainer _instance;
         private static object _syncRoot = new object();
         private int[] _wateringZones = new int[6] { 1, 2, 3, 4, 5, 6 };
-        private int[] _lightZones = new int[3] { 1, 3, 5 };
+        private int[] _lightZones = new int[3] { 1, 2, 3 };
 
         private StateMachineContainer()
         {

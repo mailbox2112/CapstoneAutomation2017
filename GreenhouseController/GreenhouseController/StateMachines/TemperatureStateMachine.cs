@@ -54,6 +54,8 @@ namespace GreenhouseController
         /// <returns></returns>
         public GreenhouseState DetermineState(double value = 0)
         {
+            // TODO: Should we get rid off manually forcing this into the wating for data state when manual control is turned off?
+            // it seems logical to immediately return to automation
             // Determine which processing state we're in
             if (CurrentState == GreenhouseState.HEATING)
             {
@@ -134,12 +136,12 @@ namespace GreenhouseController
                     return GreenhouseState.HEATING;
                 }
             }
-            // If ManualCool is off
-            else if (ManualHeat == false)
-            {
-                ManualHeat = null;
-                return GreenhouseState.WAITING_FOR_DATA;
-            }
+            // If ManualHeat is off
+            //else if (ManualHeat == false)
+            //{
+            //    ManualHeat = null;
+            //    return GreenhouseState.WAITING_FOR_DATA;
+            //}
             // If ManualCool is on
             else if (ManualCool == true)
             {
@@ -154,11 +156,11 @@ namespace GreenhouseController
                 }
             }
             // If ManualCool is off
-            else if (ManualCool == false)
-            {
-                ManualCool = null;
-                return GreenhouseState.WAITING_FOR_DATA;
-            }
+            //else if (ManualCool == false)
+            //{
+            //    ManualCool = null;
+            //    return GreenhouseState.WAITING_FOR_DATA;
+            //}
             // If we don't meet any of those criteria, return an error state
             else
             {

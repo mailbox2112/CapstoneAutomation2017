@@ -72,7 +72,7 @@ namespace GreenhouseController.StateMachines
                 CurrentState = GreenhouseState.PROCESSING_DATA;
             }
 
-            if (ManualShade == null)
+            if (ManualShade != true)
             {
                 if (value >= HighLimit && CurrentState != GreenhouseState.PROCESSING_SHADING)
                 {
@@ -105,19 +105,19 @@ namespace GreenhouseController.StateMachines
                     return GreenhouseState.SHADING;
                 }
             }
-            else if (ManualShade == false)
-            {
-                ManualShade = null;
-                if (CurrentState == GreenhouseState.PROCESSING_DATA)
-                {
-                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                    return GreenhouseState.NO_CHANGE;
-                }
-                else
-                {
-                    return GreenhouseState.WAITING_FOR_DATA;
-                }
-            }
+            //else if (ManualShade == false)
+            //{
+            //    ManualShade = null;
+            //    if (CurrentState == GreenhouseState.PROCESSING_DATA)
+            //    {
+            //        CurrentState = GreenhouseState.WAITING_FOR_DATA;
+            //        return GreenhouseState.NO_CHANGE;
+            //    }
+            //    else
+            //    {
+            //        return GreenhouseState.WAITING_FOR_DATA;
+            //    }
+            //}
             else
             {
                 return GreenhouseState.ERROR;

@@ -65,8 +65,8 @@ namespace GreenhouseController
             {
                 try
                 {
-                   //_client.Connect(IP, PORT);
-                    _client.Connect("127.0.0.1", PORT);
+                    _client.Connect(IP, PORT);
+                    //_client.Connect("127.0.0.1", PORT);
                     Console.WriteLine("Connected to data server.");
                 }
                 catch (Exception ex)

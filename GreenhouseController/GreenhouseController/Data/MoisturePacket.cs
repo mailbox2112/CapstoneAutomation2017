@@ -10,7 +10,7 @@ namespace GreenhouseController
     {
         public int Type = 1;
         public int ID;
-        public int Probe1;
-        public int Probe2;
+        public double Probe1;
+        public double Probe2;
     }
 }

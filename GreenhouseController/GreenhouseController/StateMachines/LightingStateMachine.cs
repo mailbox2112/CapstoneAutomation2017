@@ -62,7 +62,7 @@ namespace GreenhouseController
                 CurrentState = GreenhouseState.PROCESSING_DATA;
             }
 
-            if (ManualLight == null)
+            if (ManualLight != true)
             {
                 // TODO: Change this to use the DateTimes we receive in packets
                 // Process data and take into account if we were already lighting when we received the data
@@ -97,19 +97,19 @@ namespace GreenhouseController
                     return GreenhouseState.LIGHTING;
                 }
             }
-            else if (ManualLight == false)
-            {
-                ManualLight = null;
-                if (CurrentState == GreenhouseState.PROCESSING_DATA)
-                {
-                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                    return GreenhouseState.NO_CHANGE;
-                }
-                else
-                {
-                    return GreenhouseState.WAITING_FOR_DATA;
-                }
-            }
+            //else if (ManualLight == false)
+            //{
+            //    ManualLight = null;
+            //    if (CurrentState == GreenhouseState.PROCESSING_DATA)
+            //    {
+            //        CurrentState = GreenhouseState.WAITING_FOR_DATA;
+            //        return GreenhouseState.NO_CHANGE;
+            //    }
+            //    else
+            //    {
+            //        return GreenhouseState.WAITING_FOR_DATA;
+            //    }
+            //}
             else
             {
                 return GreenhouseState.ERROR;
@@ -132,10 +132,10 @@ namespace GreenhouseController
                     case 1:
                         commandsToSend.Add(Commands.LIGHT1_ON);
                         break;
-                    case 3:
+                    case 2:
                         commandsToSend.Add(Commands.LIGHT2_ON);
                         break;
-                    case 5:
+                    case 3:
                         commandsToSend.Add(Commands.LIGHT3_ON);
                         break;
                     default:
@@ -149,10 +149,10 @@ namespace GreenhouseController
                     case 1:
                         commandsToSend.Add(Commands.LIGHT1_OFF);
                         break;
-                    case 3:
+                    case 2:
                         commandsToSend.Add(Commands.LIGHT2_OFF);
                         break;
-                    case 5:
+                    case 3:
                         commandsToSend.Add(Commands.LIGHT3_OFF);
                         break;
                     default:

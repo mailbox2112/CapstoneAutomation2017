@@ -59,7 +59,7 @@ namespace GreenhouseController
                 CurrentState = GreenhouseState.PROCESSING_DATA;
             }
 
-            if (ManualWater == null)
+            if (ManualWater != true)
             {
                 // Check the states based on data, and if we were already watering take that into account
                 if (currentTime < End && currentTime > Begin && CurrentState != GreenhouseState.PROCESSING_WATER)
@@ -94,19 +94,19 @@ namespace GreenhouseController
                     return GreenhouseState.WATERING;
                 }
             }
-            else if (ManualWater == false)
-            {
-                ManualWater = null;
-                if (CurrentState == GreenhouseState.PROCESSING_DATA)
-                {
-                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                    return GreenhouseState.NO_CHANGE;
-                }
-                else
-                {
-                    return GreenhouseState.WAITING_FOR_DATA;
-                }
-            }
+            //else if (ManualWater == false)
+            //{
+            //    ManualWater = null;
+            //    if (CurrentState == GreenhouseState.PROCESSING_DATA)
+            //    {
+            //        CurrentState = GreenhouseState.WAITING_FOR_DATA;
+            //        return GreenhouseState.NO_CHANGE;
+            //    }
+            //    else
+            //    {
+            //        return GreenhouseState.WAITING_FOR_DATA;
+            //    }
+            //}
             else
             {
                 return GreenhouseState.ERROR;

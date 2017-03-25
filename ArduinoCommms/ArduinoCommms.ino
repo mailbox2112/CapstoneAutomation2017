@@ -156,17 +156,29 @@ void processData(String command) {
     digitalWrite(SOL6, HIGH);
     ack = true;
   }
-  else if (command == "LIGHTS_ON")
+  else if (command == "LIGHT1_ON")
   {
     digitalWrite(LIGHT1, LOW);
+    ack = true;
+  }
+  else if (command == "LIGHT1_OFF")
+  {
+    digitalWrite(LIGHT1, HIGH);
+    ack = true;
+  }
+  else if (command == "LIGHT2_ON") {
     digitalWrite(LIGHT2, LOW);
+    ack = true;
+  }
+  else if (command == "LIGHT2_OFF") {
+    digitalWrite(LIGHT3, HIGH);
+    ack = true;
+  }
+  else if (command == "LIGHT3_ON") {
     digitalWrite(LIGHT3, LOW);
     ack = true;
   }
-  else if (command == "LIGHTS_OFF")
-  {
-    digitalWrite(LIGHT1, HIGH);
-    digitalWrite(LIGHT2, HIGH);
+  else if (command == "LIGHT3_OFF") {
     digitalWrite(LIGHT3, HIGH);
     ack = true;
   }
