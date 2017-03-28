@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController.Data
 {
-    public class ManualControlAnalyzer
+    public class ManualPacketAnalyzer
     {
         /// <summary>
         /// Empty constructor
         /// </summary>
-        public ManualControlAnalyzer()
+        public ManualPacketAnalyzer()
         { }
 
         /// <summary>

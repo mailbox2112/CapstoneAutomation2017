@@ -59,16 +59,16 @@ namespace GreenhouseUnitTests
             List<Commands> result = new List<Commands>();
             result = testMachine.ConvertStateToCommands(GreenhouseState.COOLING);
             Assert.IsTrue(result.Contains(Commands.FANS_ON));
-            Assert.IsTrue(result.Contains(Commands.VENT_OPEN));
+            Assert.IsTrue(result.Contains(Commands.VENTS_OPEN));
 
             result = testMachine.ConvertStateToCommands(GreenhouseState.HEATING);
             Assert.IsTrue(result.Contains(Commands.HEAT_ON));
-            Assert.IsTrue(result.Contains(Commands.VENT_CLOSE));
+            Assert.IsTrue(result.Contains(Commands.VENTS_CLOSED));
 
             result = testMachine.ConvertStateToCommands(GreenhouseState.WAITING_FOR_DATA);
             Assert.IsTrue(result.Contains(Commands.HEAT_OFF));
             Assert.IsTrue(result.Contains(Commands.FANS_OFF));
-            Assert.IsTrue(result.Contains(Commands.VENT_CLOSE));
+            Assert.IsTrue(result.Contains(Commands.VENTS_CLOSED));
         }
     }
 }

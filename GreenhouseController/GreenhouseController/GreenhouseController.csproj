@@ -51,7 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands.cs" />
-    <Compile Include="Data\ManualControlAnalyzer.cs" />
+    <Compile Include="Data\ManualPacketAnalyzer.cs" />
     <Compile Include="Data\ManualPacket.cs" />
     <Compile Include="Limits\LimitPacket.cs" />
     <Compile Include="Limits\LimitsAnalyzer.cs" />

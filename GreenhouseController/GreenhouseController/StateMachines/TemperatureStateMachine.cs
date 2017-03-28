@@ -124,7 +124,7 @@ namespace GreenhouseController
                 }
             }
             // If ManualHeat is on
-            else if (ManualHeat == true)
+            else if (ManualHeat == true && ManualCool != true)
             {
                 if (CurrentState == GreenhouseState.PROCESSING_HEATING)
                 {
@@ -143,7 +143,7 @@ namespace GreenhouseController
             //    return GreenhouseState.WAITING_FOR_DATA;
             //}
             // If ManualCool is on
-            else if (ManualCool == true)
+            else if (ManualCool == true && ManualHeat != true)
             {
                 if (CurrentState == GreenhouseState.PROCESSING_COOLING)
                 {
@@ -192,7 +192,7 @@ namespace GreenhouseController
                 }
                 if (_ventState == false)
                 {
-                    commandsToSend.Add(Commands.VENT_OPEN);
+                    commandsToSend.Add(Commands.VENTS_OPEN);
                     _ventState = true;
                 }
             }
@@ -210,7 +210,7 @@ namespace GreenhouseController
                 }
                 if (_ventState == true)
                 {
-                    commandsToSend.Add(Commands.VENT_CLOSE);
+                    commandsToSend.Add(Commands.VENTS_CLOSED);
                     _ventState = false;
                 }
             }
@@ -228,7 +228,7 @@ namespace GreenhouseController
                 }
                 if (_ventState == true)
                 {
-                    commandsToSend.Add(Commands.VENT_CLOSE);
+                    commandsToSend.Add(Commands.VENTS_CLOSED);
                     _ventState = false;
                 }
             }

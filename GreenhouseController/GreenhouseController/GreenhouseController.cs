@@ -20,6 +20,7 @@ namespace GreenhouseController
 
             // Print out the state of the state machine at the start of the program
             Console.WriteLine($"Temperature State: {StateMachineContainer.Instance.Temperature.CurrentState.ToString()}");
+            Console.WriteLine($"Shading State: {StateMachineContainer.Instance.Shading.CurrentState.ToString()}");
             for(int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i++)
             {
                 Console.WriteLine($"Lighting Zone {StateMachineContainer.Instance.LightStateMachines[i].Zone}"
@@ -48,7 +49,7 @@ namespace GreenhouseController
 
             // Timer for requesting sensor data
             var time = new System.Timers.Timer();
-            time.Interval = 30000;
+            time.Interval = 40000;
             time.Elapsed += (o, i) => { NetworkListener.Instance.RequestData(); };
             time.AutoReset = true;
             time.Enabled = true;

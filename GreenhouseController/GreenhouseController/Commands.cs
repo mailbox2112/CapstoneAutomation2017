@@ -32,7 +32,7 @@ namespace GreenhouseController
         WATER6_OFF,
         SHADE_EXTEND,
         SHADE_RETRACT,
-        VENT_OPEN,
-        VENT_CLOSE
+        VENTS_OPEN,
+        VENTS_CLOSED
     }
 }

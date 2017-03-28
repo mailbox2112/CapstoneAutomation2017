@@ -30,7 +30,7 @@ namespace GreenhouseController
             LimitsAnalyzer limitAnalyzer = new LimitsAnalyzer();
             limitAnalyzer.ChangeGreenhouseLimits(limits);
             // Process manual controls
-            ManualControlAnalyzer manualAnalyzer = new ManualControlAnalyzer();
+            ManualPacketAnalyzer manualAnalyzer = new ManualPacketAnalyzer();
             manualAnalyzer.SetManualValues(manual);
             // Process sensor data
             AnalyzeData(temperature, moisture);
@@ -60,14 +60,6 @@ namespace GreenhouseController
                 ArduinoControlSender.Instance.SendCommand(_tempState);
             }
 
-            // Get state for shading state machine, send commands
-            GreenhouseState goalShadeState = StateMachineContainer.Instance.Shading.DetermineState(_avgLight);
-            if (goalShadeState == GreenhouseState.SHADING || goalShadeState == GreenhouseState.WAITING_FOR_DATA)
-            {
-                _shadeState = new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Shading, goalShadeState);
-                ArduinoControlSender.Instance.SendCommand(_shadeState);
-            }
-
             // Get state for lighting state machines, send commands
             for (int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i ++)
             {
@@ -88,6 +80,14 @@ namespace GreenhouseController
                     _waterState = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(StateMachineContainer.Instance.WateringStateMachines[i], goalWaterState);
                     ArduinoControlSender.Instance.SendCommand(_waterState);
                 }
+            }
+
+            // Get state for shading state machine, send commands
+            GreenhouseState goalShadeState = StateMachineContainer.Instance.Shading.DetermineState(_avgLight);
+            if (goalShadeState == GreenhouseState.SHADING || goalShadeState == GreenhouseState.WAITING_FOR_DATA)
+            {
+                _shadeState = new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Shading, goalShadeState);
+                ArduinoControlSender.Instance.SendCommand(_shadeState);
             }
             #endregion
         }
