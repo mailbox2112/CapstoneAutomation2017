@@ -13,8 +13,6 @@ namespace GreenhouseController
 {
     public class NetworkListener
     {
-        private static volatile NetworkListener _instance;
-        private static object _syncRoot = new object();
         private const string IP = "192.168.1.103";
         private const int PORT = 8888;
         
@@ -31,31 +29,10 @@ namespace GreenhouseController
         /// </summary>
         /// <param name="hostEndpoint">Endpoint to be reached</param>
         /// <param name="hostAddress">IP address we're trying to connect to</param>
-        private NetworkListener()
+        public NetworkListener()
         {
             Console.WriteLine("Constructing data producer...");
             Console.WriteLine("Data producer constructed.\n");
-        }
-
-        /// <summary>
-        /// Instance property, used for singleton pattern
-        /// </summary>
-        public static NetworkListener Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock(_syncRoot)
-                    {
-                        if (_instance == null)
-                        {
-                            _instance = new NetworkListener();
-                        }
-                    }
-                }
-                return _instance;
-            }
         }
 
         public void TryConnect()
@@ -65,8 +42,8 @@ namespace GreenhouseController
             {
                 try
                 {
-                    _client.Connect(IP, PORT);
-                    //_client.Connect("127.0.0.1", PORT);
+                    //_client.Connect(IP, PORT);
+                    _client.Connect("127.0.0.1", PORT);
                     Console.WriteLine("Connected to data server.");
                 }
                 catch (Exception ex)

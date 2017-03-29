@@ -13,8 +13,6 @@ namespace GreenhouseController
 {
     public class PacketConsumer
     {
-        private static volatile PacketConsumer _instance;
-        private static object _syncRoot = new object();
         private byte[] _data;
         private List<TLHPacket> _tlhInformation;
         private List<MoisturePacket> _moistureInformation;
@@ -25,7 +23,7 @@ namespace GreenhouseController
         /// <summary>
         /// Private constructor for singleton pattern
         /// </summary>
-        private PacketConsumer()
+        public PacketConsumer()
         {
             Console.WriteLine("Constructing greenhouse data analyzer...");
             Console.WriteLine("Greenhouse data analyzer constructed.\n");
@@ -34,105 +32,81 @@ namespace GreenhouseController
         }
 
         /// <summary>
-        /// Instance property, used for singleton pattern
-        /// </summary>
-        public static PacketConsumer Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (_syncRoot)
-                    {
-                        if (_instance == null)
-                        {
-                            _instance = new PacketConsumer();
-                        }
-                    }
-                }
-                return _instance;
-            }
-        }
-
-        /// <summary>
         /// Takes in a BlockingCollection and removes data. Sends data to be assessed elsewhere
         /// </summary>
         /// <param name="source">Blocking collection used to hold data for producer consumer pattern</param>
         public void ReceiveGreenhouseData(BlockingCollection<byte[]> source)
         {
-            // TODO: Fix this up so that it doesn't mess with things already happening within state machines, etc.
-            if (source.Count != 0)
+            try
             {
-                try
-                {
-                    source.TryTake(out _data);
-                    var data = JObject.Parse(Encoding.ASCII.GetString(_data));
+                source.TryTake(out _data);
+                Console.WriteLine(Encoding.ASCII.GetString(_data));
+                var data = JObject.Parse(Encoding.ASCII.GetString(_data));
 
-                    Console.WriteLine(data.ToString());
+                Console.WriteLine(data.ToString());
                     
 
-                    if (data["Type"].Value<int>() == 0)
-                    {
-                        _currentTime = data["TimeOfSend"].Value<DateTime>();
-                        var deserializedData = JsonConvert.DeserializeObject<TLHPacket>(Encoding.ASCII.GetString(_data));
-
-                        // Check for repeat zones, and if we have any, throw out the old zone data
-                        if (_tlhInformation.Where(p => p.ID == deserializedData.ID) != null)
-                        {
-                            _tlhInformation.RemoveAll(p => p.ID == deserializedData.ID);
-                        }
-
-                        _tlhInformation.Add(deserializedData);
-                    }
-                    // if it's a moisture packet
-                    else if (data["Type"].Value<int>() == 1)
-                    {
-                        var deserializedData = JsonConvert.DeserializeObject<MoisturePacket>(Encoding.ASCII.GetString(_data));
-
-                        // Check for repeat zones, and if we have any, throw out the old zone data
-                        if (_moistureInformation.Where(p => p.ID == deserializedData.ID) != null)
-                        {
-                            _moistureInformation.RemoveAll(p => p.ID == deserializedData.ID);
-                        }
-
-                        _moistureInformation.Add(deserializedData);
-                    }
-                    else if (data["Type"].Value<int>() == 2)
-                    {
-                        var deserializedData = JsonConvert.DeserializeObject<LimitPacket>(Encoding.ASCII.GetString(_data));
-
-                        _limits = deserializedData;
-                    }
-                    else if (data["Type"].Value<int>() == 3)
-                    {
-                        var deserializedData = JsonConvert.DeserializeObject<ManualPacket>(Encoding.ASCII.GetString(_data));
-
-                        _manual = deserializedData;
-                    }
-                }
-                catch (Exception ex)
+                if (data["Type"].Value<int>() == 0)
                 {
-                    Console.WriteLine(ex);
-                }
+                    _currentTime = data["TimeOfSend"].Value<DateTime>();
+                    var deserializedData = JsonConvert.DeserializeObject<TLHPacket>(Encoding.ASCII.GetString(_data));
 
-                if (_tlhInformation.Count == 5 && _moistureInformation.Count == 6 && _limits != null && _manual != null)
+                    // Check for repeat zones, and if we have any, throw out the old zone data
+                    if (_tlhInformation.Where(p => p.ID == deserializedData.ID) != null)
+                    {
+                        _tlhInformation.RemoveAll(p => p.ID == deserializedData.ID);
+                    }
+
+                    _tlhInformation.Add(deserializedData);
+                }
+                // if it's a moisture packet
+                else if (data["Type"].Value<int>() == 1)
                 {
-                    TLHPacket[] tlhToSend = new TLHPacket[_tlhInformation.Count];
-                    _tlhInformation.CopyTo(tlhToSend);
-                    _tlhInformation.Clear();
+                    var deserializedData = JsonConvert.DeserializeObject<MoisturePacket>(Encoding.ASCII.GetString(_data));
 
-                    MoisturePacket[] moistureToSend = new MoisturePacket[_moistureInformation.Count];
-                    _moistureInformation.CopyTo(moistureToSend);
-                    _moistureInformation.Clear();
+                    // Check for repeat zones, and if we have any, throw out the old zone data
+                    if (_moistureInformation.Where(p => p.ID == deserializedData.ID) != null)
+                    {
+                        _moistureInformation.RemoveAll(p => p.ID == deserializedData.ID);
+                    }
 
-                    ManualPacket tempManual = _manual;
-                    _manual = null;
-                    LimitPacket tempLimits = _limits;
-                    _limits = null;
-
-                    DataAnalyzer data = new DataAnalyzer();
-                    Task.Run(() => data.ExecuteActions(tlhToSend, moistureToSend, tempManual, tempLimits));
+                    _moistureInformation.Add(deserializedData);
                 }
+                else if (data["Type"].Value<int>() == 2)
+                {
+                    var deserializedData = JsonConvert.DeserializeObject<LimitPacket>(Encoding.ASCII.GetString(_data));
+
+                    _limits = deserializedData;
+                }
+                else if (data["Type"].Value<int>() == 3)
+                {
+                    var deserializedData = JsonConvert.DeserializeObject<ManualPacket>(Encoding.ASCII.GetString(_data));
+
+                    _manual = deserializedData;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            if (_tlhInformation.Count == 5 && _moistureInformation.Count == 6 && _limits != null && _manual != null)
+            {
+                TLHPacket[] tlhToSend = new TLHPacket[_tlhInformation.Count];
+                _tlhInformation.CopyTo(tlhToSend);
+                _tlhInformation.Clear();
+
+                MoisturePacket[] moistureToSend = new MoisturePacket[_moistureInformation.Count];
+                _moistureInformation.CopyTo(moistureToSend);
+                _moistureInformation.Clear();
+
+                ManualPacket tempManual = _manual;
+                _manual = null;
+                LimitPacket tempLimits = _limits;
+                _limits = null;
+
+                DataAnalyzer data = new DataAnalyzer();
+                Task.Run(() => data.ExecuteActions(tlhToSend, moistureToSend, tempManual, tempLimits));
             }
         }
     }

@@ -57,9 +57,9 @@ namespace ConsoleApplication1
                 LightStarts = lightStart,
                 LightEnds = lightEnd,
                 ShadeLim = 50000
-            }));
+            }, Formatting.Indented));
 
-            //Console.WriteLine(Encoding.ASCII.GetString(limitsToSend));
+            Console.WriteLine(Encoding.ASCII.GetString(limitsToSend));
 
             // TODO: add ability to change greenhouse limits
             Console.WriteLine("Would you like to use manual or random mode? Press M for manual, R for random.");
@@ -253,9 +253,9 @@ namespace ConsoleApplication1
                                 byte[] sendBytes = Encoding.ASCII.GetBytes(json);
                                 networkStream.Write(sendBytes, 0, sendBytes.Length);
                                 networkStream.Flush();
-                                Console.WriteLine(" >> " + $"{json}");
+                                Console.WriteLine($"{json}");
 
-                                Thread.Sleep(500);
+                                //Thread.Sleep(500);
                             }
                             foreach(int zone in mZones)
                             {
@@ -263,14 +263,15 @@ namespace ConsoleApplication1
                                 byte[] mSendBytes = Encoding.ASCII.GetBytes(mJson);
                                 networkStream.Write(mSendBytes, 0, mSendBytes.Length);
                                 networkStream.Flush();
-                                Console.WriteLine(" >> " + $"{mJson}");
-                                Thread.Sleep(500);
+                                Console.WriteLine($"{mJson}");
+                                //Thread.Sleep(500);
                             }
                             networkStream.Write(limitsToSend, 0, limitsToSend.Length);
-                            Thread.Sleep(500);
+                            networkStream.Flush();
+                            //Thread.Sleep(500);
                             
                             ManualPacket manual = new ManualPacket() { ManualWater = true, ManualCool = false, ManualHeat = false, ManualLight = false, ManualShade = false };
-                            string manualJson = JsonConvert.SerializeObject(manual);
+                            string manualJson = JsonConvert.SerializeObject(manual).Normalize();
                             byte[] manualBytes = Encoding.ASCII.GetBytes(manualJson);
                             networkStream.Write(manualBytes, 0, manualBytes.Length);
                             networkStream.Flush();
@@ -313,7 +314,7 @@ namespace ConsoleApplication1
                     ID = zone
                 };
 
-                string spoofData = JsonConvert.SerializeObject(packet);
+                string spoofData = JsonConvert.SerializeObject(packet, Formatting.Indented);
 
                 return spoofData;
             }
@@ -328,7 +329,7 @@ namespace ConsoleApplication1
                     Probe2 = rand.Next(0, 100),
                 };
 
-                string spoofData = JsonConvert.SerializeObject(packet);
+                string spoofData = JsonConvert.SerializeObject(packet, Formatting.Indented);
 
                 return spoofData;
             }
