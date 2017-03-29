@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    public class LightingStateMachine : IStateMachine
+    public class LightingStateMachine : ITimeBasedStateMachine
     {
+        // TODO: Add timer event-based lighting state changes
         // Private member for implementing custom get/set using the event handler
         private GreenhouseState _currentState;
 
@@ -26,70 +27,92 @@ namespace GreenhouseController
             }
         }
 
-        // Upper limit for lighting, causes shades to close
-        public int? HighLimit { get; set; }
+        public DateTime Begin { get; set; }
 
-        // Lower limit for lighting, causes lights to turn on
-        public int? LowLimit { get; set; }
+        public DateTime End { get; set; }
 
         public EventHandler<StateEventArgs> StateChanged;
+
+        public int Zone { get; set; }
+
+        public bool? ManualLight { get; set; }
         
         /// <summary>
         /// Initialize the state machine
         /// </summary>
-        public LightingStateMachine()
+        public LightingStateMachine(int zone)
         {
             CurrentState = GreenhouseState.WAITING_FOR_DATA;
+            Zone = zone;
         }
 
         /// <summary>
         /// Determinet the state of the greenhouse based on the lighting data we receive
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="currentTime"></param>
         /// <returns></returns>
-        public GreenhouseState DetermineState(double value)
+        public GreenhouseState DetermineState(DateTime currentTime)
         {
             if (CurrentState == GreenhouseState.LIGHTING)
             {
                 CurrentState = GreenhouseState.PROCESSING_LIGHTING;
-            }
-            else if (CurrentState == GreenhouseState.SHADING)
-            {
-                CurrentState = GreenhouseState.PROCESSING_SHADING;
             }
             else
             {
                 CurrentState = GreenhouseState.PROCESSING_DATA;
             }
 
-            // Process data and take into account if we were already lighting when we received the data
-            // TODO: fix processing data bug!
-            if (value < LowLimit && CurrentState != GreenhouseState.PROCESSING_LIGHTING)
+            if (ManualLight != true)
             {
-                return GreenhouseState.LIGHTING;
+                // TODO: Change this to use the DateTimes we receive in packets
+                // Process data and take into account if we were already lighting when we received the data
+                if (Begin <= currentTime && currentTime <= End && CurrentState != GreenhouseState.PROCESSING_LIGHTING)
+                {
+                    return GreenhouseState.LIGHTING;
+                }
+                else if (Begin <= currentTime && currentTime <= End && CurrentState == GreenhouseState.PROCESSING_LIGHTING)
+                {
+                    CurrentState = GreenhouseState.LIGHTING;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                else if (currentTime > End && CurrentState == GreenhouseState.PROCESSING_DATA)
+                {
+                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                else
+                {
+                    return GreenhouseState.WAITING_FOR_DATA;
+                }
             }
-            else if (value > HighLimit && CurrentState != GreenhouseState.PROCESSING_SHADING)
+            else if (ManualLight == true)
             {
-                return GreenhouseState.SHADING;
+                if (CurrentState == GreenhouseState.PROCESSING_LIGHTING)
+                {
+                    CurrentState = GreenhouseState.LIGHTING;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                else
+                {
+                    return GreenhouseState.LIGHTING;
+                }
             }
-            else if (value < LowLimit && CurrentState == GreenhouseState.PROCESSING_LIGHTING)
-            {
-                CurrentState = GreenhouseState.LIGHTING;
-                return GreenhouseState.NO_CHANGE;
-            }
-            else if (value > HighLimit && CurrentState == GreenhouseState.PROCESSING_SHADING)
-            {
-                CurrentState = GreenhouseState.SHADING;
-                return GreenhouseState.NO_CHANGE;
-            }
-            else if (value > LowLimit && value < HighLimit && CurrentState == GreenhouseState.PROCESSING_DATA)
-            {
-                CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                return GreenhouseState.NO_CHANGE;
-            }
+            //else if (ManualLight == false)
+            //{
+            //    ManualLight = null;
+            //    if (CurrentState == GreenhouseState.PROCESSING_DATA)
+            //    {
+            //        CurrentState = GreenhouseState.WAITING_FOR_DATA;
+            //        return GreenhouseState.NO_CHANGE;
+            //    }
+            //    else
+            //    {
+            //        return GreenhouseState.WAITING_FOR_DATA;
+            //    }
+            //}
             else
             {
-                return GreenhouseState.WAITING_FOR_DATA;
+                return GreenhouseState.ERROR;
             }
         }
 
@@ -104,19 +127,38 @@ namespace GreenhouseController
             List<Commands> commandsToSend = new List<Commands>();
             if (state == GreenhouseState.LIGHTING)
             {
-                commandsToSend.Add(Commands.LIGHTS_ON);
-                commandsToSend.Add(Commands.SHADE_RETRACT);
+                switch (Zone)
+                {
+                    case 1:
+                        commandsToSend.Add(Commands.LIGHT1_ON);
+                        break;
+                    case 2:
+                        commandsToSend.Add(Commands.LIGHT2_ON);
+                        break;
+                    case 3:
+                        commandsToSend.Add(Commands.LIGHT3_ON);
+                        break;
+                    default:
+                        break;
+                }
             }
             else if (state == GreenhouseState.WAITING_FOR_DATA)
             {
-                commandsToSend.Add(Commands.LIGHTS_OFF);
-                commandsToSend.Add(Commands.SHADE_RETRACT);
+                switch (Zone)
+                {
+                    case 1:
+                        commandsToSend.Add(Commands.LIGHT1_OFF);
+                        break;
+                    case 2:
+                        commandsToSend.Add(Commands.LIGHT2_OFF);
+                        break;
+                    case 3:
+                        commandsToSend.Add(Commands.LIGHT3_OFF);
+                        break;
+                    default:
+                        break;
+                }
             }
-            else if (state == GreenhouseState.SHADING)
-            {
-                commandsToSend.Add(Commands.SHADE_EXTEND);
-            }
-
             return commandsToSend;
         }
 

@@ -236,4 +236,3 @@
       else Serial.write(NACK); // respond to RPi that that command didn't work
       Serial.write(ACK); // respond to RPi that write successful
   }
-

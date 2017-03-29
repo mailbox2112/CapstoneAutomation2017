@@ -8,11 +8,13 @@ namespace GreenhouseController
 {
     public class LimitPacket
     {
-        public int PacketType = 1;
+        public int Type = 2;
         public int TempHi;
         public int TempLo;
-        public int MoistLim;
-        public int LightHi;
-        public int LightLo;
+        public Dictionary<int, DateTime> WaterStarts;
+        public Dictionary<int, DateTime> WaterEnds;
+        public Dictionary<int, DateTime> LightStarts;
+        public Dictionary<int, DateTime> LightEnds;
+        public int ShadeLim;
     }
 }

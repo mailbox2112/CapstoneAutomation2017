@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using GreenhouseController.Data;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
@@ -15,7 +16,11 @@ namespace GreenhouseController
         private static volatile PacketConsumer _instance;
         private static object _syncRoot = new object();
         private byte[] _data;
-        private List<DataPacket> _zoneInformation;
+        private List<TLHPacket> _tlhInformation;
+        private List<MoisturePacket> _moistureInformation;
+        private ManualPacket _manual;
+        private LimitPacket _limits;
+        private DateTime _currentTime;
 
         /// <summary>
         /// Private constructor for singleton pattern
@@ -23,8 +28,9 @@ namespace GreenhouseController
         private PacketConsumer()
         {
             Console.WriteLine("Constructing greenhouse data analyzer...");
-            _zoneInformation = new List<DataPacket>(5);
             Console.WriteLine("Greenhouse data analyzer constructed.\n");
+            _tlhInformation = new List<TLHPacket>();
+            _moistureInformation = new List<MoisturePacket>();
         }
 
         /// <summary>
@@ -54,59 +60,80 @@ namespace GreenhouseController
         /// <param name="source">Blocking collection used to hold data for producer consumer pattern</param>
         public void ReceiveGreenhouseData(BlockingCollection<byte[]> source)
         {
+            // TODO: Fix this up so that it doesn't mess with things already happening within state machines, etc.
             if (source.Count != 0)
             {
                 try
                 {
                     source.TryTake(out _data);
                     var data = JObject.Parse(Encoding.ASCII.GetString(_data));
-                    if (data["PacketType"].Value<int>() == 0)
+
+                    Console.WriteLine(data.ToString());
+                    
+
+                    if (data["Type"].Value<int>() == 0)
                     {
-                        var deserializedData = JsonConvert.DeserializeObject<DataPacket>(Encoding.ASCII.GetString(_data));
+                        _currentTime = data["TimeOfSend"].Value<DateTime>();
+                        var deserializedData = JsonConvert.DeserializeObject<TLHPacket>(Encoding.ASCII.GetString(_data));
 
                         // Check for repeat zones, and if we have any, throw out the old zone data
-                        if (_zoneInformation.Where(p => p.Zone == deserializedData.Zone) != null)
+                        if (_tlhInformation.Where(p => p.ID == deserializedData.ID) != null)
                         {
-                            _zoneInformation.RemoveAll(p => p.Zone == deserializedData.Zone);
+                            _tlhInformation.RemoveAll(p => p.ID == deserializedData.ID);
                         }
 
-                        _zoneInformation.Add(deserializedData);
-
-                        if (_zoneInformation.Count == 5)
-                        {
-                            SendDataToAnalyzer(_zoneInformation);
-                        }
+                        _tlhInformation.Add(deserializedData);
                     }
-                    else if (data["PacketType"].Value<int>() == 1)
+                    // if it's a moisture packet
+                    else if (data["Type"].Value<int>() == 1)
+                    {
+                        var deserializedData = JsonConvert.DeserializeObject<MoisturePacket>(Encoding.ASCII.GetString(_data));
+
+                        // Check for repeat zones, and if we have any, throw out the old zone data
+                        if (_moistureInformation.Where(p => p.ID == deserializedData.ID) != null)
+                        {
+                            _moistureInformation.RemoveAll(p => p.ID == deserializedData.ID);
+                        }
+
+                        _moistureInformation.Add(deserializedData);
+                    }
+                    else if (data["Type"].Value<int>() == 2)
                     {
                         var deserializedData = JsonConvert.DeserializeObject<LimitPacket>(Encoding.ASCII.GetString(_data));
 
-                        LimitsAnalyzer analyzeLimits = new LimitsAnalyzer();
-                        analyzeLimits.ChangeGreenhouseLimits(deserializedData);
+                        _limits = deserializedData;
+                    }
+                    else if (data["Type"].Value<int>() == 3)
+                    {
+                        var deserializedData = JsonConvert.DeserializeObject<ManualPacket>(Encoding.ASCII.GetString(_data));
+
+                        _manual = deserializedData;
                     }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex);
                 }
-            }
-        }
 
-        /// <summary>
-        /// Sends the data off to be analyzed
-        /// </summary>
-        /// <param name="data">Packet object representing the data contained in JSON sent over TCP</param>
-        /// <returns></returns>
-        public void SendDataToAnalyzer(List<DataPacket> data)
-        {
-            // Copy info to an array so we don't modify list as we use it in another thread
-            DataPacket[] tempZoneInfo = new DataPacket[data.Count];
-            data.CopyTo(tempZoneInfo);
-            data.Clear();
-            
-            // Send array
-            ActionAnalyzer analyze = new ActionAnalyzer();
-            Task.Run(() => analyze.AnalyzeData(tempZoneInfo));
+                if (_tlhInformation.Count == 5 && _moistureInformation.Count == 6 && _limits != null && _manual != null)
+                {
+                    TLHPacket[] tlhToSend = new TLHPacket[_tlhInformation.Count];
+                    _tlhInformation.CopyTo(tlhToSend);
+                    _tlhInformation.Clear();
+
+                    MoisturePacket[] moistureToSend = new MoisturePacket[_moistureInformation.Count];
+                    _moistureInformation.CopyTo(moistureToSend);
+                    _moistureInformation.Clear();
+
+                    ManualPacket tempManual = _manual;
+                    _manual = null;
+                    LimitPacket tempLimits = _limits;
+                    _limits = null;
+
+                    DataAnalyzer data = new DataAnalyzer();
+                    Task.Run(() => data.ExecuteActions(tlhToSend, moistureToSend, tempManual, tempLimits));
+                }
+            }
         }
     }
 }

@@ -16,7 +16,6 @@ namespace GreenhouseController
         /// <param name="limits"></param>
         public void ChangeGreenhouseLimits(LimitPacket limits)
         {
-            // TODO: Make these thread-safe somehow!
             if (StateMachineContainer.Instance.Temperature.HighLimit != limits.TempHi)
             {
                 StateMachineContainer.Instance.Temperature.HighLimit = limits.TempHi;
@@ -25,24 +24,118 @@ namespace GreenhouseController
             {
                 StateMachineContainer.Instance.Temperature.LowLimit = limits.TempLo;
             }
-            if (StateMachineContainer.Instance.Lighting.LowLimit != limits.LightLo)
+            if (StateMachineContainer.Instance.Shading.HighLimit != limits.ShadeLim)
             {
-                StateMachineContainer.Instance.Lighting.LowLimit = limits.LightLo;
+                StateMachineContainer.Instance.Shading.HighLimit = limits.ShadeLim;
             }
-            if (StateMachineContainer.Instance.Lighting.HighLimit != limits.LightHi)
+            foreach(KeyValuePair<int, DateTime> kvp in limits.LightStarts)
             {
-                StateMachineContainer.Instance.Lighting.HighLimit = limits.LightHi;
+                switch(kvp.Key)
+                {
+                    case 1:
+                        StateMachineContainer.Instance.LightStateMachines[0].Begin = kvp.Value;
+                        break;
+                    case 3:
+                        StateMachineContainer.Instance.LightStateMachines[1].Begin = kvp.Value;
+                        break;
+                    case 5:
+                        StateMachineContainer.Instance.LightStateMachines[1].Begin = kvp.Value;
+                        break;
+                    default:
+                        break;
+                }
             }
-            if (StateMachineContainer.Instance.Watering.LowLimit != limits.MoistLim)
+            foreach(KeyValuePair<int, DateTime> kvp in limits.LightEnds)
             {
-                StateMachineContainer.Instance.Watering.LowLimit = limits.MoistLim;
+                switch (kvp.Key)
+                {
+                    case 1:
+                        StateMachineContainer.Instance.LightStateMachines[0].End = kvp.Value;
+                        break;
+                    case 3:
+                        StateMachineContainer.Instance.LightStateMachines[1].End = kvp.Value;
+                        break;
+                    case 5:
+                        StateMachineContainer.Instance.LightStateMachines[2].End = kvp.Value;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            foreach(KeyValuePair<int, DateTime> kvp in limits.WaterStarts)
+            {
+                switch (kvp.Key)
+                {
+                    case 1:
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
+                        break;
+                    case 2:
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
+                        break;
+                    case 3:
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
+                        break;
+                    case 4:
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
+                        break;
+                    case 5:
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
+                        break;
+                    case 6:
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            foreach(KeyValuePair<int, DateTime> kvp in limits.WaterEnds)
+            {
+                switch (kvp.Key)
+                {
+                    case 1:
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
+                        break;
+                    case 2:
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
+                        break;
+                    case 3:
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
+                        break;
+                    case 4:
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
+                        break;
+                    case 5:
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
+                        break;
+                    case 6:
+                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
+                        break;
+                    default:
+                        break;
+                }
             }
 
             Console.WriteLine($"Temperature High Limit: {StateMachineContainer.Instance.Temperature.HighLimit}");
             Console.WriteLine($"Temperature Low Limit: {StateMachineContainer.Instance.Temperature.LowLimit}");
-            Console.WriteLine($"Lighting High Limit: {StateMachineContainer.Instance.Lighting.HighLimit}");
-            Console.WriteLine($"Lighting Low Limit: {StateMachineContainer.Instance.Lighting.LowLimit}");
-            Console.WriteLine($"Watering Low Limit: {StateMachineContainer.Instance.Watering.LowLimit}");
+            Console.WriteLine($"Shading Limit: {StateMachineContainer.Instance.Shading.HighLimit}");
+
+            for(int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i++)
+            {
+                Console.WriteLine($"LZone {StateMachineContainer.Instance.LightStateMachines[i].Zone}"
+                    + $"Start: {StateMachineContainer.Instance.LightStateMachines[i].Begin}"
+                    + $"\nLZone {StateMachineContainer.Instance.LightStateMachines[i].Zone}"
+                    + $"End: {StateMachineContainer.Instance.LightStateMachines[i].End}"
+                    );
+            }
+            
+            for(int i = 0; i < StateMachineContainer.Instance.WateringStateMachines.Count; i++)
+            {
+                Console.WriteLine($"WZone {StateMachineContainer.Instance.WateringStateMachines[i].Zone}"
+                    + $"Start: {StateMachineContainer.Instance.WateringStateMachines[i].Begin}"
+                    + $"\nWZone {StateMachineContainer.Instance.WateringStateMachines[i].Zone}"
+                    + $"End: {StateMachineContainer.Instance.WateringStateMachines[i].End}");
+            }
+            
         }
     }
 }

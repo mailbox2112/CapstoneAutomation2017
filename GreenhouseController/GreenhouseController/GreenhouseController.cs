@@ -20,19 +20,36 @@ namespace GreenhouseController
 
             // Print out the state of the state machine at the start of the program
             Console.WriteLine($"Temperature State: {StateMachineContainer.Instance.Temperature.CurrentState.ToString()}");
-            Console.WriteLine($"Lighting State: {StateMachineContainer.Instance.Lighting.CurrentState.ToString()}");
-            Console.WriteLine($"Watering State: {StateMachineContainer.Instance.Watering.CurrentState.ToString()}");
+            Console.WriteLine($"Shading State: {StateMachineContainer.Instance.Shading.CurrentState.ToString()}");
+            for(int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i++)
+            {
+                Console.WriteLine($"Lighting Zone {StateMachineContainer.Instance.LightStateMachines[i].Zone}"
+                    + $"State: {StateMachineContainer.Instance.LightStateMachines[i].CurrentState.ToString()}");
+            }
+            for(int i = 0; i < StateMachineContainer.Instance.WateringStateMachines.Count; i++)
+            {
+                Console.WriteLine($"Watering Zone {StateMachineContainer.Instance.WateringStateMachines[i].Zone}"
+                    + $"State: {StateMachineContainer.Instance.WateringStateMachines[i].CurrentState.ToString()}");
+            }
 
             // Event handlers for printing state changes
-            StateMachineContainer.Instance.Lighting.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
             StateMachineContainer.Instance.Temperature.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
-            StateMachineContainer.Instance.Watering.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
-            
+            StateMachineContainer.Instance.Shading.StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
+            for (int j = 0; j < StateMachineContainer.Instance.LightStateMachines.Count; j++)
+            {
+                StateMachineContainer.Instance.LightStateMachines[j].StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
+            }
+            for (int j = 0; j < StateMachineContainer.Instance.WateringStateMachines.Count; j++)
+            {
+                StateMachineContainer.Instance.WateringStateMachines[j].StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
+            }
+
             // Event handlers for when blocking collections get data
             NetworkListener.Instance.ItemInQueue += (o, i) => { Task.Run(() => PacketConsumer.Instance.ReceiveGreenhouseData(i.Buffer)); };
 
+            // Timer for requesting sensor data
             var time = new System.Timers.Timer();
-            time.Interval = 15000;
+            time.Interval = 40000;
             time.Elapsed += (o, i) => { NetworkListener.Instance.RequestData(); };
             time.AutoReset = true;
             time.Enabled = true;

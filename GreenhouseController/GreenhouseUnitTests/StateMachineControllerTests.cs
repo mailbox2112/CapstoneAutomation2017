@@ -11,13 +11,27 @@ namespace GreenhouseUnitTests
         public void TestStateMachineControllerInitialization()
         {
             // Test that whatever it returns isn't null
-            Assert.IsNotNull(StateMachineContainer.Instance.Lighting);
-            Assert.IsNotNull(StateMachineContainer.Instance.Watering);
+            for(int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i++)
+            {
+                Assert.IsNotNull(StateMachineContainer.Instance.LightStateMachines[i]);
+            }
+
+            for (int i = 0; i < StateMachineContainer.Instance.WateringStateMachines.Count; i++)
+            {
+                Assert.IsNotNull(StateMachineContainer.Instance.WateringStateMachines[i]);
+            }
             Assert.IsNotNull(StateMachineContainer.Instance.Temperature);
 
             // Test that it returns the right type of object. Maybe this should be its own seperate test though?
-            Assert.IsInstanceOfType(StateMachineContainer.Instance.Lighting, typeof(LightingStateMachine));
-            Assert.IsInstanceOfType(StateMachineContainer.Instance.Watering, typeof(WateringStateMachine));
+            for(int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i++)
+            {
+                Assert.IsInstanceOfType(StateMachineContainer.Instance.LightStateMachines[i], typeof(LightingStateMachine));
+            }
+
+            for(int i = 0; i < StateMachineContainer.Instance.WateringStateMachines.Count; i++)
+            {
+                Assert.IsInstanceOfType(StateMachineContainer.Instance.WateringStateMachines[i], typeof(WateringStateMachine));
+            }
             Assert.IsInstanceOfType(StateMachineContainer.Instance.Temperature, typeof(TemperatureStateMachine));
         }
     }

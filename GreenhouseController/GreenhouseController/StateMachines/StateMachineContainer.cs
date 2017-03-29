@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GreenhouseController.StateMachines;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,18 +9,32 @@ namespace GreenhouseController
 {
     public class StateMachineContainer
     {
-        public WateringStateMachine Watering { get; set; }
-        public LightingStateMachine Lighting { get; set; }
+        // TODO: create and add a shading state machine
         public TemperatureStateMachine Temperature { get; set; }
+        public ShadingStateMachine Shading { get; set; }
+
+        public List<LightingStateMachine> LightStateMachines = new List<LightingStateMachine>(3);
+        public List<WateringStateMachine> WateringStateMachines = new List<WateringStateMachine>(6);
 
         private static volatile StateMachineContainer _instance;
         private static object _syncRoot = new object();
+        private int[] _wateringZones = new int[6] { 1, 2, 3, 4, 5, 6 };
+        private int[] _lightZones = new int[3] { 1, 2, 3 };
 
         private StateMachineContainer()
         {
-            Watering = new WateringStateMachine();
-            Lighting = new LightingStateMachine();
+            foreach(int zone in _wateringZones)
+            {
+                WateringStateMachines.Add(new WateringStateMachine(zone));
+            }
+
+            foreach(int zone in _lightZones)
+            {
+                LightStateMachines.Add(new LightingStateMachine(zone));
+            }
+
             Temperature = new TemperatureStateMachine();
+            Shading = new ShadingStateMachine();
         }
 
         public static StateMachineContainer Instance

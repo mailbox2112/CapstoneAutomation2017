@@ -9,6 +9,11 @@ namespace GreenhouseController
     public class TemperatureStateMachine : IStateMachine
     {
         private const int _emergencyTemp = 120;
+        // True = on, false = off
+        // Keeps track of what commands we need to send on and off
+        private bool _fanState = false;
+        private bool _heatState = false;
+        private bool _ventState = false;
 
         private GreenhouseState _currentState;
         public GreenhouseState CurrentState
@@ -30,6 +35,10 @@ namespace GreenhouseController
 
         public int? LowLimit { get; set; }
 
+        public bool? ManualHeat { get; set; }
+
+        public bool? ManualCool { get; set; }
+
         /// <summary>
         /// Initialize the state machine
         /// </summary>
@@ -43,8 +52,10 @@ namespace GreenhouseController
         /// </summary>
         /// <param name="value">Average value of temperature data from each zone</param>
         /// <returns></returns>
-        public GreenhouseState DetermineState(double value)
+        public GreenhouseState DetermineState(double value = 0)
         {
+            // TODO: Should we get rid off manually forcing this into the wating for data state when manual control is turned off?
+            // it seems logical to immediately return to automation
             // Determine which processing state we're in
             if (CurrentState == GreenhouseState.HEATING)
             {
@@ -58,50 +69,102 @@ namespace GreenhouseController
             {
                 CurrentState = GreenhouseState.PROCESSING_DATA;
             }
-
-            // Determine what state to return/change to
-            // If we're coming from an action state and we meet action criteria,
-            // go back to the action state
-            if (value <= LowLimit && CurrentState != GreenhouseState.PROCESSING_HEATING)
+           
+            // If the state machine isn't in manual control mode
+            if (ManualHeat != true && ManualCool != true)
             {
-                return GreenhouseState.HEATING;
-            }
-            else if (value <= LowLimit && CurrentState == GreenhouseState.PROCESSING_HEATING)
-            {
-                CurrentState = GreenhouseState.HEATING;
-                return GreenhouseState.NO_CHANGE;
-            }
-            else if (value > HighLimit && CurrentState != GreenhouseState.PROCESSING_COOLING)
-            {
-                if (value >= _emergencyTemp)
+                // Determine what state to return/change to
+                // If we're coming from an action state and we meet action criteria,
+                // go back to the action state
+                // If we're lower than the low limit
+                if (value <= LowLimit && CurrentState != GreenhouseState.PROCESSING_HEATING)
                 {
-                    return GreenhouseState.EMERGENCY;
+                    return GreenhouseState.HEATING;
+                }
+                // If we're lower than the low limit but we're already heating
+                else if (value <= LowLimit && CurrentState == GreenhouseState.PROCESSING_HEATING)
+                {
+                    CurrentState = GreenhouseState.HEATING;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                // If we're higher than the high limit
+                else if (value > HighLimit && CurrentState != GreenhouseState.PROCESSING_COOLING)
+                {
+                    if (value >= _emergencyTemp)
+                    {
+                        return GreenhouseState.EMERGENCY;
+                    }
+                    else
+                    {
+                        return GreenhouseState.COOLING;
+                    }
+                }
+                // If we're higher than the high limit but we're already cooling
+                else if (value > HighLimit && CurrentState == GreenhouseState.PROCESSING_COOLING)
+                {
+                    if (value >= _emergencyTemp)
+                    {
+                        return GreenhouseState.EMERGENCY;
+                    }
+                    else
+                    {
+                        CurrentState = GreenhouseState.COOLING;
+                        return GreenhouseState.NO_CHANGE;
+                    }
+                }
+                // If we're neither too high nor too low 
+                else if (value > LowLimit && value < HighLimit && CurrentState == GreenhouseState.PROCESSING_DATA)
+                {
+                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                else
+                {
+                    return GreenhouseState.WAITING_FOR_DATA;
+                }
+            }
+            // If ManualHeat is on
+            else if (ManualHeat == true && ManualCool != true)
+            {
+                if (CurrentState == GreenhouseState.PROCESSING_HEATING)
+                {
+                    CurrentState = GreenhouseState.HEATING;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                else
+                {
+                    return GreenhouseState.HEATING;
+                }
+            }
+            // If ManualHeat is off
+            //else if (ManualHeat == false)
+            //{
+            //    ManualHeat = null;
+            //    return GreenhouseState.WAITING_FOR_DATA;
+            //}
+            // If ManualCool is on
+            else if (ManualCool == true && ManualHeat != true)
+            {
+                if (CurrentState == GreenhouseState.PROCESSING_COOLING)
+                {
+                    CurrentState = GreenhouseState.COOLING;
+                    return GreenhouseState.NO_CHANGE;
                 }
                 else
                 {
                     return GreenhouseState.COOLING;
                 }
             }
-            else if (value > HighLimit && CurrentState == GreenhouseState.PROCESSING_COOLING)
-            {
-                if (value >= _emergencyTemp)
-                {
-                    return GreenhouseState.EMERGENCY;
-                }
-                else
-                {
-                    CurrentState = GreenhouseState.COOLING;
-                    return GreenhouseState.NO_CHANGE;
-                }
-            }
-            else if (value > LowLimit && value < HighLimit && CurrentState == GreenhouseState.PROCESSING_DATA)
-            {
-                CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                return GreenhouseState.NO_CHANGE;
-            }
+            // If ManualCool is off
+            //else if (ManualCool == false)
+            //{
+            //    ManualCool = null;
+            //    return GreenhouseState.WAITING_FOR_DATA;
+            //}
+            // If we don't meet any of those criteria, return an error state
             else
             {
-                return GreenhouseState.WAITING_FOR_DATA;
+                return GreenhouseState.ERROR;
             }
         }
 
@@ -117,21 +180,57 @@ namespace GreenhouseController
             List<Commands> commandsToSend = new List<Commands>();
             if (state == GreenhouseState.COOLING)
             {
-                commandsToSend.Add(Commands.HEAT_OFF);
-                commandsToSend.Add(Commands.FANS_ON);
-                commandsToSend.Add(Commands.VENT_OPEN);
+                if (_heatState == true)
+                {
+                    commandsToSend.Add(Commands.HEAT_OFF);
+                    _heatState = false;
+                }
+                if (_fanState == false)
+                {
+                    commandsToSend.Add(Commands.FANS_ON);
+                    _fanState = true;
+                }
+                if (_ventState == false)
+                {
+                    commandsToSend.Add(Commands.VENTS_OPEN);
+                    _ventState = true;
+                }
             }
             else if (state == GreenhouseState.HEATING)
             {
-                commandsToSend.Add(Commands.FANS_OFF);
-                commandsToSend.Add(Commands.HEAT_ON);
-                commandsToSend.Add(Commands.VENT_CLOSE);
+                if (_fanState == true)
+                {
+                    commandsToSend.Add(Commands.FANS_OFF);
+                    _fanState = false;
+                }
+                if (_heatState == false)
+                {
+                    commandsToSend.Add(Commands.HEAT_ON);
+                    _heatState = true;
+                }
+                if (_ventState == true)
+                {
+                    commandsToSend.Add(Commands.VENTS_CLOSED);
+                    _ventState = false;
+                }
             }
             else if (state == GreenhouseState.WAITING_FOR_DATA)
             {
-                commandsToSend.Add(Commands.HEAT_OFF);
-                commandsToSend.Add(Commands.FANS_OFF);
-                commandsToSend.Add(Commands.VENT_CLOSE);
+                if (_heatState == true)
+                {
+                    commandsToSend.Add(Commands.HEAT_OFF);
+                    _heatState = false;
+                }
+                if (_fanState == true)
+                {
+                    commandsToSend.Add(Commands.FANS_OFF);
+                    _fanState = false;
+                }
+                if (_ventState == true)
+                {
+                    commandsToSend.Add(Commands.VENTS_CLOSED);
+                    _ventState = false;
+                }
             }
 
             return commandsToSend;

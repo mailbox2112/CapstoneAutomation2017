@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 namespace GreenhouseUnitTests
 {
+    // TODO: Write new unit tests!
     [TestClass]
     public class LightingStateMachineTests
     {
@@ -12,7 +13,7 @@ namespace GreenhouseUnitTests
         [TestMethod]
         public void TestLightingStateMachineCreation()
         {
-            testMachine = new LightingStateMachine();
+            testMachine = new LightingStateMachine(1);
             Assert.IsNotNull(testMachine);
             Assert.IsInstanceOfType(testMachine, typeof(LightingStateMachine));
         }
@@ -20,35 +21,13 @@ namespace GreenhouseUnitTests
         [TestMethod]
         public void TestLightingStateDecisions()
         {
-            testMachine = new LightingStateMachine();
-            testMachine.LowLimit = 50;
-            testMachine.HighLimit = 120;
-            GreenhouseState result = testMachine.DetermineState(30);
-            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.PROCESSING_DATA);
-            Assert.IsTrue(result == GreenhouseState.LIGHTING);
-            
-            testMachine.DetermineState(100);
-            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.WAITING_FOR_DATA);
-
-            result = testMachine.DetermineState(30);
-            using (ArduinoControlSenderSimulator sim = new ArduinoControlSenderSimulator())
-            {
-                sim.SendCommand(result, testMachine);
-            }
-            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.LIGHTING);
+            throw new NotImplementedException();
         }
 
         [TestMethod]
         public void TestConvertLightingStateToCommands()
         {
-            testMachine = new LightingStateMachine();
-            GreenhouseState state = GreenhouseState.LIGHTING;
-            List<Commands> results = testMachine.ConvertStateToCommands(state);
-            Assert.IsTrue(results[0] == Commands.LIGHTS_ON);
-
-            state = GreenhouseState.WAITING_FOR_DATA;
-            results = testMachine.ConvertStateToCommands(state);
-            Assert.IsTrue(results[0] == Commands.LIGHTS_OFF);
+            throw new NotImplementedException();
         }
     }
 }
