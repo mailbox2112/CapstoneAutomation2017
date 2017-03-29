@@ -59,179 +59,13 @@ namespace ConsoleApplication1
                 ShadeLim = 50000
             }, Formatting.Indented));
 
-            Console.WriteLine(Encoding.ASCII.GetString(limitsToSend));
-
             // TODO: add ability to change greenhouse limits
             Console.WriteLine("Would you like to use manual or random mode? Press M for manual, R for random.");
             var key = Console.ReadLine();
             Console.WriteLine();
             if (key == "m" || key == "M")
             {
-                #region Manual Controls
-                List<int> zones = new List<int>() { 1, 2, 3, 4, 5 };
-                List<ManualPacket> packetsToSend = new List<ManualPacket>();
-                Console.WriteLine("Manual mode selected. Currently, the following commands are supported:");
-                Console.WriteLine("Q to quit.");
-                Console.WriteLine("H for heating.");
-                Console.WriteLine("C for cooling.");
-                Console.WriteLine("L for lighting.");
-                Console.WriteLine("W for watering.");
 
-                bool? heat = false;
-                bool? cool = false;
-                bool? light = false;
-                bool? water = false;
-                bool stop = false;
-                bool invalidCommand = false;
-                string command = null;
-                while (stop == false)
-                {
-                    invalidCommand = false;
-                    command = Console.ReadLine();
-                    Console.WriteLine();
-                    foreach (char c in command)
-                    {
-                        if (c == 'h' || c == 'H')
-                        {
-                            if (heat == null)
-                            {
-                                heat = true;
-                            }
-                            else if (heat == true)
-                            {
-                                heat = false;
-                            }
-                            else if (heat == true && cool == true)
-                            {
-                                Console.WriteLine("Invalid command, cannot heat and cool simultaneously! Please try again.");
-                                heat = null;
-                                cool = null;
-                                light = null;
-                                water = null;
-                                invalidCommand = true;
-                                break;
-                            }
-                            else
-                            {
-                                heat = null;
-                            }
-                        }
-                        else if (c == 'c' || c == 'C')
-                        {
-                            if (heat != true)
-                            {
-                                cool = !cool;
-                            }
-                            else
-                            {
-                                Console.WriteLine("Invalid command, cannot heat and cool simultaneously! Please try again.");
-                                heat = false;
-                                cool = false;
-                                light = false;
-                                water = false;
-                                invalidCommand = true;
-                                break;
-                            }
-                        }
-                        else if (c == 'l' || c == 'L')
-                        {
-                            if (light == null)
-                            {
-                                light = true;
-                            }
-                            else if (light == true)
-                            {
-                                light = false;
-                            }
-                            else
-                            {
-                                light = null;
-                            }
-                        }
-                        else if (c == 'w' || c == 'W')
-                        {
-                            if (water == null)
-                            {
-                                water = true;
-                            } 
-                            else if (water == true)
-                            {
-                                water = false;
-                            }
-                            else
-                            {
-                                water = null;
-                            }
-                        }
-                        else if (command == "q" || command == "Q")
-                        {
-                            stop = true;
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Invalid command {command}, please press one of the following keys:");
-                            Console.WriteLine("Q to quit.");
-                            Console.WriteLine("H for heating.");
-                            Console.WriteLine("C for cooling.");
-                            Console.WriteLine("L for lighting.");
-                            Console.WriteLine("W for watering.");
-                        }
-                    }
-                    if (invalidCommand == false)
-                    {
-                        byte[] buffer = new byte[1024];
-                        networkStream.Read(buffer, 0, buffer.Length);
-                        string received = JsonConvert.DeserializeObject<string>(Encoding.ASCII.GetString(buffer));
-                        if (received == "DATA")
-                        {
-                            Console.WriteLine("Request for data received!");
-                            try
-                            {
-                                JsonSpoof jSpoof = new JsonSpoof();
-                                foreach (int zone in tlhZones)
-                                {
-                                    string json = jSpoof.TLHData(zone);
-                                    byte[] sendBytes = Encoding.ASCII.GetBytes(json);
-                                    networkStream.Write(sendBytes, 0, sendBytes.Length);
-                                    networkStream.Flush();
-                                    Console.WriteLine(" >> " + $"{json}");
-
-                                    Thread.Sleep(500);
-                                }
-                                foreach (int zone in mZones)
-                                {
-                                    string mJson = jSpoof.MoistureData(zone);
-                                    byte[] mSendBytes = Encoding.ASCII.GetBytes(mJson);
-                                    networkStream.Write(mSendBytes, 0, mSendBytes.Length);
-                                    networkStream.Flush();
-                                    Console.WriteLine(" >> " + $"{mJson}");
-                                    Thread.Sleep(500);
-                                }
-                                networkStream.Write(limitsToSend, 0, limitsToSend.Length);
-                                Thread.Sleep(500);
-
-                                ManualPacket packet = new ManualPacket()
-                                {
-                                    ManualCool = cool,
-                                    ManualHeat = heat,
-                                    ManualLight = light,
-                                    ManualWater = water
-                                };
-                                string manual = JsonConvert.SerializeObject(packet);
-                                byte[] manualBytes = Encoding.ASCII.GetBytes(manual);
-                                networkStream.Write(manualBytes, 0, manualBytes.Length);
-                                networkStream.Flush();
-
-                                Console.WriteLine("Data sent!");
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine(ex.Message);
-                            }
-                        }
-                    }
-                }
-                #endregion
             }
             else if (key == "R" || key == "r")
             {
@@ -240,40 +74,24 @@ namespace ConsoleApplication1
                 while(true)
                 {
                     networkStream.Read(buffer, 0, buffer.Length);
-                    string received = JsonConvert.DeserializeObject<string>(Encoding.ASCII.GetString(buffer));
-                    if (received == "DATA")
+                    string received = Encoding.ASCII.GetString(buffer).Trim('\0');
+                    Array.Clear(buffer, 0, buffer.Length);
+                    if (received == "TLH")
                     {
                         Console.WriteLine("Request for data received!");
                         try
                         {
+                            List<TLHPacket> jspoofs = new List<TLHPacket>();
                             JsonSpoof jSpoof = new JsonSpoof();
                             foreach(int zone in tlhZones)
                             {
-                                string json = jSpoof.TLHData(zone);
-                                byte[] sendBytes = Encoding.ASCII.GetBytes(json);
-                                networkStream.Write(sendBytes, 0, sendBytes.Length);
-                                networkStream.Flush();
-                                Console.WriteLine($"{json}");
-
-                                //Thread.Sleep(500);
+                                TLHPacket packet = jSpoof.TLHData(zone);
+                                jspoofs.Add(packet);
+                                Console.WriteLine($"{packet}");
                             }
-                            foreach(int zone in mZones)
-                            {
-                                string mJson = jSpoof.MoistureData(zone);
-                                byte[] mSendBytes = Encoding.ASCII.GetBytes(mJson);
-                                networkStream.Write(mSendBytes, 0, mSendBytes.Length);
-                                networkStream.Flush();
-                                Console.WriteLine($"{mJson}");
-                                //Thread.Sleep(500);
-                            }
-                            networkStream.Write(limitsToSend, 0, limitsToSend.Length);
-                            networkStream.Flush();
-                            //Thread.Sleep(500);
-                            
-                            ManualPacket manual = new ManualPacket() { ManualWater = true, ManualCool = false, ManualHeat = false, ManualLight = false, ManualShade = false };
-                            string manualJson = JsonConvert.SerializeObject(manual).Normalize();
-                            byte[] manualBytes = Encoding.ASCII.GetBytes(manualJson);
-                            networkStream.Write(manualBytes, 0, manualBytes.Length);
+                            string json = JsonConvert.SerializeObject(jspoofs);
+                            byte[] sendBytes = Encoding.ASCII.GetBytes(json);
+                            networkStream.Write(sendBytes, 0, sendBytes.Length);
                             networkStream.Flush();
 
                             Console.WriteLine("Data sent!");
@@ -282,6 +100,50 @@ namespace ConsoleApplication1
                         {
                             Console.WriteLine(ex.ToString());
                         }
+                    }
+                    else if (received == "MOISTURE")
+                    {
+                        Console.WriteLine("Request for data received!");
+                        try
+                        {
+                            List<MoisturePacket> jspoofs = new List<MoisturePacket>();
+                            JsonSpoof jSpoof = new JsonSpoof();
+                            foreach (int zone in mZones)
+                            {
+                                MoisturePacket packet = jSpoof.MoistureData(zone);
+                                jspoofs.Add(packet);
+                                Console.WriteLine($"{packet}");
+                            }
+                            string json = JsonConvert.SerializeObject(jspoofs);
+                            byte[] sendBytes = Encoding.ASCII.GetBytes(json);
+                            networkStream.Write(sendBytes, 0, sendBytes.Length);
+                            networkStream.Flush();
+
+                            Console.WriteLine("Data sent!");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.ToString());
+                        }
+                    }
+                    else if (received == "MANUAL")
+                    {
+                        ManualPacket packet = new ManualPacket()
+                        {
+                            ManualCool = null,
+                            ManualHeat = null,
+                            ManualLight = null,
+                            ManualWater = null
+                        };
+                        string manual = JsonConvert.SerializeObject(packet);
+                        byte[] manualBytes = Encoding.ASCII.GetBytes(manual);
+                        networkStream.Write(manualBytes, 0, manualBytes.Length);
+                        networkStream.Flush();
+                    }
+                    else if (received == "LIMITS")
+                    {
+                        networkStream.Write(limitsToSend, 0, limitsToSend.Length);
+                        networkStream.Flush();
                     }
                 }
                 #endregion
@@ -299,7 +161,7 @@ namespace ConsoleApplication1
         {
             
             public JsonSpoof() { }
-            public string TLHData(int zone)
+            public TLHPacket TLHData(int zone)
             {
                 int tempMin = 80;
                 int tempMax = 90;
@@ -314,12 +176,11 @@ namespace ConsoleApplication1
                     ID = zone
                 };
 
-                string spoofData = JsonConvert.SerializeObject(packet, Formatting.Indented);
-
-                return spoofData;
+               
+                return packet;
             }
 
-            public string MoistureData(int zone)
+            public MoisturePacket MoistureData(int zone)
             {
                 Random rand = new Random();
                 MoisturePacket packet = new MoisturePacket()
@@ -329,9 +190,7 @@ namespace ConsoleApplication1
                     Probe2 = rand.Next(0, 100),
                 };
 
-                string spoofData = JsonConvert.SerializeObject(packet, Formatting.Indented);
-
-                return spoofData;
+                return packet;
             }
         }
     }

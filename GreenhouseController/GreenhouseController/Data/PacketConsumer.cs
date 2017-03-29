@@ -18,7 +18,6 @@ namespace GreenhouseController
         private List<MoisturePacket> _moistureInformation;
         private ManualPacket _manual;
         private LimitPacket _limits;
-        private DateTime _currentTime;
 
         /// <summary>
         /// Private constructor for singleton pattern
@@ -35,54 +34,27 @@ namespace GreenhouseController
         /// Takes in a BlockingCollection and removes data. Sends data to be assessed elsewhere
         /// </summary>
         /// <param name="source">Blocking collection used to hold data for producer consumer pattern</param>
-        public void ReceiveGreenhouseData(BlockingCollection<byte[]> source)
+        public void ReceiveGreenhouseData(BlockingCollection<byte[]> source, string type)
         {
             try
             {
                 source.TryTake(out _data);
-                Console.WriteLine(Encoding.ASCII.GetString(_data));
-                var data = JObject.Parse(Encoding.ASCII.GetString(_data));
-
-                Console.WriteLine(data.ToString());
-                    
-
-                if (data["Type"].Value<int>() == 0)
+                switch(type)
                 {
-                    _currentTime = data["TimeOfSend"].Value<DateTime>();
-                    var deserializedData = JsonConvert.DeserializeObject<TLHPacket>(Encoding.ASCII.GetString(_data));
-
-                    // Check for repeat zones, and if we have any, throw out the old zone data
-                    if (_tlhInformation.Where(p => p.ID == deserializedData.ID) != null)
-                    {
-                        _tlhInformation.RemoveAll(p => p.ID == deserializedData.ID);
-                    }
-
-                    _tlhInformation.Add(deserializedData);
-                }
-                // if it's a moisture packet
-                else if (data["Type"].Value<int>() == 1)
-                {
-                    var deserializedData = JsonConvert.DeserializeObject<MoisturePacket>(Encoding.ASCII.GetString(_data));
-
-                    // Check for repeat zones, and if we have any, throw out the old zone data
-                    if (_moistureInformation.Where(p => p.ID == deserializedData.ID) != null)
-                    {
-                        _moistureInformation.RemoveAll(p => p.ID == deserializedData.ID);
-                    }
-
-                    _moistureInformation.Add(deserializedData);
-                }
-                else if (data["Type"].Value<int>() == 2)
-                {
-                    var deserializedData = JsonConvert.DeserializeObject<LimitPacket>(Encoding.ASCII.GetString(_data));
-
-                    _limits = deserializedData;
-                }
-                else if (data["Type"].Value<int>() == 3)
-                {
-                    var deserializedData = JsonConvert.DeserializeObject<ManualPacket>(Encoding.ASCII.GetString(_data));
-
-                    _manual = deserializedData;
+                    case "TLH":
+                        _tlhInformation = JsonConvert.DeserializeObject<List<TLHPacket>>(Encoding.ASCII.GetString(_data));
+                        break;
+                    case "MOISTURE":
+                        _moistureInformation = JsonConvert.DeserializeObject<List<MoisturePacket>>(Encoding.ASCII.GetString(_data));
+                        break;
+                    case "MANUAL":
+                        _manual = JsonConvert.DeserializeObject<ManualPacket>(Encoding.ASCII.GetString(_data));
+                        break;
+                    case "LIMITS":
+                        _limits = JsonConvert.DeserializeObject<LimitPacket>(Encoding.ASCII.GetString(_data));
+                        break;
+                    default:
+                        break;
                 }
             }
             catch (Exception ex)

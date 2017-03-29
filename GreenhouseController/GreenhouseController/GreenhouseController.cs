@@ -13,12 +13,12 @@ namespace GreenhouseController
         // TODO: RESET BUTTON?
         static void Main(string[] args)
         {
-            NetworkListener packetListener = new NetworkListener();
+            // Create the blocking collection
+            var dataBuffer = new BlockingCollection<byte[]>();
+            NetworkListener packetListener = new NetworkListener(dataBuffer);
             PacketConsumer packetConsumer = new PacketConsumer();
             // Connect to the server
             packetListener.TryConnect();
-            // Create the blocking collection
-            var dataBuffer = new BlockingCollection<byte[]>();
 
             // Print out the state of the state machine at the start of the program
             Console.WriteLine($"Temperature State: {StateMachineContainer.Instance.Temperature.CurrentState.ToString()}");
@@ -47,7 +47,7 @@ namespace GreenhouseController
             }
 
             // Event handlers for when blocking collections get data
-            packetListener.ItemInQueue += (o, i) => { packetConsumer.ReceiveGreenhouseData(i.Buffer); };
+            packetListener.ItemInQueue += (o, i) => { packetConsumer.ReceiveGreenhouseData(i.Buffer, i.Type); };
             
             // Timer for requesting sensor data
             var time = new System.Timers.Timer();
@@ -59,7 +59,7 @@ namespace GreenhouseController
 
             // Listens for any data that comes in, be it sensor data or control data
             //Task.WaitAll(Task.Run(new Action(() => packetListener.ReadGreenhouseData(dataBuffer))));
-            packetListener.ReadGreenhouseData(dataBuffer);
+            Console.ReadLine();
         }
     }
 }
