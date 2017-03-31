@@ -74,7 +74,7 @@ namespace ConsoleApplication1
                 while(true)
                 {
                     networkStream.Read(buffer, 0, buffer.Length);
-                    string received = Encoding.ASCII.GetString(buffer).Trim('\0');
+                    string received = JsonConvert.DeserializeObject<string>(Encoding.ASCII.GetString(buffer));
                     Array.Clear(buffer, 0, buffer.Length);
                     if (received == "TLH")
                     {

@@ -66,7 +66,7 @@ namespace GreenhouseController
                 foreach(string request in _requests)
                 {
                     Console.WriteLine($"\nRequesting {request}...");
-                    byte[] data = Encoding.ASCII.GetBytes(request);
+                    byte[] data = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(request));
                     _dataStream.Write(data, 0, data.Length);
                     _dataStream.Flush();
                     ReadGreenhouseData(request);
