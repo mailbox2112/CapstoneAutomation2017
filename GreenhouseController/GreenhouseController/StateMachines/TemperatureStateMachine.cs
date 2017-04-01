@@ -176,7 +176,6 @@ namespace GreenhouseController
         /// <returns></returns>
         public List<Commands> ConvertStateToCommands(GreenhouseState state)
         {
-            // TODO: check the state of the fans, heat, etc. so we know what commands to send
             List<Commands> commandsToSend = new List<Commands>();
             if (state == GreenhouseState.COOLING)
             {

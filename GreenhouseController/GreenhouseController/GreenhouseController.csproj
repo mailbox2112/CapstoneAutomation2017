@@ -56,6 +56,8 @@
     <Compile Include="Limits\LimitPacket.cs" />
     <Compile Include="Limits\LimitsAnalyzer.cs" />
     <Compile Include="Data\MoisturePacket.cs" />
+    <Compile Include="PacketContainers\MoisturePacketContainer.cs" />
+    <Compile Include="PacketContainers\TLHPacketContainer.cs" />
     <Compile Include="StateMachines\StateEventArgs.cs" />
     <Compile Include="Data\TLHPacket.cs" />
     <Compile Include="StateMachines\ITimeBasedStateMachine.cs" />
@@ -65,7 +67,7 @@
     <Compile Include="Data\DataEventArgs.cs" />
     <Compile Include="Data\DataPackets.cs" />
     <Compile Include="Data\DataAnalyzer.cs" />
-    <Compile Include="Data\NetworkListener.cs" />
+    <Compile Include="Data\PacketRequester.cs" />
     <Compile Include="GreenhouseController.cs" />
     <Compile Include="StateMachines\GreenhouseState.cs" />
     <Compile Include="Data\PacketConsumer.cs" />

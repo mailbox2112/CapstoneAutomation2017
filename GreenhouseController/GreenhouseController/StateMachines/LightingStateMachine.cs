@@ -8,7 +8,6 @@ namespace GreenhouseController
 {
     public class LightingStateMachine : ITimeBasedStateMachine
     {
-        // TODO: Add timer event-based lighting state changes
         // Private member for implementing custom get/set using the event handler
         private GreenhouseState _currentState;
 
@@ -64,7 +63,6 @@ namespace GreenhouseController
 
             if (ManualLight != true)
             {
-                // TODO: Change this to use the DateTimes we receive in packets
                 // Process data and take into account if we were already lighting when we received the data
                 if (Begin <= currentTime && currentTime <= End && CurrentState != GreenhouseState.PROCESSING_LIGHTING)
                 {
@@ -123,7 +121,6 @@ namespace GreenhouseController
         /// <returns></returns>
         public List<Commands> ConvertStateToCommands(GreenhouseState state)
         {
-            // TODO: check the state of the lights so we don't have to send the command if it's already off
             List<Commands> commandsToSend = new List<Commands>();
             if (state == GreenhouseState.LIGHTING)
             {

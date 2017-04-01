@@ -1,4 +1,5 @@
 ﻿using GreenhouseController.Data;
+using GreenhouseController.Packets;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -36,34 +37,38 @@ namespace GreenhouseController
         /// <param name="source">Blocking collection used to hold data for producer consumer pattern</param>
         public void ReceiveGreenhouseData(BlockingCollection<byte[]> source, string type)
         {
-            try
+            // Create a container for the TLH and moisture packets so we can deserialize them easily
+            TLHPacketContainer tlhContainer = new TLHPacketContainer();
+            MoisturePacketContainer moistureContainer = new MoisturePacketContainer();
+
+            // Take the bytes out of the queue and turn them back into a string
+            source.TryTake(out _data);
+            string json = Encoding.ASCII.GetString(_data);
+
+            // Take the string to a JObject and deserialize according to the appropriate Type value
+            JObject received = JObject.Parse(json);
+            switch (received["Type"].Value<int>())
             {
-                source.TryTake(out _data);
-                switch(type)
-                {
-                    case "TLH":
-                        _tlhInformation = JsonConvert.DeserializeObject<List<TLHPacket>>(Encoding.ASCII.GetString(_data));
-                        break;
-                    case "MOISTURE":
-                        _moistureInformation = JsonConvert.DeserializeObject<List<MoisturePacket>>(Encoding.ASCII.GetString(_data));
-                        break;
-                    case "MANUAL":
-                        _manual = JsonConvert.DeserializeObject<ManualPacket>(Encoding.ASCII.GetString(_data));
-                        break;
-                    case "LIMITS":
-                        _limits = JsonConvert.DeserializeObject<LimitPacket>(Encoding.ASCII.GetString(_data));
-                        break;
-                    default:
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
+                case 0:
+                    tlhContainer = JsonConvert.DeserializeObject<TLHPacketContainer>(json);
+                    _tlhInformation = tlhContainer.Packets;
+                    break;
+                case 1:
+                    moistureContainer = JsonConvert.DeserializeObject<MoisturePacketContainer>(json);
+                    _moistureInformation = moistureContainer.Packets;
+                    break;
+                case 2:
+                    _limits = JsonConvert.DeserializeObject<LimitPacket>(json);
+                    break;
+                case 3:
+                    _manual = JsonConvert.DeserializeObject<ManualPacket>(json);
+                    break;
             }
 
+            // If we have all the TLH information, moisture information, limit and manual information we need...
             if (_tlhInformation.Count == 5 && _moistureInformation.Count == 6 && _limits != null && _manual != null)
             {
+                // Put everything into temporary variables and clear their values afterwards
                 TLHPacket[] tlhToSend = new TLHPacket[_tlhInformation.Count];
                 _tlhInformation.CopyTo(tlhToSend);
                 _tlhInformation.Clear();
@@ -77,6 +82,8 @@ namespace GreenhouseController
                 LimitPacket tempLimits = _limits;
                 _limits = null;
 
+                // TODO: change the architecture with the threading here
+                // Send the temporary variables off to be analyzed
                 DataAnalyzer data = new DataAnalyzer();
                 Task.Run(() => data.ExecuteActions(tlhToSend, moistureToSend, tempManual, tempLimits));
             }

@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using GreenhouseController;
 using GreenhouseController.Data;
+using GreenhouseController.Packets;
 
 namespace ConsoleApplication1
 {
@@ -16,7 +17,6 @@ namespace ConsoleApplication1
     // http://csharp.net-informations.com/communications/csharp-client-socket.htm
     public class SimpleTCPServerTest
     {
-        // TODO: Make this broadcast UDP for the limits
         static void Main(string[] args)
         {
             Thread.Sleep(1000);
@@ -89,12 +89,13 @@ namespace ConsoleApplication1
                                 jspoofs.Add(packet);
                                 Console.WriteLine($"{packet}");
                             }
-                            string json = JsonConvert.SerializeObject(jspoofs);
+                            TLHPacketContainer container = new TLHPacketContainer() { Packets = jspoofs };
+                            string json = JsonConvert.SerializeObject(container);
                             byte[] sendBytes = Encoding.ASCII.GetBytes(json);
                             networkStream.Write(sendBytes, 0, sendBytes.Length);
                             networkStream.Flush();
 
-                            Console.WriteLine("Data sent!");
+                            Console.WriteLine($"{json}");
                         }
                         catch (Exception ex)
                         {
@@ -114,7 +115,8 @@ namespace ConsoleApplication1
                                 jspoofs.Add(packet);
                                 Console.WriteLine($"{packet}");
                             }
-                            string json = JsonConvert.SerializeObject(jspoofs);
+                            MoisturePacketContainer container = new MoisturePacketContainer() { Packets = jspoofs };
+                            string json = JsonConvert.SerializeObject(container);
                             byte[] sendBytes = Encoding.ASCII.GetBytes(json);
                             networkStream.Write(sendBytes, 0, sendBytes.Length);
                             networkStream.Flush();
@@ -159,15 +161,14 @@ namespace ConsoleApplication1
 
         internal class JsonSpoof
         {
-            
+            public Random rand = new Random();
             public JsonSpoof() { }
             public TLHPacket TLHData(int zone)
             {
-                int tempMin = 80;
-                int tempMax = 90;
+                int tempMin = 50;
+                int tempMax = 120;
                 int humidMin = 0;
                 int humidMax = 100;
-                Random rand = new Random();
                 TLHPacket packet = new TLHPacket()
                 {
                     Temperature = rand.Next(tempMin, tempMax),

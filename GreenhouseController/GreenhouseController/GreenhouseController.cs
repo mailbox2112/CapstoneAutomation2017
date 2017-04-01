@@ -15,8 +15,9 @@ namespace GreenhouseController
         {
             // Create the blocking collection
             var dataBuffer = new BlockingCollection<byte[]>();
-            NetworkListener packetListener = new NetworkListener(dataBuffer);
+            PacketRequester packetListener = new PacketRequester(dataBuffer);
             PacketConsumer packetConsumer = new PacketConsumer();
+
             // Connect to the server
             packetListener.TryConnect();
 
@@ -58,7 +59,6 @@ namespace GreenhouseController
             GC.KeepAlive(time);
 
             // Listens for any data that comes in, be it sensor data or control data
-            //Task.WaitAll(Task.Run(new Action(() => packetListener.ReadGreenhouseData(dataBuffer))));
             Console.ReadLine();
         }
     }

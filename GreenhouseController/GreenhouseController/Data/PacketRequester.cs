@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    public class NetworkListener
+    public class PacketRequester
     {
         private const string IP = "192.168.1.103";
         private const int PORT = 8888;
@@ -20,7 +20,6 @@ namespace GreenhouseController
         private byte[] _tempBuffer = new byte[1024];
         private NetworkStream _dataStream;
         private TcpClient _client;
-        private bool _break;
         private List<string> _requests = new List<string>() { "TLH", "MOISTURE", "LIMITS", "MANUAL" };
         private BlockingCollection<byte[]> _queue;
 
@@ -31,13 +30,16 @@ namespace GreenhouseController
         /// </summary>
         /// <param name="hostEndpoint">Endpoint to be reached</param>
         /// <param name="hostAddress">IP address we're trying to connect to</param>
-        public NetworkListener(BlockingCollection<byte[]> queue)
+        public PacketRequester(BlockingCollection<byte[]> queue)
         {
-            Console.WriteLine("Constructing data producer...");
+            Console.WriteLine("Constructing packet requester...");
             _queue = queue;
-            Console.WriteLine("Data producer constructed.\n");
+            Console.WriteLine("Packet requester constructed.\n");
         }
 
+        /// <summary>
+        /// Attempt to connect to the server
+        /// </summary>
         public void TryConnect()
         {
             _client = new TcpClient();
@@ -56,11 +58,14 @@ namespace GreenhouseController
                 }
             }
             _dataStream = _client.GetStream();
-            _break = false;
         }
 
+        /// <summary>
+        /// Request data and read the response from the server
+        /// </summary>
         public void RequestData()
         {
+            // TODO: open and close the socket after each request and read
             if (!_dataStream.DataAvailable)
             {
                 foreach(string request in _requests)
@@ -80,18 +85,23 @@ namespace GreenhouseController
         /// </summary>
         public void ReadGreenhouseData(string type)
         {
-            // The read command is blocking, so this just waits until data is available
+            // Read the data in response the request for data
             try
             {
                 if (_client.Connected)
                 {
+                    // Read data and copy it to a temporary array/buffer
                     _dataStream.Read(_buffer, 0, _buffer.Length);
                     Array.Copy(sourceArray: _buffer, destinationArray: _tempBuffer, length: _buffer.Length);
 
+                    // Try to add it to the blocking collection
                     _queue.TryAdd(_tempBuffer);
+
+                    // Hook up a temporary event handler and trigger the event
                     EventHandler<DataEventArgs> handler = ItemInQueue;
                     handler(this, new DataEventArgs() { Buffer = _queue, Type = type });
 
+                    // Clear our buffer
                     Array.Clear(_buffer, 0, _buffer.Length);
                 }
             }
@@ -99,11 +109,15 @@ namespace GreenhouseController
             // and try to connect to it.
             catch (Exception ex)
             {
+                // Write the exception for debugging purposes
                 Console.WriteLine(ex.Message);
+
+                // Close the connection and create a new client
                 _client.Close();
                 _client = new TcpClient();
                 while (!_client.Connected)
                 {
+                    // Try to reconnect to the server, and wait a second between each attempt
                     try
                     {
                         //_client.Connect(IP, PORT);
@@ -116,6 +130,7 @@ namespace GreenhouseController
                         Thread.Sleep(1000);
                     }
                 }
+                // Once we're connected, get the datastream from the client
                 _dataStream = _client.GetStream();
             }
         }

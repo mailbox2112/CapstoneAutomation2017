@@ -9,7 +9,6 @@ namespace GreenhouseController
 {
     public class DataAnalyzer
     {
-        //TODO: Fix manual control
         private double _avgTemp;
         private double _avgLight;
         private DateTime _currentTime;
