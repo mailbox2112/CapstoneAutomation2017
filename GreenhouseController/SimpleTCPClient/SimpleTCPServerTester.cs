@@ -24,10 +24,6 @@ namespace ConsoleApplication1
             
             TcpClient client = default(TcpClient);
             serverListener.Start();
-            Console.WriteLine(" >> Server Started");
-            client = serverListener.AcceptTcpClient();
-            Console.WriteLine(" >> Accept connection from client");
-            NetworkStream networkStream = client.GetStream();
 
             int[] tlhZones = new int[] { 1, 2, 3, 4, 5 };
             int[] mZones = new int[] { 1, 2, 3, 4, 5, 6 };
@@ -73,6 +69,11 @@ namespace ConsoleApplication1
                 byte[] buffer = new byte[1024];
                 while(true)
                 {
+                    Console.WriteLine("Accepting connection...");
+                    client = serverListener.AcceptTcpClient();
+                    Console.WriteLine("Connection accepted...");
+                    NetworkStream networkStream = client.GetStream();
+
                     networkStream.Read(buffer, 0, buffer.Length);
                     string received = JsonConvert.DeserializeObject<string>(Encoding.ASCII.GetString(buffer));
                     Array.Clear(buffer, 0, buffer.Length);
@@ -83,12 +84,14 @@ namespace ConsoleApplication1
                         {
                             List<TLHPacket> jspoofs = new List<TLHPacket>();
                             JsonSpoof jSpoof = new JsonSpoof();
-                            foreach(int zone in tlhZones)
+
+                            foreach (int zone in tlhZones)
                             {
                                 TLHPacket packet = jSpoof.TLHData(zone);
                                 jspoofs.Add(packet);
                                 Console.WriteLine($"{packet}");
                             }
+
                             TLHPacketContainer container = new TLHPacketContainer() { Packets = jspoofs };
                             string json = JsonConvert.SerializeObject(container);
                             byte[] sendBytes = Encoding.ASCII.GetBytes(json);
@@ -109,19 +112,21 @@ namespace ConsoleApplication1
                         {
                             List<MoisturePacket> jspoofs = new List<MoisturePacket>();
                             JsonSpoof jSpoof = new JsonSpoof();
+
                             foreach (int zone in mZones)
                             {
                                 MoisturePacket packet = jSpoof.MoistureData(zone);
                                 jspoofs.Add(packet);
                                 Console.WriteLine($"{packet}");
                             }
+
                             MoisturePacketContainer container = new MoisturePacketContainer() { Packets = jspoofs };
                             string json = JsonConvert.SerializeObject(container);
                             byte[] sendBytes = Encoding.ASCII.GetBytes(json);
                             networkStream.Write(sendBytes, 0, sendBytes.Length);
                             networkStream.Flush();
 
-                            Console.WriteLine("Data sent!");
+                            Console.WriteLine($"{json}");
                         }
                         catch (Exception ex)
                         {
@@ -141,6 +146,8 @@ namespace ConsoleApplication1
                         byte[] manualBytes = Encoding.ASCII.GetBytes(manual);
                         networkStream.Write(manualBytes, 0, manualBytes.Length);
                         networkStream.Flush();
+
+                        Console.WriteLine($"{manual}");
                     }
                     else if (received == "LIMITS")
                     {
@@ -156,7 +163,7 @@ namespace ConsoleApplication1
             }
             client.Close();
             serverListener.Stop();
-            Console.WriteLine(" >> exit");
+            Console.WriteLine("Exiting...");
         }
 
         internal class JsonSpoof

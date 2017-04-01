@@ -19,7 +19,7 @@ namespace GreenhouseController
             PacketConsumer packetConsumer = new PacketConsumer();
 
             // Connect to the server
-            packetListener.TryConnect();
+            //packetListener.TryConnect();
 
             // Print out the state of the state machine at the start of the program
             Console.WriteLine($"Temperature State: {StateMachineContainer.Instance.Temperature.CurrentState.ToString()}");

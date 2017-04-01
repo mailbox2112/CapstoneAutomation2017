@@ -19,7 +19,7 @@ namespace GreenhouseController
         private byte[] _buffer = new byte[1024];
         private byte[] _tempBuffer = new byte[1024];
         private NetworkStream _dataStream;
-        private TcpClient _client;
+        private TcpClient _client = new TcpClient();
         private List<string> _requests = new List<string>() { "TLH", "MOISTURE", "LIMITS", "MANUAL" };
         private BlockingCollection<byte[]> _queue;
 
@@ -42,13 +42,12 @@ namespace GreenhouseController
         /// </summary>
         public void TryConnect()
         {
-            _client = new TcpClient();
             while (!_client.Connected)
             {
                 try
                 {
-                    //_client.Connect(IP, PORT);
-                    _client.Connect("127.0.0.1", PORT);
+                    //_client = new TcpClient(IP,PORT);
+                    _client = new TcpClient("127.0.0.1", PORT);
                     Console.WriteLine("Connected to data server.");
                 }
                 catch (Exception ex)
@@ -66,17 +65,17 @@ namespace GreenhouseController
         public void RequestData()
         {
             // TODO: open and close the socket after each request and read
-            if (!_dataStream.DataAvailable)
+            foreach(string request in _requests)
             {
-                foreach(string request in _requests)
-                {
-                    Console.WriteLine($"\nRequesting {request}...");
-                    byte[] data = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(request));
-                    _dataStream.Write(data, 0, data.Length);
-                    _dataStream.Flush();
-                    ReadGreenhouseData(request);
-                    Console.WriteLine("Request sent!\n");
-                }
+                TryConnect();
+                Console.WriteLine($"\nRequesting {request}...");
+                byte[] data = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(request));
+                _dataStream.Write(data, 0, data.Length);
+                _dataStream.Flush();
+                ReadGreenhouseData(request);
+                Console.WriteLine("Request sent!\n");
+                _client.Close();
+                _client.Dispose();
             }
         }
 
