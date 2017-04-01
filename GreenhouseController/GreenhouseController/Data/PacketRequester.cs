@@ -53,7 +53,7 @@ namespace GreenhouseController
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Could not connect to data server, retrying. {ex.Message}");
-                    Thread.Sleep(1000);
+                    Thread.Sleep(1);
                 }
             }
             _dataStream = _client.GetStream();
@@ -100,7 +100,7 @@ namespace GreenhouseController
                     EventHandler<DataEventArgs> handler = ItemInQueue;
                     handler(this, new DataEventArgs() { Buffer = _queue, Type = type });
 
-                    // Clear our buffer
+                    // Clear the buffer
                     Array.Clear(_buffer, 0, _buffer.Length);
                 }
             }
@@ -113,10 +113,11 @@ namespace GreenhouseController
 
                 // Close the connection and create a new client
                 _client.Close();
+                _client.Dispose();
                 _client = new TcpClient();
                 while (!_client.Connected)
                 {
-                    // Try to reconnect to the server, and wait a second between each attempt
+                    // Try to reconnect to the server, and wait a millisecond between each attempt
                     try
                     {
                         //_client.Connect(IP, PORT);
@@ -126,7 +127,7 @@ namespace GreenhouseController
                     catch (Exception e)
                     {
                         Console.WriteLine($"Could not connect to data server, retrying. {e.Message}");
-                        Thread.Sleep(1000);
+                        Thread.Sleep(1);
                     }
                 }
                 // Once we're connected, get the datastream from the client
