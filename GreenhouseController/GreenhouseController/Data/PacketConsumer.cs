@@ -47,6 +47,7 @@ namespace GreenhouseController
 
             // Take the string to a JObject and deserialize according to the appropriate Type value
             JObject received = JObject.Parse(json);
+            Console.WriteLine(received.ToString());
             switch (received["Type"].Value<int>())
             {
                 case 0:
@@ -66,8 +67,9 @@ namespace GreenhouseController
             }
 
             // If we have all the TLH information, moisture information, limit and manual information we need...
-            if (_tlhInformation.Count == 5 && _moistureInformation.Count == 6 && _limits != null && _manual != null)
+            if (_tlhInformation != null && _moistureInformation != null && _limits != null && _manual != null)
             {
+                Console.WriteLine("Sending to analyzers");
                 // Put everything into temporary variables and clear their values afterwards
                 TLHPacket[] tlhToSend = new TLHPacket[_tlhInformation.Count];
                 _tlhInformation.CopyTo(tlhToSend);

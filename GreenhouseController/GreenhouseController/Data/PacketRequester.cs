@@ -46,14 +46,14 @@ namespace GreenhouseController
             {
                 try
                 {
-                    //_client = new TcpClient(IP,PORT);
-                    _client = new TcpClient("127.0.0.1", PORT);
+                    _client = new TcpClient(IP,PORT);
+                    //_client = new TcpClient("127.0.0.1", PORT);
                     Console.WriteLine("Connected to data server.");
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Could not connect to data server, retrying. {ex.Message}");
-                    Thread.Sleep(1);
+                    Thread.Sleep(1000);
                 }
             }
             _dataStream = _client.GetStream();
@@ -75,7 +75,6 @@ namespace GreenhouseController
                 ReadGreenhouseData(request);
                 Console.WriteLine("Request sent!\n");
                 _client.Close();
-                _client.Dispose();
             }
         }
 
@@ -113,25 +112,7 @@ namespace GreenhouseController
 
                 // Close the connection and create a new client
                 _client.Close();
-                _client.Dispose();
-                _client = new TcpClient();
-                while (!_client.Connected)
-                {
-                    // Try to reconnect to the server, and wait a millisecond between each attempt
-                    try
-                    {
-                        //_client.Connect(IP, PORT);
-                        _client.Connect("127.0.0.1", PORT);
-                        Console.WriteLine("Connected to data server.");
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"Could not connect to data server, retrying. {e.Message}");
-                        Thread.Sleep(1);
-                    }
-                }
-                // Once we're connected, get the datastream from the client
-                _dataStream = _client.GetStream();
+                TryConnect();
             }
         }
     }

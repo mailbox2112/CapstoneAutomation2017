@@ -19,8 +19,8 @@ namespace GreenhouseController
 
         public DataAnalyzer()
         {
-            _avgTemp = new double();
-            _avgLight = new double();
+            _avgTemp = 0.0;
+            _avgLight = 0.0;
         }
 
         public void ExecuteActions(TLHPacket[] temperature, MoisturePacket[] moisture, ManualPacket manual, LimitPacket limits)
@@ -48,7 +48,8 @@ namespace GreenhouseController
 
             #region Automation Decision Making
             // Get the averages of greenhouse readings
-            GetTemperatureAverage(tlhData);
+            _avgTemp = GetTemperatureAverage(tlhData);
+            _avgLight = GetLightAverage(tlhData);
 
             // Determine what state we need to go to and then create a KVP for it and send it
             GreenhouseState goalTempState = StateMachineContainer.Instance.Temperature.DetermineState(_avgTemp);
@@ -95,15 +96,34 @@ namespace GreenhouseController
         /// Helper method for averaging greenhouse data
         /// </summary>
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
-        private void GetTemperatureAverage(TLHPacket[] data)
+        private double GetTemperatureAverage(TLHPacket[] data)
         {
+            double avg = 0.0;
             foreach (TLHPacket pack in data)
             {
-                _avgTemp += pack.Temperature;
-                _avgLight += pack.Light;
+                avg += pack.Temperature;
             }
-            _avgTemp /= 5;
-            _avgLight /= 5;
+            //_avgTemp /= 5;
+            //_avgLight /= 5;
+
+            avg /= 2.0;
+            Console.WriteLine("Average Temp: " + avg.ToString());
+            return avg;
+        }
+
+        private double GetLightAverage(TLHPacket[] data)
+        {
+            double avg = 0.0;
+            foreach (TLHPacket pack in data)
+            {
+                avg += pack.Light;
+            }
+            //_avgTemp /= 5;
+            //_avgLight /= 5;
+
+            avg /= 2.0;
+            Console.WriteLine("Average Light: " + avg.ToString());
+            return avg;
         }
 
         private DateTime GetCurrentTime(TLHPacket[] data)

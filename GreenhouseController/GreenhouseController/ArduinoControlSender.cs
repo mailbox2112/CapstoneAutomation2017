@@ -83,10 +83,10 @@ namespace GreenhouseController
             // Open the serial port
             if (_output.IsOpen != true)
             {
-                //_output.Open();
-                //Thread.Sleep(2000);
-                //_output.ReadTimeout = 500;
-                //_output.RtsEnable = true;
+                _output.Open();
+                Thread.Sleep(2000);
+                _output.ReadTimeout = 500;
+                _output.RtsEnable = true;
             }
             // TODO: add task down here to periodically poll for the arduino to make sure everything is okay
         }
@@ -109,8 +109,8 @@ namespace GreenhouseController
                 try
                 {
                     Console.WriteLine($"Attempting to send command {command}");
-                    //_output.Write(command.ToString());
-                    //Thread.Sleep(1250);
+                    _output.Write(command.ToString());
+                    Thread.Sleep(1250);
                     Console.WriteLine("Send finished.");
 
                     // Change states based on the key/value pair we passed in
@@ -118,15 +118,15 @@ namespace GreenhouseController
 
                     if (command == Commands.SHADE_EXTEND || command == Commands.SHADE_RETRACT)
                     {
-                        //_output.ReadTimeout = 10000;
+                        _output.ReadTimeout = 10000;
                     }
                     else
                     {
-                        //_output.ReadTimeout = 500;
+                        _output.ReadTimeout = 500;
                     }
                     // Wait for response
                     Console.WriteLine($"Waiting for response...");
-                    //_output.Read(buffer, 0, buffer.Length);
+                    _output.Read(buffer, 0, buffer.Length);
                     Console.WriteLine($"{buffer.GetValue(0)} received.");
                     
                     buffer = _ACK;
@@ -155,11 +155,11 @@ namespace GreenhouseController
                         try
                         {
                             Console.WriteLine("Retrying send...");
-                            //_output.Write(command.ToString());
-                            //Thread.Sleep(1250);
+                            _output.Write(command.ToString());
+                            Thread.Sleep(1250);
                             Console.WriteLine("Awaiting response...");
                             
-                            //_output.Read(buffer, 0, buffer.Length);
+                            _output.Read(buffer, 0, buffer.Length);
                             Console.WriteLine($"{buffer.GetValue(0)} received");
                             //buffer = ACK;
                         }
@@ -217,8 +217,8 @@ namespace GreenhouseController
                 try
                 {
                     Console.WriteLine($"Attempting to send command {command}");
-                    //_output.Write(command.ToString());
-                    //Thread.Sleep(1250);
+                    _output.Write(command.ToString());
+                    Thread.Sleep(1250);
                     Console.WriteLine("Send finished.");
 
                     // Change states based on the key/value pair we passed in
@@ -226,7 +226,7 @@ namespace GreenhouseController
 
                     // Wait for response
                     Console.WriteLine($"Waiting for response...");
-                    //_output.Read(buffer, 0, buffer.Length);
+                    _output.Read(buffer, 0, buffer.Length);
                     Console.WriteLine($"{buffer.GetValue(0)} received.");
 
                     buffer = _ACK;
@@ -255,11 +255,11 @@ namespace GreenhouseController
                         try
                         {
                             Console.WriteLine("Retrying send...");
-                            //_output.Write(command.ToString());
-                            //Thread.Sleep(1250);
+                            _output.Write(command.ToString());
+                            Thread.Sleep(1250);
                             Console.WriteLine("Awaiting response...");
 
-                            //_output.Read(buffer, 0, buffer.Length);
+                            _output.Read(buffer, 0, buffer.Length);
                             Console.WriteLine($"{buffer.GetValue(0)} received");
                             //buffer = ACK;
                         }

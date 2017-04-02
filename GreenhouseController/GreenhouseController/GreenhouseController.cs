@@ -52,7 +52,7 @@ namespace GreenhouseController
             
             // Timer for requesting sensor data
             var time = new System.Timers.Timer();
-            time.Interval = 10000;
+            time.Interval = 25000;
             time.Elapsed += (o, i) => { packetListener.RequestData(); };
             time.AutoReset = true;
             time.Enabled = true;

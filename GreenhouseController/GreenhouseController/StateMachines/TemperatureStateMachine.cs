@@ -88,7 +88,7 @@ namespace GreenhouseController
                     return GreenhouseState.NO_CHANGE;
                 }
                 // If we're higher than the high limit
-                else if (value > HighLimit && CurrentState != GreenhouseState.PROCESSING_COOLING)
+                else if (value >= HighLimit && CurrentState != GreenhouseState.PROCESSING_COOLING)
                 {
                     if (value >= _emergencyTemp)
                     {
@@ -100,7 +100,7 @@ namespace GreenhouseController
                     }
                 }
                 // If we're higher than the high limit but we're already cooling
-                else if (value > HighLimit && CurrentState == GreenhouseState.PROCESSING_COOLING)
+                else if (value >= HighLimit && CurrentState == GreenhouseState.PROCESSING_COOLING)
                 {
                     if (value >= _emergencyTemp)
                     {
