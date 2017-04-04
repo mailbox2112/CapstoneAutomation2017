@@ -8,6 +8,7 @@ namespace GreenhouseController
 {
     public class LightingStateMachine : ITimeBasedStateMachine
     {
+        // TODO: Add lighting sensor value override stuff
         // Private member for implementing custom get/set using the event handler
         private GreenhouseState _currentState;
 

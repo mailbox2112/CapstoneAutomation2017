@@ -8,6 +8,7 @@ namespace GreenhouseController
 {
     public class WateringStateMachine : ITimeBasedStateMachine
     {
+        // TODO: add moisture sensor override stuff
         private const int _emergencyMoist = 0;
 
         private GreenhouseState _currentState;
