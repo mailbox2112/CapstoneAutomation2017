@@ -35,11 +35,14 @@ namespace GreenhouseController
 
         public bool? ManualWater { get; set; }
 
+        public double MoistureThreshold { get; set; }
+
         /// <summary>
         /// Initialize the state machine
         /// </summary>
         public WateringStateMachine(int zone)
         {
+            MoistureThreshold = 70;
             CurrentState = GreenhouseState.WAITING_FOR_DATA;
             Zone = zone;
         }
@@ -49,7 +52,7 @@ namespace GreenhouseController
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public GreenhouseState DetermineState(DateTime currentTime)
+        public GreenhouseState DetermineState(DateTime currentTime, double value)
         {
             if (CurrentState == GreenhouseState.WATERING)
             {
@@ -63,9 +66,17 @@ namespace GreenhouseController
             if (ManualWater != true)
             {
                 // Check the states based on data, and if we were already watering take that into account
-                if (currentTime < End && currentTime > Begin && CurrentState != GreenhouseState.PROCESSING_WATER)
+                if (value > MoistureThreshold && CurrentState == GreenhouseState.PROCESSING_DATA)
                 {
-
+                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                else if (value > MoistureThreshold && CurrentState == GreenhouseState.PROCESSING_WATER)
+                {
+                    return GreenhouseState.WAITING_FOR_DATA;
+                }
+                else if (currentTime < End && currentTime > Begin && CurrentState != GreenhouseState.PROCESSING_WATER)
+                {
                     return GreenhouseState.WATERING;
                 }
                 else if (currentTime < End && currentTime > Begin && CurrentState == GreenhouseState.PROCESSING_WATER)

@@ -34,14 +34,14 @@ namespace ConsoleApplication1
             Dictionary<int, DateTime> lightEnd = new Dictionary<int, DateTime>();
             foreach(int zone in tlhZones)
             {
-                lightStart.Add(zone, new DateTime(2017, 3, 23, 20, 0, 0));
-                lightEnd.Add(zone, new DateTime(2017, 3, 23, 20, 50, 0));
+                lightStart.Add(zone, new DateTime(2017, 4, 5, 18, 0, 0));
+                lightEnd.Add(zone, new DateTime(2017, 4, 5, 18, 45, 0));
             }
 
             foreach(int zone in mZones)
             {
-                waterStart.Add(zone, new DateTime(2017, 3, 23, 20, 0, 0));
-                waterEnd.Add(zone, new DateTime(2017, 3, 23, 20, 50, 0));
+                waterStart.Add(zone, new DateTime(2017, 4, 5, 18, 0, 0));
+                waterEnd.Add(zone, new DateTime(2017, 4, 5, 18, 45, 0));
             }
             
             byte[] limitsToSend = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new LimitPacket()
@@ -57,7 +57,8 @@ namespace ConsoleApplication1
 
             // TODO: add ability to change greenhouse limits
             Console.WriteLine("Would you like to use manual or random mode? Press M for manual, R for random.");
-            var key = Console.ReadLine();
+            //var key = Console.ReadLine();
+            var key = "r";
             Console.WriteLine();
             if (key == "m" || key == "M")
             {
@@ -172,8 +173,8 @@ namespace ConsoleApplication1
             public JsonSpoof() { }
             public TLHPacket TLHData(int zone)
             {
-                int tempMin = 50;
-                int tempMax = 120;
+                int tempMin = 60;
+                int tempMax = 90;
                 int humidMin = 0;
                 int humidMax = 100;
                 TLHPacket packet = new TLHPacket()

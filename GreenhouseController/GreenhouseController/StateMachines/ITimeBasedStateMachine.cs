@@ -10,7 +10,7 @@ namespace GreenhouseController
     {
         int Zone { get; set; }
 
-        GreenhouseState DetermineState(DateTime currentTime);
+        GreenhouseState DetermineState(DateTime currentTime, double value);
 
         List<Commands> ConvertStateToCommands(GreenhouseState state);
 

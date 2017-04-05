@@ -63,7 +63,10 @@ namespace GreenhouseController
             // Get state for lighting state machines, send commands
             for (int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i ++)
             {
-                GreenhouseState goalLightState = StateMachineContainer.Instance.LightStateMachines[i].DetermineState(_currentTime);
+                // Get the packet from the zone we're currently operating on
+                TLHPacket packet = tlhData.Where(p => p.ID == StateMachineContainer.Instance.LightStateMachines[i].Zone).Single();
+                double lightingValue = packet.Light;
+                GreenhouseState goalLightState = StateMachineContainer.Instance.LightStateMachines[i].DetermineState(_currentTime, lightingValue);
                 if (goalLightState == GreenhouseState.LIGHTING || goalLightState == GreenhouseState.SHADING || goalLightState == GreenhouseState.WAITING_FOR_DATA)
                 {
                     _lightState = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(StateMachineContainer.Instance.LightStateMachines[i], goalLightState);
@@ -74,7 +77,10 @@ namespace GreenhouseController
             // Get states for watering state machines, send commands
             for(int i = 0; i < StateMachineContainer.Instance.WateringStateMachines.Count; i ++)
             {
-                GreenhouseState goalWaterState = StateMachineContainer.Instance.WateringStateMachines[i].DetermineState(_currentTime);
+                // Get the packet from the zone we're currently operating on
+                MoisturePacket packet = moistData.Where(p => p.ID == StateMachineContainer.Instance.WateringStateMachines[i].Zone).Single();
+                double moistureValue = (packet.Probe1 + packet.Probe2) / 2;
+                GreenhouseState goalWaterState = StateMachineContainer.Instance.WateringStateMachines[i].DetermineState(_currentTime, moistureValue);
                 if (goalWaterState == GreenhouseState.WATERING || goalWaterState == GreenhouseState.WAITING_FOR_DATA)
                 {
                     _waterState = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(StateMachineContainer.Instance.WateringStateMachines[i], goalWaterState);
@@ -87,7 +93,7 @@ namespace GreenhouseController
             if (goalShadeState == GreenhouseState.SHADING || goalShadeState == GreenhouseState.WAITING_FOR_DATA)
             {
                 _shadeState = new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Shading, goalShadeState);
-                ArduinoControlSender.Instance.SendCommand(_shadeState);
+                //ArduinoControlSender.Instance.SendCommand(_shadeState);
             }
             #endregion
         }
@@ -103,10 +109,9 @@ namespace GreenhouseController
             {
                 avg += pack.Temperature;
             }
-            //_avgTemp /= 5;
-            //_avgLight /= 5;
+            avg /= 5.0;
 
-            avg /= 2.0;
+            //avg /= 2.0;
             Console.WriteLine("Average Temp: " + avg.ToString());
             return avg;
         }
@@ -118,10 +123,9 @@ namespace GreenhouseController
             {
                 avg += pack.Light;
             }
-            //_avgTemp /= 5;
-            //_avgLight /= 5;
+            avg /= 5.0;
 
-            avg /= 2.0;
+            //avg /= 2.0;
             Console.WriteLine("Average Light: " + avg.ToString());
             return avg;
         }

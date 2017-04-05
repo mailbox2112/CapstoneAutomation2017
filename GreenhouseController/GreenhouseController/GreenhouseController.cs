@@ -20,6 +20,7 @@ namespace GreenhouseController
 
             // Connect to the server
             //packetListener.TryConnect();
+            ArduinoControlSender.Instance.TryConnect();
 
             // Print out the state of the state machine at the start of the program
             Console.WriteLine($"Temperature State: {StateMachineContainer.Instance.Temperature.CurrentState.ToString()}");
@@ -52,7 +53,7 @@ namespace GreenhouseController
             
             // Timer for requesting sensor data
             var time = new System.Timers.Timer();
-            time.Interval = 25000;
+            time.Interval = 5000;
             time.Elapsed += (o, i) => { packetListener.RequestData(); };
             time.AutoReset = true;
             time.Enabled = true;

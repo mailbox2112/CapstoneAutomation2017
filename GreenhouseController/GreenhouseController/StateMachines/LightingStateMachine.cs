@@ -51,7 +51,7 @@ namespace GreenhouseController
         /// </summary>
         /// <param name="currentTime"></param>
         /// <returns></returns>
-        public GreenhouseState DetermineState(DateTime currentTime)
+        public GreenhouseState DetermineState(DateTime currentTime, double value)
         {
             if (CurrentState == GreenhouseState.LIGHTING)
             {
@@ -65,16 +65,16 @@ namespace GreenhouseController
             if (ManualLight != true)
             {
                 // Process data and take into account if we were already lighting when we received the data
-                if (Begin <= currentTime && currentTime <= End && CurrentState != GreenhouseState.PROCESSING_LIGHTING)
+                if (currentTime < End && currentTime > Begin && CurrentState != GreenhouseState.PROCESSING_LIGHTING)
                 {
                     return GreenhouseState.LIGHTING;
                 }
-                else if (Begin <= currentTime && currentTime <= End && CurrentState == GreenhouseState.PROCESSING_LIGHTING)
+                else if (currentTime < End && currentTime > Begin && CurrentState == GreenhouseState.PROCESSING_LIGHTING)
                 {
                     CurrentState = GreenhouseState.LIGHTING;
                     return GreenhouseState.NO_CHANGE;
                 }
-                else if (currentTime > End && CurrentState == GreenhouseState.PROCESSING_DATA)
+                else if ((currentTime > End || currentTime < Begin) && CurrentState == GreenhouseState.PROCESSING_DATA)
                 {
                     CurrentState = GreenhouseState.WAITING_FOR_DATA;
                     return GreenhouseState.NO_CHANGE;
