@@ -35,11 +35,11 @@ namespace GreenhouseController
                     case 1:
                         StateMachineContainer.Instance.LightStateMachines[0].Begin = kvp.Value;
                         break;
-                    case 3:
+                    case 2:
                         StateMachineContainer.Instance.LightStateMachines[1].Begin = kvp.Value;
                         break;
-                    case 5:
-                        StateMachineContainer.Instance.LightStateMachines[1].Begin = kvp.Value;
+                    case 3:
+                        StateMachineContainer.Instance.LightStateMachines[2].Begin = kvp.Value;
                         break;
                     default:
                         break;
@@ -52,10 +52,10 @@ namespace GreenhouseController
                     case 1:
                         StateMachineContainer.Instance.LightStateMachines[0].End = kvp.Value;
                         break;
-                    case 3:
+                    case 2:
                         StateMachineContainer.Instance.LightStateMachines[1].End = kvp.Value;
                         break;
-                    case 5:
+                    case 3:
                         StateMachineContainer.Instance.LightStateMachines[2].End = kvp.Value;
                         break;
                     default:

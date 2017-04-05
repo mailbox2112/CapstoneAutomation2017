@@ -88,7 +88,7 @@ namespace GreenhouseController
                     return GreenhouseState.NO_CHANGE;
                 }
                 // If we're higher than the high limit
-                else if (value > HighLimit && CurrentState != GreenhouseState.PROCESSING_COOLING)
+                else if (value >= HighLimit && CurrentState != GreenhouseState.PROCESSING_COOLING)
                 {
                     if (value >= _emergencyTemp)
                     {
@@ -100,7 +100,7 @@ namespace GreenhouseController
                     }
                 }
                 // If we're higher than the high limit but we're already cooling
-                else if (value > HighLimit && CurrentState == GreenhouseState.PROCESSING_COOLING)
+                else if (value >= HighLimit && CurrentState == GreenhouseState.PROCESSING_COOLING)
                 {
                     if (value >= _emergencyTemp)
                     {
@@ -176,7 +176,6 @@ namespace GreenhouseController
         /// <returns></returns>
         public List<Commands> ConvertStateToCommands(GreenhouseState state)
         {
-            // TODO: check the state of the fans, heat, etc. so we know what commands to send
             List<Commands> commandsToSend = new List<Commands>();
             if (state == GreenhouseState.COOLING)
             {

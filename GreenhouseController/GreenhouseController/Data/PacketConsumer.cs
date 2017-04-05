@@ -1,4 +1,5 @@
 ﻿using GreenhouseController.Data;
+using GreenhouseController.Packets;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -13,19 +14,16 @@ namespace GreenhouseController
 {
     public class PacketConsumer
     {
-        private static volatile PacketConsumer _instance;
-        private static object _syncRoot = new object();
         private byte[] _data;
         private List<TLHPacket> _tlhInformation;
         private List<MoisturePacket> _moistureInformation;
         private ManualPacket _manual;
         private LimitPacket _limits;
-        private DateTime _currentTime;
 
         /// <summary>
         /// Private constructor for singleton pattern
         /// </summary>
-        private PacketConsumer()
+        public PacketConsumer()
         {
             Console.WriteLine("Constructing greenhouse data analyzer...");
             Console.WriteLine("Greenhouse data analyzer constructed.\n");
@@ -34,105 +32,62 @@ namespace GreenhouseController
         }
 
         /// <summary>
-        /// Instance property, used for singleton pattern
-        /// </summary>
-        public static PacketConsumer Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (_syncRoot)
-                    {
-                        if (_instance == null)
-                        {
-                            _instance = new PacketConsumer();
-                        }
-                    }
-                }
-                return _instance;
-            }
-        }
-
-        /// <summary>
         /// Takes in a BlockingCollection and removes data. Sends data to be assessed elsewhere
         /// </summary>
         /// <param name="source">Blocking collection used to hold data for producer consumer pattern</param>
-        public void ReceiveGreenhouseData(BlockingCollection<byte[]> source)
+        public void ReceiveGreenhouseData(BlockingCollection<byte[]> source, string type)
         {
-            // TODO: Fix this up so that it doesn't mess with things already happening within state machines, etc.
-            if (source.Count != 0)
+            // Create a container for the TLH and moisture packets so we can deserialize them easily
+            TLHPacketContainer tlhContainer = new TLHPacketContainer();
+            MoisturePacketContainer moistureContainer = new MoisturePacketContainer();
+
+            // Take the bytes out of the queue and turn them back into a string
+            source.TryTake(out _data);
+            string json = Encoding.ASCII.GetString(_data);
+
+            // Take the string to a JObject and deserialize according to the appropriate Type value
+            JObject received = JObject.Parse(json);
+            Console.WriteLine(received.ToString());
+            switch (received["Type"].Value<int>())
             {
-                try
-                {
-                    source.TryTake(out _data);
-                    var data = JObject.Parse(Encoding.ASCII.GetString(_data));
+                case 0:
+                    tlhContainer = JsonConvert.DeserializeObject<TLHPacketContainer>(json);
+                    _tlhInformation = tlhContainer.Packets;
+                    break;
+                case 1:
+                    moistureContainer = JsonConvert.DeserializeObject<MoisturePacketContainer>(json);
+                    _moistureInformation = moistureContainer.Packets;
+                    break;
+                case 2:
+                    _limits = JsonConvert.DeserializeObject<LimitPacket>(json);
+                    break;
+                case 3:
+                    _manual = JsonConvert.DeserializeObject<ManualPacket>(json);
+                    break;
+            }
 
-                    Console.WriteLine(data.ToString());
-                    
+            // If we have all the TLH information, moisture information, limit and manual information we need...
+            if (_tlhInformation != null && _moistureInformation != null && _limits != null && _manual != null)
+            {
+                Console.WriteLine("Sending to analyzers");
+                // Put everything into temporary variables and clear their values afterwards
+                TLHPacket[] tlhToSend = new TLHPacket[_tlhInformation.Count];
+                _tlhInformation.CopyTo(tlhToSend);
+                _tlhInformation.Clear();
 
-                    if (data["Type"].Value<int>() == 0)
-                    {
-                        _currentTime = data["TimeOfSend"].Value<DateTime>();
-                        var deserializedData = JsonConvert.DeserializeObject<TLHPacket>(Encoding.ASCII.GetString(_data));
+                MoisturePacket[] moistureToSend = new MoisturePacket[_moistureInformation.Count];
+                _moistureInformation.CopyTo(moistureToSend);
+                _moistureInformation.Clear();
 
-                        // Check for repeat zones, and if we have any, throw out the old zone data
-                        if (_tlhInformation.Where(p => p.ID == deserializedData.ID) != null)
-                        {
-                            _tlhInformation.RemoveAll(p => p.ID == deserializedData.ID);
-                        }
+                ManualPacket tempManual = _manual;
+                _manual = null;
+                LimitPacket tempLimits = _limits;
+                _limits = null;
 
-                        _tlhInformation.Add(deserializedData);
-                    }
-                    // if it's a moisture packet
-                    else if (data["Type"].Value<int>() == 1)
-                    {
-                        var deserializedData = JsonConvert.DeserializeObject<MoisturePacket>(Encoding.ASCII.GetString(_data));
-
-                        // Check for repeat zones, and if we have any, throw out the old zone data
-                        if (_moistureInformation.Where(p => p.ID == deserializedData.ID) != null)
-                        {
-                            _moistureInformation.RemoveAll(p => p.ID == deserializedData.ID);
-                        }
-
-                        _moistureInformation.Add(deserializedData);
-                    }
-                    else if (data["Type"].Value<int>() == 2)
-                    {
-                        var deserializedData = JsonConvert.DeserializeObject<LimitPacket>(Encoding.ASCII.GetString(_data));
-
-                        _limits = deserializedData;
-                    }
-                    else if (data["Type"].Value<int>() == 3)
-                    {
-                        var deserializedData = JsonConvert.DeserializeObject<ManualPacket>(Encoding.ASCII.GetString(_data));
-
-                        _manual = deserializedData;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
-                }
-
-                if (_tlhInformation.Count == 5 && _moistureInformation.Count == 6 && _limits != null && _manual != null)
-                {
-                    TLHPacket[] tlhToSend = new TLHPacket[_tlhInformation.Count];
-                    _tlhInformation.CopyTo(tlhToSend);
-                    _tlhInformation.Clear();
-
-                    MoisturePacket[] moistureToSend = new MoisturePacket[_moistureInformation.Count];
-                    _moistureInformation.CopyTo(moistureToSend);
-                    _moistureInformation.Clear();
-
-                    ManualPacket tempManual = _manual;
-                    _manual = null;
-                    LimitPacket tempLimits = _limits;
-                    _limits = null;
-
-                    DataAnalyzer data = new DataAnalyzer();
-                    Task.Run(() => data.ExecuteActions(tlhToSend, moistureToSend, tempManual, tempLimits));
-                }
+                // TODO: change the architecture with the threading here
+                // Send the temporary variables off to be analyzed
+                DataAnalyzer data = new DataAnalyzer();
+                Task.Run(() => data.ExecuteActions(tlhToSend, moistureToSend, tempManual, tempLimits));
             }
         }
     }

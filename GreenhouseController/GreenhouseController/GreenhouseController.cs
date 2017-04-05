@@ -13,10 +13,14 @@ namespace GreenhouseController
         // TODO: RESET BUTTON?
         static void Main(string[] args)
         {
-            // Connect to the server
-            NetworkListener.Instance.TryConnect();
             // Create the blocking collection
             var dataBuffer = new BlockingCollection<byte[]>();
+            PacketRequester packetListener = new PacketRequester(dataBuffer);
+            PacketConsumer packetConsumer = new PacketConsumer();
+
+            // Connect to the server
+            //packetListener.TryConnect();
+            ArduinoControlSender.Instance.TryConnect();
 
             // Print out the state of the state machine at the start of the program
             Console.WriteLine($"Temperature State: {StateMachineContainer.Instance.Temperature.CurrentState.ToString()}");
@@ -45,18 +49,18 @@ namespace GreenhouseController
             }
 
             // Event handlers for when blocking collections get data
-            NetworkListener.Instance.ItemInQueue += (o, i) => { Task.Run(() => PacketConsumer.Instance.ReceiveGreenhouseData(i.Buffer)); };
-
+            packetListener.ItemInQueue += (o, i) => { packetConsumer.ReceiveGreenhouseData(i.Buffer, i.Type); };
+            
             // Timer for requesting sensor data
             var time = new System.Timers.Timer();
-            time.Interval = 40000;
-            time.Elapsed += (o, i) => { NetworkListener.Instance.RequestData(); };
+            time.Interval = 5000;
+            time.Elapsed += (o, i) => { packetListener.RequestData(); };
             time.AutoReset = true;
             time.Enabled = true;
             GC.KeepAlive(time);
-            
+
             // Listens for any data that comes in, be it sensor data or control data
-            Task.WaitAll(Task.Run(new Action(() => NetworkListener.Instance.ReadGreenhouseData(dataBuffer))));
+            Console.ReadLine();
         }
     }
 }

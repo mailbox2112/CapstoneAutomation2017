@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 namespace GreenhouseUnitTests
 {
+    // TODO: New unit tests!
     [TestClass]
     public class TemperatureStateMachineTests
     {

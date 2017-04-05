@@ -9,7 +9,6 @@ namespace GreenhouseController
 {
     public class StateMachineContainer
     {
-        // TODO: create and add a shading state machine
         public TemperatureStateMachine Temperature { get; set; }
         public ShadingStateMachine Shading { get; set; }
 

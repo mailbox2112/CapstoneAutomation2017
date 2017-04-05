@@ -9,7 +9,6 @@ namespace GreenhouseController
 {
     public class DataAnalyzer
     {
-        //TODO: Fix manual control
         private double _avgTemp;
         private double _avgLight;
         private DateTime _currentTime;
@@ -20,8 +19,8 @@ namespace GreenhouseController
 
         public DataAnalyzer()
         {
-            _avgTemp = new double();
-            _avgLight = new double();
+            _avgTemp = 0.0;
+            _avgLight = 0.0;
         }
 
         public void ExecuteActions(TLHPacket[] temperature, MoisturePacket[] moisture, ManualPacket manual, LimitPacket limits)
@@ -49,7 +48,8 @@ namespace GreenhouseController
 
             #region Automation Decision Making
             // Get the averages of greenhouse readings
-            GetTemperatureAverage(tlhData);
+            _avgTemp = GetTemperatureAverage(tlhData);
+            _avgLight = GetLightAverage(tlhData);
 
             // Determine what state we need to go to and then create a KVP for it and send it
             GreenhouseState goalTempState = StateMachineContainer.Instance.Temperature.DetermineState(_avgTemp);
@@ -63,7 +63,10 @@ namespace GreenhouseController
             // Get state for lighting state machines, send commands
             for (int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i ++)
             {
-                GreenhouseState goalLightState = StateMachineContainer.Instance.LightStateMachines[i].DetermineState(_currentTime);
+                // Get the packet from the zone we're currently operating on
+                TLHPacket packet = tlhData.Where(p => p.ID == StateMachineContainer.Instance.LightStateMachines[i].Zone).Single();
+                double lightingValue = packet.Light;
+                GreenhouseState goalLightState = StateMachineContainer.Instance.LightStateMachines[i].DetermineState(_currentTime, lightingValue);
                 if (goalLightState == GreenhouseState.LIGHTING || goalLightState == GreenhouseState.SHADING || goalLightState == GreenhouseState.WAITING_FOR_DATA)
                 {
                     _lightState = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(StateMachineContainer.Instance.LightStateMachines[i], goalLightState);
@@ -74,7 +77,10 @@ namespace GreenhouseController
             // Get states for watering state machines, send commands
             for(int i = 0; i < StateMachineContainer.Instance.WateringStateMachines.Count; i ++)
             {
-                GreenhouseState goalWaterState = StateMachineContainer.Instance.WateringStateMachines[i].DetermineState(_currentTime);
+                // Get the packet from the zone we're currently operating on
+                MoisturePacket packet = moistData.Where(p => p.ID == StateMachineContainer.Instance.WateringStateMachines[i].Zone).Single();
+                double moistureValue = (packet.Probe1 + packet.Probe2) / 2;
+                GreenhouseState goalWaterState = StateMachineContainer.Instance.WateringStateMachines[i].DetermineState(_currentTime, moistureValue);
                 if (goalWaterState == GreenhouseState.WATERING || goalWaterState == GreenhouseState.WAITING_FOR_DATA)
                 {
                     _waterState = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(StateMachineContainer.Instance.WateringStateMachines[i], goalWaterState);
@@ -87,7 +93,7 @@ namespace GreenhouseController
             if (goalShadeState == GreenhouseState.SHADING || goalShadeState == GreenhouseState.WAITING_FOR_DATA)
             {
                 _shadeState = new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Shading, goalShadeState);
-                ArduinoControlSender.Instance.SendCommand(_shadeState);
+                //ArduinoControlSender.Instance.SendCommand(_shadeState);
             }
             #endregion
         }
@@ -96,15 +102,32 @@ namespace GreenhouseController
         /// Helper method for averaging greenhouse data
         /// </summary>
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
-        private void GetTemperatureAverage(TLHPacket[] data)
+        private double GetTemperatureAverage(TLHPacket[] data)
         {
+            double avg = 0.0;
             foreach (TLHPacket pack in data)
             {
-                _avgTemp += pack.Temperature;
-                _avgLight += pack.Light;
+                avg += pack.Temperature;
             }
-            _avgTemp /= 5;
-            _avgLight /= 5;
+            avg /= 5.0;
+
+            //avg /= 2.0;
+            Console.WriteLine("Average Temp: " + avg.ToString());
+            return avg;
+        }
+
+        private double GetLightAverage(TLHPacket[] data)
+        {
+            double avg = 0.0;
+            foreach (TLHPacket pack in data)
+            {
+                avg += pack.Light;
+            }
+            avg /= 5.0;
+
+            //avg /= 2.0;
+            Console.WriteLine("Average Light: " + avg.ToString());
+            return avg;
         }
 
         private DateTime GetCurrentTime(TLHPacket[] data)
