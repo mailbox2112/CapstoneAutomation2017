@@ -17,8 +17,8 @@
 #define OPEN 0
 #define CLOSED 1
 
-#define ACK 0b01011100
-#define NACK 0b01010110
+#define ACK 0x20
+#define NACK 0x21
 
 #define DEBUG_LIGHT 13
 
@@ -42,11 +42,13 @@
 #define SHADE_CLK  36
 #define SHADE_DIR  35
 
-String command;
+byte command;
 const int pul = 8;
 const int dir = 9;
 AccelStepper stepper(1, pul, dir);
 
+// TODO: Fix shade motor bug
+// TODO: Add timer that counts between each message received; if no message received within certain amount of time, reset the arduino
 void setup() {
   // Reset then enable watchdog timer
   wdt_disable();
@@ -117,17 +119,21 @@ void loop() {
 
 void process_command() {
   // turn on heat relay, fan relay, vent relay, etc...
-  command = Serial.readString(); // read command string
+  digitalWrite(DEBUG_LIGHT, LOW);
+  command = Serial.read(); // read command string
+  digitalWrite(DEBUG_LIGHT, HIGH);
 
   ///////////////////////////////////////////////////////
   // HEATING
   ///////////////////////////////////////////////////////
-  if (command == "HEAT_ON") {
+  if (command == 0x00) {
+    digitalWrite(DEBUG_LIGHT, LOW);
     digitalWrite(HEAT1, LOW);
     digitalWrite(HEAT2, LOW);
+    digitalWrite(DEBUG_LIGHT, HIGH);
   }
 
-  else if (command == "HEAT_OFF") {
+  else if (command == 0x01) {
     digitalWrite(HEAT1, HIGH);
     digitalWrite(HEAT2, HIGH);
   }
@@ -135,14 +141,14 @@ void process_command() {
   ///////////////////////////////////////////////////////
   // FANS
   ///////////////////////////////////////////////////////
-  else if (command == "FANS_ON") {
+  else if (command == 0x02) {
     digitalWrite(EX_FAN1, LOW);
     digitalWrite(EX_FAN2, LOW);
     digitalWrite(C_FAN1, LOW);
     digitalWrite(C_FAN2, LOW);
   }
 
-  else if (command == "FANS_OFF") {
+  else if (command == 0x03) {
     digitalWrite(EX_FAN1, HIGH);
     digitalWrite(EX_FAN2, HIGH);
     digitalWrite(C_FAN1, HIGH);
@@ -152,12 +158,12 @@ void process_command() {
   ////////////////////////////////////////////////////////
   // VENTS
   ////////////////////////////////////////////////////////
-  else if (command == "VENTS_OPEN") {
+  else if (command == 0x18) {
     digitalWrite(SHUT1, LOW);
     digitalWrite(SHUT2, LOW);
   }
 
-  else if (command == "VENTS_CLOSED") {
+  else if (command == 0x19) {
     digitalWrite(SHUT1, HIGH);
     digitalWrite(SHUT2, HIGH);
   }
@@ -165,71 +171,71 @@ void process_command() {
   /////////////////////////////////////////////////////////
   // LIGHTS
   /////////////////////////////////////////////////////////
-  else if (command == "LIGHT1_ON") {
+  else if (command == 0x04) {
     digitalWrite(LIGHT1, LOW);
   }
-  else if (command == "LIGHT2_ON") {
+  else if (command == 0x06) {
     digitalWrite(LIGHT2, LOW);
   }
-  else if (command == "LIGHT3_ON") {
+  else if (command == 0x08) {
     digitalWrite(LIGHT3, LOW);
   }
 
-  else if (command == "LIGHT1_OFF") {
+  else if (command == 0x05) {
     digitalWrite(LIGHT1, HIGH);
   }
-  else if (command == "LIGHT2_OFF") {
+  else if (command == 0x07) {
     digitalWrite(LIGHT2, HIGH);
   }
-  else if (command == "LIGHT3_OFF") {
+  else if (command == 0x09) {
     digitalWrite(LIGHT3, HIGH);
   }
 
   ////////////////////////////////////////////////////////
   // WATERING
   ////////////////////////////////////////////////////////
-  else if (command == "WATER1_ON") {
+  else if (command == 0x0A) {
     digitalWrite(SOL1, LOW);
   }
-  else if (command == "WATER2_ON") {
+  else if (command == 0x0C) {
     digitalWrite(SOL2, LOW);
   }
-  else if (command == "WATER3_ON") {
+  else if (command == 0x0E) {
     digitalWrite(SOL3, LOW);
   }
-  else if (command == "WATER4_ON") {
+  else if (command == 0x10) {
     digitalWrite(SOL4, LOW);
   }
-  else if (command == "WATER5_ON") {
+  else if (command == 0x12) {
     digitalWrite(SOL5, LOW);
   }
-  else if (command == "WATER6_ON") {
+  else if (command == 0x14) {
     digitalWrite(SOL6, LOW);
   }
 
-  else if (command == "WATER1_OFF") {
+  else if (command == 0x0B) {
     digitalWrite(SOL1, HIGH);
   }
-  else if (command == "WATER2_OFF") {
+  else if (command == 0x0D) {
     digitalWrite(SOL2, HIGH);
   }
-  else if (command == "WATER3_OFF") {
+  else if (command == 0x0F) {
     digitalWrite(SOL3, HIGH);
   }
-  else if (command == "WATER4_OFF") {
+  else if (command == 0x11) {
     digitalWrite(SOL4, HIGH);
   }
-  else if (command == "WATER5_OFF") {
+  else if (command == 0x13) {
     digitalWrite(SOL5, HIGH);
   }
-  else if (command == "WATER6_OFF") {
+  else if (command == 0x15) {
     digitalWrite(SOL6, HIGH);
   }
 
   /////////////////////////////////////////////////////
   // SHADES
   /////////////////////////////////////////////////////
-  else if (command == "SHADE_EXTEND") {
+  else if (command == 0x16) {
     wdt_reset();
     stepper.moveTo(500);
     while (stepper.currentPosition() != 300) stepper.run(); // Full speed up to position 300
@@ -237,7 +243,7 @@ void process_command() {
     stepper.runToPosition();
   }
 
-  else if (command == "SHADE_RETRACT") {
+  else if (command == 0x17) {
     wdt_reset();
     stepper.moveTo(-500);
     while (stepper.currentPosition() != 0) stepper.run(); // Full speed up to position 0
