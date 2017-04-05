@@ -20,8 +20,8 @@ namespace GreenhouseController
 
         // Communications elements
         private SerialPort _output;
-        private byte[] _ACK = new byte[] { 0x5C };
-        private byte[] _NACK = new byte[] { 0x56 };
+        private byte[] _ACK = new byte[] { 0x20 };
+        private byte[] _NACK = new byte[] { 0x21 };
         private bool _success = false;
         private int _retryCount = 0;
 
@@ -76,8 +76,8 @@ namespace GreenhouseController
             // Create the serial port
             if (_output == null)
             {
-                _output = new SerialPort("/dev/ttyACM0", _BAUD, _PARITY, _DATABITS, _STOPBITS);
-                //_output = new SerialPort("COM3", _BAUD, _PARITY, _DATABITS, _STOPBITS);
+                //_output = new SerialPort("/dev/ttyACM0", _BAUD, _PARITY, _DATABITS, _STOPBITS);
+                _output = new SerialPort("COM3", _BAUD, _PARITY, _DATABITS, _STOPBITS);
             }
 
             // Open the serial port
@@ -103,14 +103,15 @@ namespace GreenhouseController
             
             commandsToSend = statePair.Key.ConvertStateToCommands(statePair.Value);
             
+            
             foreach (var command in commandsToSend)
             {
+                byte[] convertedCommandBytes = ConvertCommandToBytes(command);
                 // Send commands
                 try
                 {
                     Console.WriteLine($"Attempting to send command {command}");
-                    _output.Write(command.ToString());
-                    Thread.Sleep(1250);
+                    _output.Write(convertedCommandBytes, 0, convertedCommandBytes.Length);
                     Console.WriteLine("Send finished.");
 
                     // Change states based on the key/value pair we passed in
@@ -155,8 +156,7 @@ namespace GreenhouseController
                         try
                         {
                             Console.WriteLine("Retrying send...");
-                            _output.Write(command.ToString());
-                            Thread.Sleep(1250);
+                            _output.Write(convertedCommandBytes, 0, convertedCommandBytes.Length);
                             Console.WriteLine("Awaiting response...");
                             
                             _output.Read(buffer, 0, buffer.Length);
@@ -213,12 +213,12 @@ namespace GreenhouseController
 
             foreach (var command in commandsToSend)
             {
+                byte[] convertedCommandBytes = ConvertCommandToBytes(command);
                 // Send commands
                 try
                 {
                     Console.WriteLine($"Attempting to send command {command}");
-                    _output.Write(command.ToString());
-                    Thread.Sleep(1250);
+                    _output.Write(convertedCommandBytes, 0, convertedCommandBytes.Length);
                     Console.WriteLine("Send finished.");
 
                     // Change states based on the key/value pair we passed in
@@ -255,8 +255,7 @@ namespace GreenhouseController
                         try
                         {
                             Console.WriteLine("Retrying send...");
-                            _output.Write(command.ToString());
-                            Thread.Sleep(1250);
+                            _output.Write(convertedCommandBytes, 0, convertedCommandBytes.Length);
                             Console.WriteLine("Awaiting response...");
 
                             _output.Read(buffer, 0, buffer.Length);
@@ -298,6 +297,95 @@ namespace GreenhouseController
                 _retryCount = 0;
                 _success = false;
             }
+        }
+
+        private byte[] ConvertCommandToBytes(Commands command)
+        {
+            byte[] byteValue = new byte[1];
+            switch (command)
+            {
+                case Commands.HEAT_ON:
+                    byteValue[0] = 0x00;
+                    break;
+                case Commands.HEAT_OFF:
+                    byteValue[0] = 0x01;
+                    break;
+                case Commands.FANS_ON:
+                    byteValue[0] = 0x02;
+                    break;
+                case Commands.FANS_OFF:
+                    byteValue[0] = 0x03;
+                    break;
+                case Commands.LIGHT1_ON:
+                    byteValue[0] = 0x04;
+                    break;
+                case Commands.LIGHT1_OFF:
+                    byteValue[0] = 0x05;
+                    break;
+                case Commands.LIGHT2_ON:
+                    byteValue[0] = 0x06;
+                    break;
+                case Commands.LIGHT2_OFF:
+                    byteValue[0] = 0x07;
+                    break;
+                case Commands.LIGHT3_ON:
+                    byteValue[0] = 0x08;
+                    break;
+                case Commands.LIGHT3_OFF:
+                    byteValue[0] = 0x09;
+                    break;
+                case Commands.WATER1_ON:
+                    byteValue[0] = 0x0A;
+                    break;
+                case Commands.WATER1_OFF:
+                    byteValue[0] = 0x0B;
+                    break;
+                case Commands.WATER2_ON:
+                    byteValue[0] = 0x0C;
+                    break;
+                case Commands.WATER2_OFF:
+                    byteValue[0] = 0x0D;
+                    break;
+                case Commands.WATER3_ON:
+                    byteValue[0] = 0x0E;
+                    break;
+                case Commands.WATER3_OFF:
+                    byteValue[0] = 0x0F;
+                    break;
+                case Commands.WATER4_ON:
+                    byteValue[0] = 0x10;
+                    break;
+                case Commands.WATER4_OFF:
+                    byteValue[0] = 0x11;
+                    break;
+                case Commands.WATER5_ON:
+                    byteValue[0] = 0x12;
+                    break;
+                case Commands.WATER5_OFF:
+                    byteValue[0] = 0x13;
+                    break;
+                case Commands.WATER6_ON:
+                    byteValue[0] = 0x14;
+                    break;
+                case Commands.WATER6_OFF:
+                    byteValue[0] = 0x15;
+                    break;
+                case Commands.SHADE_EXTEND:
+                    byteValue[0] = 0x16;
+                    break;
+                case Commands.SHADE_RETRACT:
+                    byteValue[0] = 0x17;
+                    break;
+                case Commands.VENTS_OPEN:
+                    byteValue[0] = 0x18;
+                    break;
+                case Commands.VENTS_CLOSED:
+                    byteValue[0] = 0x19;
+                    break;
+                default:
+                    break;
+            }
+            return byteValue;
         }
     }
 }
