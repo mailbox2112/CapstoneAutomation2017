@@ -23,6 +23,13 @@ namespace GreenhouseController
             _avgLight = 0.0;
         }
 
+        /// <summary>
+        /// Execute the actions required for proper greenhouse functioning, based on the input data
+        /// </summary>
+        /// <param name="temperature">Array of temperature, lighting, and humidity information packets</param>
+        /// <param name="moisture">Array of moisture information packets</param>
+        /// <param name="manual">Packet containing any manual commands we may have received</param>
+        /// <param name="limits">Packet containng the greenhouse automation limits</param>
         public void ExecuteActions(TLHPacket[] temperature, MoisturePacket[] moisture, ManualPacket manual, LimitPacket limits)
         {
             // Process limit changes
@@ -80,6 +87,8 @@ namespace GreenhouseController
                 // Get the packet from the zone we're currently operating on
                 MoisturePacket packet = moistData.Where(p => p.ID == StateMachineContainer.Instance.WateringStateMachines[i].Zone).Single();
                 double moistureValue = (packet.Probe1 + packet.Probe2) / 2;
+
+                // Get the state we need to transition into, then go send a command appropriate to that
                 GreenhouseState goalWaterState = StateMachineContainer.Instance.WateringStateMachines[i].DetermineState(_currentTime, moistureValue);
                 if (goalWaterState == GreenhouseState.WATERING || goalWaterState == GreenhouseState.WAITING_FOR_DATA)
                 {
@@ -99,9 +108,9 @@ namespace GreenhouseController
         }
 
         /// <summary>
-        /// Helper method for averaging greenhouse data
+        /// Helper method for averaging greenhouse temperatures
         /// </summary>
-        /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
+        /// <param name="data">Array of TLHPacket objects parsed from JSON sent via data server</param>
         private double GetTemperatureAverage(TLHPacket[] data)
         {
             double avg = 0.0;
@@ -116,6 +125,11 @@ namespace GreenhouseController
             return avg;
         }
 
+        /// <summary>
+        /// Helper method for averaging greenhouse light levels
+        /// </summary>
+        /// <param name="data">Array of TLHPacket objects parsed from JSON sent via data server</param>
+        /// <returns></returns>
         private double GetLightAverage(TLHPacket[] data)
         {
             double avg = 0.0;
@@ -130,6 +144,11 @@ namespace GreenhouseController
             return avg;
         }
 
+        /// <summary>
+        /// Helper method for getting the approximate current time of day
+        /// </summary>
+        /// <param name="data">Array of TLHPacket objects parsed frmo JSON sent via data server</param>
+        /// <returns></returns>
         private DateTime GetCurrentTime(TLHPacket[] data)
         {
             DateTime now = new DateTime();

@@ -22,6 +22,7 @@ namespace GreenhouseController
         private TcpClient _client = new TcpClient();
         private List<string> _requests = new List<string>() { "TLH", "MOISTURE", "LIMITS", "MANUAL" };
         private BlockingCollection<byte[]> _queue;
+        private System.Timers.Timer _timer;
 
         public event EventHandler<DataEventArgs> ItemInQueue;
 
@@ -30,10 +31,11 @@ namespace GreenhouseController
         /// </summary>
         /// <param name="hostEndpoint">Endpoint to be reached</param>
         /// <param name="hostAddress">IP address we're trying to connect to</param>
-        public PacketRequester(BlockingCollection<byte[]> queue)
+        public PacketRequester(BlockingCollection<byte[]> queue, System.Timers.Timer timer)
         {
             Console.WriteLine("Constructing packet requester...");
             _queue = queue;
+            _timer = timer;
             Console.WriteLine("Packet requester constructed.\n");
         }
 
@@ -64,18 +66,31 @@ namespace GreenhouseController
         /// </summary>
         public void RequestData()
         {
-            // TODO: open and close the socket after each request and read
+            // Stop the timer, gauranteeing that we won't get multiple requests in if the program hangs
+            _timer.Stop();
             foreach(string request in _requests)
             {
+                // Try connecting to the socket
                 TryConnect();
                 Console.WriteLine($"\nRequesting {request}...");
+
+                // Get the bytes from the JSON to send, then write the data to the socket
                 byte[] data = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(request));
                 _dataStream.Write(data, 0, data.Length);
                 _dataStream.Flush();
-                ReadGreenhouseData(request);
                 Console.WriteLine("Request sent!\n");
-                _client.Close();
+
+                // Read the incoming data, then close the socket
+                ReadGreenhouseData(request);
+
+                // Make sure we're still connected to the socket before trying to close it
+                if (_client.Connected)
+                {
+                    _client.Close();
+                }
             }
+            // Restart the timer now
+            _timer.Start();
         }
 
         /// <summary>
@@ -97,7 +112,7 @@ namespace GreenhouseController
 
                     // Hook up a temporary event handler and trigger the event
                     EventHandler<DataEventArgs> handler = ItemInQueue;
-                    handler(this, new DataEventArgs() { Buffer = _queue, Type = type });
+                    handler(this, new DataEventArgs() { Buffer = _queue});
 
                     // Clear the buffer
                     Array.Clear(_buffer, 0, _buffer.Length);
