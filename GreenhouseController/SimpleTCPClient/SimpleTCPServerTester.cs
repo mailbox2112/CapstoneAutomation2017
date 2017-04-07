@@ -173,8 +173,8 @@ namespace ConsoleApplication1
             public JsonSpoof() { }
             public TLHPacket TLHData(int zone)
             {
-                int tempMin = 60;
-                int tempMax = 90;
+                int tempMin = 30;
+                int tempMax = 40;
                 int humidMin = 0;
                 int humidMax = 100;
                 TLHPacket packet = new TLHPacket()

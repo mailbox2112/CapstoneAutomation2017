@@ -22,6 +22,7 @@ namespace GreenhouseController
         private SerialPort _output;
         private byte[] _ACK = new byte[] { 0x20 };
         private byte[] _NACK = new byte[] { 0x21 };
+        private byte[] _AWAKE = new byte[] { 0x22 };
         private bool _success = false;
         private int _retryCount = 0;
 
@@ -89,6 +90,37 @@ namespace GreenhouseController
                 _output.RtsEnable = true;
             }
             // TODO: add task down here to periodically poll for the arduino to make sure everything is okay
+        }
+
+        /// <summary>
+        /// Sends the Arduino a check-in message. No response means that the Arduino is no longer connected/functioning
+        /// </summary>
+        public bool CheckArduinoStatus()
+        {
+            bool response = false;
+            byte[] buffer = new byte[1];
+            try
+            {
+                // Send the "Are you there?" command
+                _output.Write(_AWAKE, 0, _AWAKE.Length);
+
+                // Read the response;
+                _output.Read(buffer, 0, buffer.Length);
+
+                // Set the return value to true
+                if (buffer.SequenceEqual(_ACK))
+                {
+                    response = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                response = false;
+            }
+            
+            // Return the result
+            return response;
         }
 
         /// <summary>

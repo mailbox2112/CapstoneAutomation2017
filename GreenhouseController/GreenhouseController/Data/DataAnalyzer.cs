@@ -48,8 +48,20 @@ namespace GreenhouseController
         /// <param name="data">Array of Packet objects parsed from JSON sent via data server</param>
         private void AnalyzeData(TLHPacket[] tlhData, MoisturePacket[] moistData)
         {
+            // Get the approximate current time from the packets
             _currentTime = GetCurrentTime(tlhData);
+
+            // Try to connect to the Arduino if we aren't already
             ArduinoControlSender.Instance.TryConnect();
+
+            // Make sure the Arduino is there
+            bool result = ArduinoControlSender.Instance.CheckArduinoStatus();
+
+            // Do something if there's a problem with the Arduino
+            if (!result)
+            {
+
+            }
 
             List<GreenhouseState> statesToSend = new List<GreenhouseState>();
 

@@ -15,6 +15,7 @@ namespace GreenhouseController
         {
             // Connect to the Arduino. Connecting here prevents a 2 second delay before the first commands are sent
             ArduinoControlSender.Instance.TryConnect();
+            ArduinoControlSender.Instance.CheckArduinoStatus();
 
             // Print out the state of the state machine at the start of the program
             Console.WriteLine($"Temperature State: {StateMachineContainer.Instance.Temperature.CurrentState.ToString()}");

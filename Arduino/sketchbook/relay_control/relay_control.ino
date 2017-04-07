@@ -110,8 +110,6 @@ void setup() {
 }
 
 void loop() {
-  // Reset watchdog timer
-  wdt_reset();
   if (Serial.available()) {
     process_command();
   }
@@ -119,18 +117,20 @@ void loop() {
 
 void process_command() {
   // turn on heat relay, fan relay, vent relay, etc...
-  digitalWrite(DEBUG_LIGHT, LOW);
   command = Serial.read(); // read command string
-  digitalWrite(DEBUG_LIGHT, HIGH);
-
+  ///////////////////////////////////////////////////////
+  // ERROR CONTROL
+  // RESET WDT WHEN WE GET "ARE YOU THERE?" COMMANDS
+  ///////////////////////////////////////////////////////
+  if (command == 0x22) {
+    wdt_reset();
+  }
   ///////////////////////////////////////////////////////
   // HEATING
   ///////////////////////////////////////////////////////
-  if (command == 0x00) {
-    digitalWrite(DEBUG_LIGHT, LOW);
+  else if (command == 0x00) {
     digitalWrite(HEAT1, LOW);
     digitalWrite(HEAT2, LOW);
-    digitalWrite(DEBUG_LIGHT, HIGH);
   }
 
   else if (command == 0x01) {
