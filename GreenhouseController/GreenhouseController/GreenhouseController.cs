@@ -13,13 +13,7 @@ namespace GreenhouseController
         // TODO: RESET BUTTON?
         static void Main(string[] args)
         {
-            // Create the blocking collection
-            var dataBuffer = new BlockingCollection<byte[]>();
-            PacketRequester packetListener = new PacketRequester(dataBuffer);
-            PacketConsumer packetConsumer = new PacketConsumer();
-
-            // Connect to the server
-            //packetListener.TryConnect();
+            // Connect to the Arduino. Connecting here prevents a 2 second delay before the first commands are sent
             ArduinoControlSender.Instance.TryConnect();
 
             // Print out the state of the state machine at the start of the program
@@ -48,18 +42,32 @@ namespace GreenhouseController
                 StateMachineContainer.Instance.WateringStateMachines[j].StateChanged += (o, i) => { Console.WriteLine($"{o}: {i.State}"); };
             }
 
-            // Event handlers for when blocking collections get data
-            packetListener.ItemInQueue += (o, i) => { packetConsumer.ReceiveGreenhouseData(i.Buffer, i.Type); };
-            
+            // Sync object for event
+            object syncRoot = new object();
+
             // Timer for requesting sensor data
             var time = new System.Timers.Timer();
+
+            // Create the blocking collection
+            var dataBuffer = new BlockingCollection<byte[]>();
+            PacketRequester packetListener = new PacketRequester(dataBuffer, time);
+            PacketConsumer packetConsumer = new PacketConsumer();
+
+            // We lock the data analyzer object, because the timer gets put on a separate thread by default
+            // So by locking the data analyzer, we can avoid simultaneous operations that would cause B A D things to happen
+            // Also, since there's no longer multithreading in the operations, the lock gaurantees there's no unwanted simultaneous operations
             time.Interval = 5000;
-            time.Elapsed += (o, i) => { packetListener.RequestData(); };
+            time.Elapsed += (o, i) => { lock (syncRoot) { packetListener.RequestData(); } };
             time.AutoReset = true;
-            time.Enabled = true;
+            
+            // Event handler for when blocking collections get data
+            packetListener.ItemInQueue += (o, i) => { packetConsumer.ReceiveGreenhouseData(i.Buffer); };
+            
+            // Start the timer and keep the OS from garbage collecting it since it runs indefinitely
+            time.Start();
             GC.KeepAlive(time);
 
-            // Listens for any data that comes in, be it sensor data or control data
+            // Just keeps the program from ending. Really not the best way, but hey, it works
             Console.ReadLine();
         }
     }

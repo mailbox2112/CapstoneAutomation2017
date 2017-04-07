@@ -35,7 +35,7 @@ namespace GreenhouseController
         /// Takes in a BlockingCollection and removes data. Sends data to be assessed elsewhere
         /// </summary>
         /// <param name="source">Blocking collection used to hold data for producer consumer pattern</param>
-        public void ReceiveGreenhouseData(BlockingCollection<byte[]> source, string type)
+        public void ReceiveGreenhouseData(BlockingCollection<byte[]> source)
         {
             // Create a container for the TLH and moisture packets so we can deserialize them easily
             TLHPacketContainer tlhContainer = new TLHPacketContainer();
@@ -47,7 +47,7 @@ namespace GreenhouseController
 
             // Take the string to a JObject and deserialize according to the appropriate Type value
             JObject received = JObject.Parse(json);
-            Console.WriteLine(received.ToString());
+            //Console.WriteLine(received.ToString());
             switch (received["Type"].Value<int>())
             {
                 case 0:
@@ -70,6 +70,7 @@ namespace GreenhouseController
             if (_tlhInformation != null && _moistureInformation != null && _limits != null && _manual != null)
             {
                 Console.WriteLine("Sending to analyzers");
+
                 // Put everything into temporary variables and clear their values afterwards
                 TLHPacket[] tlhToSend = new TLHPacket[_tlhInformation.Count];
                 _tlhInformation.CopyTo(tlhToSend);
@@ -84,10 +85,9 @@ namespace GreenhouseController
                 LimitPacket tempLimits = _limits;
                 _limits = null;
 
-                // TODO: change the architecture with the threading here
                 // Send the temporary variables off to be analyzed
                 DataAnalyzer data = new DataAnalyzer();
-                Task.Run(() => data.ExecuteActions(tlhToSend, moistureToSend, tempManual, tempLimits));
+                data.ExecuteActions(tlhToSend, moistureToSend, tempManual, tempLimits);
             }
         }
     }
