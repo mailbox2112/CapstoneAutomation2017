@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GreenhouseController.Limits;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,87 +29,53 @@ namespace GreenhouseController
             {
                 StateMachineContainer.Instance.Shading.HighLimit = limits.ShadeLim;
             }
-            foreach(KeyValuePair<int, DateTime> kvp in limits.LightStarts)
+            foreach(ZoneSchedule schedule in limits.Light)
             {
-                switch(kvp.Key)
+                switch(schedule.Zone)
                 {
                     case 1:
-                        StateMachineContainer.Instance.LightStateMachines[0].Begin = kvp.Value;
+                        StateMachineContainer.Instance.LightStateMachines[0].Begin = schedule.Start;
+                        StateMachineContainer.Instance.LightStateMachines[0].End = schedule.End;
                         break;
                     case 2:
-                        StateMachineContainer.Instance.LightStateMachines[1].Begin = kvp.Value;
+                        StateMachineContainer.Instance.LightStateMachines[1].Begin = schedule.Start;
+                        StateMachineContainer.Instance.LightStateMachines[1].End = schedule.End;
                         break;
                     case 3:
-                        StateMachineContainer.Instance.LightStateMachines[2].Begin = kvp.Value;
+                        StateMachineContainer.Instance.LightStateMachines[2].Begin = schedule.Start;
+                        StateMachineContainer.Instance.LightStateMachines[2].End = schedule.End;
                         break;
                     default:
                         break;
                 }
             }
-            foreach(KeyValuePair<int, DateTime> kvp in limits.LightEnds)
+            foreach(ZoneSchedule schedule in limits.Water)
             {
-                switch (kvp.Key)
+                switch (schedule.Zone)
                 {
                     case 1:
-                        StateMachineContainer.Instance.LightStateMachines[0].End = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.End;
                         break;
                     case 2:
-                        StateMachineContainer.Instance.LightStateMachines[1].End = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.End;
                         break;
                     case 3:
-                        StateMachineContainer.Instance.LightStateMachines[2].End = kvp.Value;
-                        break;
-                    default:
-                        break;
-                }
-            }
-            foreach(KeyValuePair<int, DateTime> kvp in limits.WaterStarts)
-            {
-                switch (kvp.Key)
-                {
-                    case 1:
-                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
-                        break;
-                    case 2:
-                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
-                        break;
-                    case 3:
-                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.End;
                         break;
                     case 4:
-                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.End;
                         break;
                     case 5:
-                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.End;
                         break;
                     case 6:
-                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].Begin = kvp.Value;
-                        break;
-                    default:
-                        break;
-                }
-            }
-            foreach(KeyValuePair<int, DateTime> kvp in limits.WaterEnds)
-            {
-                switch (kvp.Key)
-                {
-                    case 1:
-                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
-                        break;
-                    case 2:
-                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
-                        break;
-                    case 3:
-                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
-                        break;
-                    case 4:
-                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
-                        break;
-                    case 5:
-                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
-                        break;
-                    case 6:
-                        StateMachineContainer.Instance.WateringStateMachines[kvp.Key - 1].End = kvp.Value;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.End;
                         break;
                     default:
                         break;
