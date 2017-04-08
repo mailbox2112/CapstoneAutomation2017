@@ -8,7 +8,8 @@ namespace GreenhouseController
 {
     public class TemperatureStateMachine : IStateMachine
     {
-        private const int _emergencyTemp = 120;
+        private const int _emergencyHigh = 120;
+        private const int _emergencyLow = 32;
         // True = on, false = off
         // Keeps track of what commands we need to send on and off
         private bool _fanState = false;
@@ -79,7 +80,14 @@ namespace GreenhouseController
                 // If we're lower than the low limit
                 if (value <= LowLimit && CurrentState != GreenhouseState.PROCESSING_HEATING)
                 {
-                    return GreenhouseState.HEATING;
+                    if (value <= _emergencyLow)
+                    {
+                        return GreenhouseState.EMERGENCY;
+                    }
+                    else
+                    {
+                        return GreenhouseState.HEATING;
+                    }
                 }
                 // If we're lower than the low limit but we're already heating
                 else if (value <= LowLimit && CurrentState == GreenhouseState.PROCESSING_HEATING)
@@ -90,7 +98,7 @@ namespace GreenhouseController
                 // If we're higher than the high limit
                 else if (value >= HighLimit && CurrentState != GreenhouseState.PROCESSING_COOLING)
                 {
-                    if (value >= _emergencyTemp)
+                    if (value >= _emergencyHigh)
                     {
                         return GreenhouseState.EMERGENCY;
                     }
@@ -102,7 +110,7 @@ namespace GreenhouseController
                 // If we're higher than the high limit but we're already cooling
                 else if (value >= HighLimit && CurrentState == GreenhouseState.PROCESSING_COOLING)
                 {
-                    if (value >= _emergencyTemp)
+                    if (value >= _emergencyHigh)
                     {
                         return GreenhouseState.EMERGENCY;
                     }
