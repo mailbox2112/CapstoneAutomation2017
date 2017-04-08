@@ -96,8 +96,9 @@ void setup() {
   digitalWrite(SHADE_CLK, HIGH);
   digitalWrite(SHADE_DIR, HIGH);
 
-  stepper.setMaxSpeed(150);
-  stepper.setSpeed(100);
+  stepper.setMaxSpeed(1000);
+  stepper.setSpeed(700);
+  stepper.setAcceleration(10);
 
   // wait to connect to Serial
   Serial.begin(9600);
@@ -240,15 +241,15 @@ void process_command() {
     stepper.moveTo(500);
     while (stepper.currentPosition() != 300) stepper.run(); // Full speed up to position 300
     stepper.stop(); // Stop as fast as possible
-    stepper.runToPosition();
+    //stepper.runToPosition();
   }
 
   else if (command == 0x17) {
     wdt_reset();
     stepper.moveTo(-500);
-    while (stepper.currentPosition() != 0) stepper.run(); // Full speed up to position 0
+    while (stepper.currentPosition() != -300) stepper.run(); // Full speed up to position 0
     stepper.stop(); // Stop as fast as possible
-    stepper.runToPosition();
+    //stepper.runToPosition();
   }
 
   // received command does not match possible commands
