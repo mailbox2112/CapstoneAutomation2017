@@ -8,7 +8,8 @@
 
 /*
   Connect 5V on Arduino to VCC on Relay Module
-  Connect GND on Arduino to GND on Relay Module  */
+  Connect 5V from external supply to JD-VCC
+  Connect GND from external supply to GND */
 #include <AccelStepper.h>
 #include <avr/wdt.h>
 
