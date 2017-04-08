@@ -78,7 +78,7 @@ namespace GreenhouseController
             if (_output == null)
             {
                 //_output = new SerialPort("/dev/ttyACM0", _BAUD, _PARITY, _DATABITS, _STOPBITS);
-                _output = new SerialPort("COM3", _BAUD, _PARITY, _DATABITS, _STOPBITS);
+                _output = new SerialPort("COM4", _BAUD, _PARITY, _DATABITS, _STOPBITS);
             }
 
             // Open the serial port
@@ -89,7 +89,6 @@ namespace GreenhouseController
                 _output.ReadTimeout = 500;
                 _output.RtsEnable = true;
             }
-            // TODO: add task down here to periodically poll for the arduino to make sure everything is okay
         }
 
         /// <summary>
@@ -151,7 +150,7 @@ namespace GreenhouseController
 
                     if (command == Commands.SHADE_EXTEND || command == Commands.SHADE_RETRACT)
                     {
-                        _output.ReadTimeout = 10000;
+                        _output.ReadTimeout = 15000;
                     }
                     else
                     {
