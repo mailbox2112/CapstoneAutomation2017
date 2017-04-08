@@ -114,7 +114,7 @@ namespace GreenhouseController
             if (goalShadeState == GreenhouseState.SHADING || goalShadeState == GreenhouseState.WAITING_FOR_DATA)
             {
                 _shadeState = new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Shading, goalShadeState);
-                //ArduinoControlSender.Instance.SendCommand(_shadeState);
+                ArduinoControlSender.Instance.SendCommand(_shadeState);
             }
             #endregion
         }
