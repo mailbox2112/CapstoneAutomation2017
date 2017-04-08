@@ -150,7 +150,8 @@ namespace ConsoleApplication1
                             ManualCool = null,
                             ManualHeat = null,
                             ManualLight = null,
-                            ManualWater = null
+                            ManualWater = null,
+                            ManualShade = null
                         };
                         string manual = JsonConvert.SerializeObject(packet);
                         byte[] manualBytes = Encoding.ASCII.GetBytes(manual);
