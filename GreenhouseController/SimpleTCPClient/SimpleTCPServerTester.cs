@@ -147,10 +147,10 @@ namespace ConsoleApplication1
                     {
                         ManualPacket packet = new ManualPacket()
                         {
-                            ManualCool = null,
+                            ManualCool = true,
                             ManualHeat = null,
-                            ManualLight = null,
-                            ManualWater = null,
+                            ManualLight = true,
+                            ManualWater = true,
                             ManualShade = null
                         };
                         string manual = JsonConvert.SerializeObject(packet);

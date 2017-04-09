@@ -130,9 +130,9 @@ namespace GreenhouseController
             {
                 avg += pack.Temperature;
             }
-            avg /= 5.0;
+            //avg /= 5.0;
 
-            //avg /= 2.0;
+            avg /= 2.0;
             Console.WriteLine("Average Temp: " + avg.ToString());
             return avg;
         }
@@ -149,9 +149,9 @@ namespace GreenhouseController
             {
                 avg += pack.Light;
             }
-            avg /= 5.0;
+            //avg /= 5.0;
 
-            //avg /= 2.0;
+            avg /= 2.0;
             Console.WriteLine("Average Light: " + avg.ToString());
             return avg;
         }
@@ -171,6 +171,7 @@ namespace GreenhouseController
                     now = packet.TimeOfSend;
                 }
             }
+            Console.WriteLine(now.ToString());
             return now;
         }
     }

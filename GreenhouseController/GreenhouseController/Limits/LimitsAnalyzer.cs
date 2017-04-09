@@ -55,27 +55,27 @@ namespace GreenhouseController
                 {
                     case 1:
                         StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.End;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].End = schedule.End;
                         break;
                     case 2:
                         StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.End;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].End = schedule.End;
                         break;
                     case 3:
                         StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.End;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].End = schedule.End;
                         break;
                     case 4:
                         StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.End;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].End = schedule.End;
                         break;
                     case 5:
                         StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.End;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].End = schedule.End;
                         break;
                     case 6:
                         StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.End;
+                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].End = schedule.End;
                         break;
                     default:
                         break;

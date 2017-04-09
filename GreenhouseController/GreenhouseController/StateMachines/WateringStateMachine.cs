@@ -75,16 +75,16 @@ namespace GreenhouseController
                 {
                     return GreenhouseState.WAITING_FOR_DATA;
                 }
-                else if (currentTime < End && currentTime > Begin && CurrentState != GreenhouseState.PROCESSING_WATER)
+                else if (currentTime.TimeOfDay < End.TimeOfDay && currentTime.TimeOfDay > Begin.TimeOfDay && CurrentState != GreenhouseState.PROCESSING_WATER)
                 {
                     return GreenhouseState.WATERING;
                 }
-                else if (currentTime < End && currentTime > Begin && CurrentState == GreenhouseState.PROCESSING_WATER)
+                else if (currentTime.TimeOfDay < End.TimeOfDay && currentTime.TimeOfDay > Begin.TimeOfDay && CurrentState == GreenhouseState.PROCESSING_WATER)
                 {
                     CurrentState = GreenhouseState.WATERING;
                     return GreenhouseState.NO_CHANGE;
                 }
-                else if ((currentTime > End || currentTime < Begin) && CurrentState == GreenhouseState.PROCESSING_DATA)
+                else if ((currentTime.TimeOfDay > End.TimeOfDay || currentTime.TimeOfDay < Begin.TimeOfDay) && CurrentState == GreenhouseState.PROCESSING_DATA)
                 {
                     CurrentState = GreenhouseState.WAITING_FOR_DATA;
                     return GreenhouseState.NO_CHANGE;

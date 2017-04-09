@@ -240,7 +240,10 @@ void process_command() {
   else if (command == 0x16) {
     wdt_reset();
     stepper.moveTo(500);
-    while (stepper.currentPosition() != 300) stepper.run(); // Full speed up to position 300
+    while (stepper.currentPosition() != 300){
+      wdt_reset();
+      stepper.run(); // Full speed up to position 300
+    }
     stepper.stop(); // Stop as fast as possible
     //stepper.runToPosition();
   }
@@ -248,7 +251,10 @@ void process_command() {
   else if (command == 0x17) {
     wdt_reset();
     stepper.moveTo(-500);
-    while (stepper.currentPosition() != -300) stepper.run(); // Full speed up to position 0
+    while (stepper.currentPosition() != -300){
+      wdt_reset();
+      stepper.run(); // Full speed up to position 0
+    }
     stepper.stop(); // Stop as fast as possible
     //stepper.runToPosition();
   }

@@ -65,16 +65,16 @@ namespace GreenhouseController
             if (ManualLight != true)
             {
                 // Process data and take into account if we were already lighting when we received the data
-                if (currentTime < End && currentTime > Begin && CurrentState != GreenhouseState.PROCESSING_LIGHTING)
+                if (currentTime.TimeOfDay < End.TimeOfDay && currentTime.TimeOfDay > Begin.TimeOfDay && CurrentState != GreenhouseState.PROCESSING_LIGHTING)
                 {
                     return GreenhouseState.LIGHTING;
                 }
-                else if (currentTime < End && currentTime > Begin && CurrentState == GreenhouseState.PROCESSING_LIGHTING)
+                else if (currentTime.TimeOfDay < End.TimeOfDay && currentTime.TimeOfDay > Begin.TimeOfDay && CurrentState == GreenhouseState.PROCESSING_LIGHTING)
                 {
                     CurrentState = GreenhouseState.LIGHTING;
                     return GreenhouseState.NO_CHANGE;
                 }
-                else if ((currentTime > End || currentTime < Begin) && CurrentState == GreenhouseState.PROCESSING_DATA)
+                else if ((currentTime.TimeOfDay > End.TimeOfDay || currentTime.TimeOfDay < Begin.TimeOfDay) && CurrentState == GreenhouseState.PROCESSING_DATA)
                 {
                     CurrentState = GreenhouseState.WAITING_FOR_DATA;
                     return GreenhouseState.NO_CHANGE;

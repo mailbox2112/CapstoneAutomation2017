@@ -77,8 +77,8 @@ namespace GreenhouseController
             // Create the serial port
             if (_output == null)
             {
-                //_output = new SerialPort("/dev/ttyACM0", _BAUD, _PARITY, _DATABITS, _STOPBITS);
-                _output = new SerialPort("COM4", _BAUD, _PARITY, _DATABITS, _STOPBITS);
+                _output = new SerialPort("/dev/ttyACM0", _BAUD, _PARITY, _DATABITS, _STOPBITS);
+                //_output = new SerialPort("COM3", _BAUD, _PARITY, _DATABITS, _STOPBITS);
             }
 
             // Open the serial port
@@ -161,7 +161,7 @@ namespace GreenhouseController
                     _output.Read(buffer, 0, buffer.Length);
                     Console.WriteLine($"{buffer.GetValue(0)} received.");
                     
-                    buffer = _ACK;
+                    //buffer = _ACK;
                 }
                 catch (Exception ex)
                 {
@@ -192,7 +192,7 @@ namespace GreenhouseController
                             
                             _output.Read(buffer, 0, buffer.Length);
                             Console.WriteLine($"{buffer.GetValue(0)} received");
-                            //buffer = ACK;
+                            buffer = _ACK;
                         }
                         catch (Exception ex)
                         {
@@ -260,7 +260,7 @@ namespace GreenhouseController
                     _output.Read(buffer, 0, buffer.Length);
                     Console.WriteLine($"{buffer.GetValue(0)} received.");
 
-                    buffer = _ACK;
+                    //buffer = _ACK;
                 }
                 catch (Exception ex)
                 {
@@ -291,7 +291,7 @@ namespace GreenhouseController
 
                             _output.Read(buffer, 0, buffer.Length);
                             Console.WriteLine($"{buffer.GetValue(0)} received");
-                            //buffer = ACK;
+                            //buffer = _ACK;
                         }
                         catch (Exception ex)
                         {

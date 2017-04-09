@@ -126,10 +126,19 @@ namespace GreenhouseController
                     CurrentState = GreenhouseState.WAITING_FOR_DATA;
                     return GreenhouseState.NO_CHANGE;
                 }
+                else if (value <= HighLimit - 5 && value > LowLimit && CurrentState == GreenhouseState.PROCESSING_COOLING)
+                {
+                    return GreenhouseState.WAITING_FOR_DATA;
+                }
+                else if (value >= LowLimit + 5 && value < HighLimit && CurrentState == GreenhouseState.PROCESSING_HEATING)
+                {
+                    return GreenhouseState.WAITING_FOR_DATA;
+                }
                 else
                 {
                     return GreenhouseState.WAITING_FOR_DATA;
                 }
+                
             }
             // If ManualHeat is on
             else if (ManualHeat == true && ManualCool != true)
