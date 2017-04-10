@@ -23,6 +23,7 @@
  *3/24/2017 - STO - Added Unique IP and MAC adresse with DIP switch. 
  *3/24/2017 - STO - Added ip_multiplier to multiple the dip_value for IP
  *3/26/2017 - STO - IP range TLH: 192.168.1.171-178  Moisture: 192.168.1.181-188
+ *4/9/2017 -  STO - Changed auto timing to 5sec, chabged arrangment of moisture sensors, and light sensativity
  */
  
  
@@ -130,7 +131,7 @@ void setup() {
  
   
   //Setup timer to auto send sensor data
-   timer.every(30000, auto_send_sensor); //30 Sec
+   timer.every(20000, auto_send_sensor); //20 Sec
 
 
 }
@@ -203,10 +204,10 @@ void auto_send_sensor(){
    float moistureValue = (moistureRead/calibrationValue) *100; 
    json_packet_mois["TYPE"] = 1;
    json_packet_mois["ID"] = dip_value();
-   json_packet_mois["1.1"] = (analogRead(14)/calibrationValue) *100;
-   json_packet_mois["1.2"] = (analogRead(15)/calibrationValue) *100;
-   json_packet_mois["2.1"] = (analogRead(16)/calibrationValue) *100;
-   json_packet_mois["2.2"] = (analogRead(17)/calibrationValue) *100;
+   json_packet_mois["1.1"] = (analogRead(16)/calibrationValue) *100;
+   json_packet_mois["1.2"] = (analogRead(17)/calibrationValue) *100;
+   json_packet_mois["2.1"] = (analogRead(15)/calibrationValue) *100;
+   json_packet_mois["2.2"] = (analogRead(14)/calibrationValue) *100;
   
   
    String temp;
@@ -231,11 +232,11 @@ void auto_send_sensor(){
 void configure_Light_Sensor()
 {
   /*Set gain of the sesnor
-   *Low = 1x gain (bright light)
-   *Med = 25x gain (Normal Light) Suggested in manual 
-   *High = 428x gain (Very very low light conditions) Pretty much a dark room
+   *LOW = 1x gain (bright light)
+   *MED = 25x gain (Normal Light) Suggested in manual 
+   *HIGH = 428x gain (Very very low light conditions) Pretty much a dark room
    */
-   tsl.setGain(TSL2591_GAIN_HIGH); //(Normal light)
+   tsl.setGain(TSL2591_GAIN_MED); //(Normal light)
    
    /*Set integration time
     *Lower the time the best for dim light
