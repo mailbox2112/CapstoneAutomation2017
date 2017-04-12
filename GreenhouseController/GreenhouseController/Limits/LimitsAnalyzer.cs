@@ -34,16 +34,16 @@ namespace GreenhouseController
                 switch(schedule.Zone)
                 {
                     case 1:
-                        StateMachineContainer.Instance.LightStateMachines[0].Begin = schedule.Start;
-                        StateMachineContainer.Instance.LightStateMachines[0].End = schedule.End;
+                        StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].Begin = schedule.Start;
+                        StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].End = schedule.End;
                         break;
                     case 2:
-                        StateMachineContainer.Instance.LightStateMachines[1].Begin = schedule.Start;
-                        StateMachineContainer.Instance.LightStateMachines[1].End = schedule.End;
+                        StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].Begin = schedule.Start;
+                        StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].End = schedule.End;
                         break;
                     case 3:
-                        StateMachineContainer.Instance.LightStateMachines[2].Begin = schedule.Start;
-                        StateMachineContainer.Instance.LightStateMachines[2].End = schedule.End;
+                        StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].Begin = schedule.Start;
+                        StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].End = schedule.End;
                         break;
                     default:
                         break;
