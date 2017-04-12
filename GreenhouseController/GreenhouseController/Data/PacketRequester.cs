@@ -48,8 +48,8 @@ namespace GreenhouseController
             {
                 try
                 {
-                    _client = new TcpClient(IP, PORT);
-                    //_client = new TcpClient("127.0.0.1", PORT);
+                    //_client = new TcpClient(IP, PORT);
+                    _client = new TcpClient("127.0.0.1", PORT);
                     Console.WriteLine("Connected to data server.");
                 }
                 catch (Exception ex)
@@ -72,6 +72,7 @@ namespace GreenhouseController
             {
                 // Try connecting to the socket
                 TryConnect();
+                ArduinoControlSender.Instance.CheckArduinoStatus();
                 Console.WriteLine($"\nRequesting {request}...");
 
                 // Get the bytes from the JSON to send, then write the data to the socket
