@@ -32,13 +32,16 @@ namespace GreenhouseController
         /// <param name="limits">Packet containng the greenhouse automation limits</param>
         public void ExecuteActions(TLHPacket[] temperature, MoisturePacket[] moisture, ManualPacket manual, LimitPacket limits)
         {
+            ArduinoControlSender.Instance.CheckArduinoStatus();
             // Process limit changes
             LimitsAnalyzer limitAnalyzer = new LimitsAnalyzer();
             limitAnalyzer.ChangeGreenhouseLimits(limits);
             // Process manual controls
+            ArduinoControlSender.Instance.CheckArduinoStatus();
             ManualPacketAnalyzer manualAnalyzer = new ManualPacketAnalyzer();
             manualAnalyzer.SetManualValues(manual);
             // Process sensor data
+            ArduinoControlSender.Instance.CheckArduinoStatus();
             AnalyzeData(temperature, moisture);
         }
 
@@ -110,6 +113,7 @@ namespace GreenhouseController
             }
 
             // Get state for shading state machine, send commands
+            // TODO: Send temperature, not lighting value into shading state machine!
             GreenhouseState goalShadeState = StateMachineContainer.Instance.Shading.DetermineState(_avgLight);
             if (goalShadeState == GreenhouseState.SHADING || goalShadeState == GreenhouseState.WAITING_FOR_DATA)
             {
