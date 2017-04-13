@@ -83,31 +83,31 @@ namespace GreenhouseController
             }
 
             // Get state for lighting state machines, send commands
-            for (int i = 0; i < StateMachineContainer.Instance.LightStateMachines.Count; i ++)
+            foreach (LightingStateMachine stateMachine in StateMachineContainer.Instance.LightStateMachines)
             {
                 // Get the packet from the zone we're currently operating on
-                TLHPacket packet = tlhData.Where(p => p.ID == StateMachineContainer.Instance.LightStateMachines[i].Zone).Single();
+                TLHPacket packet = tlhData.Where(p => p.ID == stateMachine.Zone).Single();
                 double lightingValue = packet.Light;
-                GreenhouseState goalLightState = StateMachineContainer.Instance.LightStateMachines[i].DetermineState(_currentTime, lightingValue);
+                GreenhouseState goalLightState = stateMachine.DetermineState(_currentTime, lightingValue);
                 if (goalLightState == GreenhouseState.LIGHTING || goalLightState == GreenhouseState.SHADING || goalLightState == GreenhouseState.WAITING_FOR_DATA)
                 {
-                    _lightState = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(StateMachineContainer.Instance.LightStateMachines[i], goalLightState);
+                    _lightState = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(stateMachine, goalLightState);
                     ArduinoControlSender.Instance.SendCommand(_lightState);
                 }
             }
 
             // Get states for watering state machines, send commands
-            for(int i = 0; i < StateMachineContainer.Instance.WateringStateMachines.Count; i ++)
+            foreach (WateringStateMachine stateMachine in StateMachineContainer.Instance.WateringStateMachines)
             {
                 // Get the packet from the zone we're currently operating on
-                MoisturePacket packet = moistData.Where(p => p.ID == StateMachineContainer.Instance.WateringStateMachines[i].Zone).Single();
+                MoisturePacket packet = moistData.Where(p => p.ID == stateMachine.Zone).Single();
                 double moistureValue = (packet.Probe1 + packet.Probe2) / 2;
 
                 // Get the state we need to transition into, then go send a command appropriate to that
-                GreenhouseState goalWaterState = StateMachineContainer.Instance.WateringStateMachines[i].DetermineState(_currentTime, moistureValue);
+                GreenhouseState goalWaterState = stateMachine.DetermineState(_currentTime, moistureValue);
                 if (goalWaterState == GreenhouseState.WATERING || goalWaterState == GreenhouseState.WAITING_FOR_DATA)
                 {
-                    _waterState = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(StateMachineContainer.Instance.WateringStateMachines[i], goalWaterState);
+                    _waterState = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(stateMachine, goalWaterState);
                     ArduinoControlSender.Instance.SendCommand(_waterState);
                 }
             }
