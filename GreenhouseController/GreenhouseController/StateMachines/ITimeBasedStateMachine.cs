@@ -20,6 +20,10 @@ namespace GreenhouseController
 
         DateTime End { get; set; }
 
+        double OverrideThreshold { get; set; }
+
+        bool AllowScheduleOverrides { get; set; }
+
         void OnStateChange(StateEventArgs e);
     }
 }

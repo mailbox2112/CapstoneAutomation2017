@@ -8,7 +8,6 @@ namespace GreenhouseController
 {
     public class LightingStateMachine : ITimeBasedStateMachine
     {
-        // TODO: Add lighting sensor value override stuff
         // Private member for implementing custom get/set using the event handler
         private GreenhouseState _currentState;
 
@@ -36,7 +35,11 @@ namespace GreenhouseController
         public int Zone { get; set; }
 
         public bool? ManualLight { get; set; }
-        
+
+        public double OverrideThreshold { get; set; }
+
+        public bool AllowScheduleOverrides { get; set; }
+
         /// <summary>
         /// Initialize the state machine
         /// </summary>
@@ -62,55 +65,122 @@ namespace GreenhouseController
                 CurrentState = GreenhouseState.PROCESSING_DATA;
             }
 
-            if (ManualLight != true)
+            // If we don't have a manual lighting command
+            if (ManualLight == null)
             {
-                // Process data and take into account if we were already lighting when we received the data
-                if (currentTime.TimeOfDay < End.TimeOfDay && currentTime.TimeOfDay > Begin.TimeOfDay && CurrentState != GreenhouseState.PROCESSING_LIGHTING)
+                /* Process data and take into account if we were already lighting when we received the data
+                   If we're coming from the wait state and processing data */
+                if (CurrentState == GreenhouseState.PROCESSING_DATA)
                 {
-                    return GreenhouseState.LIGHTING;
+                    // If we're within the scheduled time, check the override value. Otherwise, nothing happens
+                    if (currentTime.TimeOfDay >= Begin.TimeOfDay && currentTime.TimeOfDay <= End.TimeOfDay)
+                    {
+                        // If they want sensors to override the schedule, check the threshold
+                        if (AllowScheduleOverrides)
+                        {
+                            /* Since we're in the processing data state, we know the lights aren't already on. 
+                               Therefore, we can just keep ourselves in the waiting for data state if we're
+                               above the override threshold value */
+                            if (value >= OverrideThreshold)
+                            {
+                                CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                                return GreenhouseState.NO_CHANGE;
+                            }
+                            // Otherwise, we turn the lights on
+                            else
+                            {
+                                return GreenhouseState.LIGHTING;
+                            }
+                        }
+                        // Otherwise, just turn the lights on
+                        else
+                        {
+                            return GreenhouseState.LIGHTING;
+                        }
+                    }
+                    // We're not within the scheduled time, so we just go back to waiting
+                    else
+                    {
+                        CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                        return GreenhouseState.NO_CHANGE;
+                    }
                 }
-                else if (currentTime.TimeOfDay < End.TimeOfDay && currentTime.TimeOfDay > Begin.TimeOfDay && CurrentState == GreenhouseState.PROCESSING_LIGHTING)
+                // If we're coming from the lighting state and processing data
+                else if (CurrentState == GreenhouseState.PROCESSING_LIGHTING)
                 {
-                    CurrentState = GreenhouseState.LIGHTING;
-                    return GreenhouseState.NO_CHANGE;
+                    // Check if we're within the scheduled time still
+                    if (currentTime.TimeOfDay >= Begin.TimeOfDay && currentTime.TimeOfDay <= End.TimeOfDay)
+                    {
+                        // Check if they want the sensors to override the schedule
+                        if (AllowScheduleOverrides)
+                        {
+                            // Since they want the sensors overriding the schedule, check the sensor values
+                            if (value >= OverrideThreshold)
+                            {
+                                // The lights are currently on, so we need to turn them off
+                                return GreenhouseState.WAITING_FOR_DATA;
+                            }
+                            // If we're not past the threshold value, keep the lights on
+                            else
+                            {
+                                CurrentState = GreenhouseState.LIGHTING;
+                                return GreenhouseState.NO_CHANGE;
+                            }
+                        }
+                        // If they don't want the schedule to be overridden by sensor values, just keep the lights on
+                        else
+                        {
+                            CurrentState = GreenhouseState.LIGHTING;
+                            return GreenhouseState.NO_CHANGE;
+                        }
+                    }
+                    // If we're no longer within the scheduled time, turn the lights off
+                    else
+                    {
+                        return GreenhouseState.WAITING_FOR_DATA;
+                    }
                 }
-                else if ((currentTime.TimeOfDay > End.TimeOfDay || currentTime.TimeOfDay < Begin.TimeOfDay) && CurrentState == GreenhouseState.PROCESSING_DATA)
-                {
-                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                    return GreenhouseState.NO_CHANGE;
-                }
+                // If neither, something went wrong
                 else
                 {
-                    return GreenhouseState.WAITING_FOR_DATA;
+                    CurrentState = GreenhouseState.ERROR;
+                    return GreenhouseState.ERROR;
                 }
             }
+            // Turn on the lights
             else if (ManualLight == true)
             {
+                // If we're already lighting, don't send the command
                 if (CurrentState == GreenhouseState.PROCESSING_LIGHTING)
                 {
                     CurrentState = GreenhouseState.LIGHTING;
                     return GreenhouseState.NO_CHANGE;
                 }
+                // Otherwise send the command
                 else
                 {
                     return GreenhouseState.LIGHTING;
                 }
             }
-            //else if (ManualLight == false)
-            //{
-            //    ManualLight = null;
-            //    if (CurrentState == GreenhouseState.PROCESSING_DATA)
-            //    {
-            //        CurrentState = GreenhouseState.WAITING_FOR_DATA;
-            //        return GreenhouseState.NO_CHANGE;
-            //    }
-            //    else
-            //    {
-            //        return GreenhouseState.WAITING_FOR_DATA;
-            //    }
-            //}
+            // TURN THOSE LIGHTS OFF, NO, NO, TURN THOSE LIGHTS OFF!
+            else if (ManualLight == false)
+            {
+                // If the lights are already off, don't do anything
+                if (CurrentState == GreenhouseState.PROCESSING_DATA)
+                {
+                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                    return GreenhouseState.NO_CHANGE;
+                }
+                // If the lights aren't off already, send the command to turn them off
+                else
+                {
+                    return GreenhouseState.WAITING_FOR_DATA;
+                }
+            }
+            // If somehow we don't meet the above criteria, return an error
             else
             {
+                CurrentState = GreenhouseState.ERROR;
                 return GreenhouseState.ERROR;
             }
         }
