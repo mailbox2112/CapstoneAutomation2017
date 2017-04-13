@@ -32,6 +32,8 @@ namespace GreenhouseController
         /// <param name="limits">Packet containng the greenhouse automation limits</param>
         public void ExecuteActions(TLHPacket[] temperature, MoisturePacket[] moisture, ManualPacket manual, LimitPacket limits)
         {
+            // TODO: Change packet structure to support sensor overrides for the lighting and watering
+            // TODO: Add a sensor override field, and a sensor override threshold. Probably to the limit packet, would be my best guess
             ArduinoControlSender.Instance.CheckArduinoStatus();
             // Process limit changes
             LimitsAnalyzer limitAnalyzer = new LimitsAnalyzer();
@@ -63,7 +65,9 @@ namespace GreenhouseController
             // Do something if there's a problem with the Arduino
             if (!result)
             {
-
+                // TODO: reconnect to arduino
+                // TODO: resend commands that come from current state machine states
+                // TODO: proceed normally, or if we can't reconnect, throw some sort of error
             }
 
             List<GreenhouseState> statesToSend = new List<GreenhouseState>();
@@ -113,8 +117,7 @@ namespace GreenhouseController
             }
 
             // Get state for shading state machine, send commands
-            // TODO: Send temperature, not lighting value into shading state machine!
-            GreenhouseState goalShadeState = StateMachineContainer.Instance.Shading.DetermineState(_avgLight);
+            GreenhouseState goalShadeState = StateMachineContainer.Instance.Shading.DetermineState(_avgTemp);
             if (goalShadeState == GreenhouseState.SHADING || goalShadeState == GreenhouseState.WAITING_FOR_DATA)
             {
                 _shadeState = new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Shading, goalShadeState);
