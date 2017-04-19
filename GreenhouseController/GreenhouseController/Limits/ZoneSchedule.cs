@@ -11,5 +11,7 @@ namespace GreenhouseController.Limits
         public int Zone;
         public DateTime Start;
         public DateTime End;
+        public double? Threshold;
+        public ScheduleTypes Type;
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GreenhouseController.Limits;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -36,9 +37,9 @@ namespace GreenhouseController
 
         public bool? ManualLight { get; set; }
 
-        public double OverrideThreshold { get; set; }
+        public double? OverrideThreshold { get; set; }
 
-        public bool AllowScheduleOverrides { get; set; }
+        public ScheduleTypes ScheduleType { get; set; }
 
         /// <summary>
         /// Initialize the state machine
@@ -76,11 +77,11 @@ namespace GreenhouseController
                     if (currentTime.TimeOfDay >= Begin.TimeOfDay && currentTime.TimeOfDay <= End.TimeOfDay)
                     {
                         // If they want sensors to override the schedule, check the threshold
-                        if (AllowScheduleOverrides)
+                        if (ScheduleType == ScheduleTypes.SENSORS)
                         {
                             /* Since we're in the processing data state, we know the lights aren't already on. 
-                               Therefore, we can just keep ourselves in the waiting for data state if we're
-                               above the override threshold value */
+                                Therefore, we can just keep ourselves in the waiting for data state if we're
+                                above the override threshold value */
                             if (value >= OverrideThreshold)
                             {
                                 CurrentState = GreenhouseState.WAITING_FOR_DATA;
@@ -92,10 +93,19 @@ namespace GreenhouseController
                                 return GreenhouseState.LIGHTING;
                             }
                         }
-                        // Otherwise, just turn the lights on
-                        else
+                        else if (ScheduleType == ScheduleTypes.BLOCKED)
+                        {
+                            CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                            return GreenhouseState.NO_CHANGE;
+                        }
+                        // Otherwise, see if we just turn the lights on
+                        else if (ScheduleType == ScheduleTypes.CONSTANT)
                         {
                             return GreenhouseState.LIGHTING;
+                        }
+                        else
+                        {
+                            return GreenhouseState.ERROR;
                         }
                     }
                     // We're not within the scheduled time, so we just go back to waiting
@@ -112,7 +122,7 @@ namespace GreenhouseController
                     if (currentTime.TimeOfDay >= Begin.TimeOfDay && currentTime.TimeOfDay <= End.TimeOfDay)
                     {
                         // Check if they want the sensors to override the schedule
-                        if (AllowScheduleOverrides)
+                        if (ScheduleType == ScheduleTypes.SENSORS)
                         {
                             // Since they want the sensors overriding the schedule, check the sensor values
                             if (value >= OverrideThreshold)
@@ -127,11 +137,20 @@ namespace GreenhouseController
                                 return GreenhouseState.NO_CHANGE;
                             }
                         }
+                        else if (ScheduleType == ScheduleTypes.BLOCKED)
+                        {
+                            return GreenhouseState.WAITING_FOR_DATA;
+                        }
                         // If they don't want the schedule to be overridden by sensor values, just keep the lights on
-                        else
+                        else if (ScheduleType == ScheduleTypes.CONSTANT)
                         {
                             CurrentState = GreenhouseState.LIGHTING;
                             return GreenhouseState.NO_CHANGE;
+                        }
+                        // If we don't meet any of those conditions, something bad happened!
+                        else
+                        {
+                            return GreenhouseState.ERROR;
                         }
                     }
                     // If we're no longer within the scheduled time, turn the lights off

@@ -56,6 +56,7 @@
     <Compile Include="Limits\LimitPacket.cs" />
     <Compile Include="Limits\LimitsAnalyzer.cs" />
     <Compile Include="Data\MoisturePacket.cs" />
+    <Compile Include="Limits\ScheduleTypes.cs" />
     <Compile Include="Limits\ZoneSchedule.cs" />
     <Compile Include="PacketContainers\MoisturePacketContainer.cs" />
     <Compile Include="PacketContainers\TLHPacketContainer.cs" />
@@ -66,7 +67,6 @@
     <Compile Include="UnitTestClasses\ArduinoControlSenderSimulator.cs" />
     <Compile Include="ArduinoControlSender.cs" />
     <Compile Include="Data\DataEventArgs.cs" />
-    <Compile Include="Data\DataPackets.cs" />
     <Compile Include="Data\DataAnalyzer.cs" />
     <Compile Include="Data\PacketRequester.cs" />
     <Compile Include="GreenhouseController.cs" />

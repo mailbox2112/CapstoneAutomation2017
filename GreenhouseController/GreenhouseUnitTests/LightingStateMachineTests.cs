@@ -40,7 +40,7 @@ namespace GreenhouseUnitTests
             // Result: LIGHTING
             testMachine.CurrentState = GreenhouseState.WAITING_FOR_DATA;
             testMachine.ManualLight = null;
-            testMachine.AllowScheduleOverrides = false;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.CONSTANT;
 
             result = testMachine.DetermineState(currentTime, lightAvg);
             Assert.IsTrue(result == GreenhouseState.LIGHTING);
@@ -52,7 +52,7 @@ namespace GreenhouseUnitTests
             // Result: LIGHTING
             testMachine.CurrentState = GreenhouseState.WAITING_FOR_DATA;
             testMachine.ManualLight = null;
-            testMachine.AllowScheduleOverrides = true;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.SENSORS;
 
             result = testMachine.DetermineState(currentTime, lightAvg);
             Assert.IsTrue(result == GreenhouseState.LIGHTING);
@@ -64,7 +64,7 @@ namespace GreenhouseUnitTests
             // Result: WAITING
             testMachine.CurrentState = GreenhouseState.WAITING_FOR_DATA;
             testMachine.ManualLight = null;
-            testMachine.AllowScheduleOverrides = true;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.SENSORS;
 
             result = testMachine.DetermineState(currentTime, 65000);
             Assert.IsTrue(result == GreenhouseState.NO_CHANGE);
@@ -77,7 +77,7 @@ namespace GreenhouseUnitTests
             // Result: WAITING
             testMachine.CurrentState = GreenhouseState.WAITING_FOR_DATA;
             testMachine.ManualLight = null;
-            testMachine.AllowScheduleOverrides = true;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.CONSTANT;
 
             result = testMachine.DetermineState(new DateTime(2017, 7, 4, 19, 0, 0), lightAvg);
             Assert.IsTrue(result == GreenhouseState.NO_CHANGE);
@@ -90,9 +90,20 @@ namespace GreenhouseUnitTests
             // Result: WAITING
             testMachine.CurrentState = GreenhouseState.WAITING_FOR_DATA;
             testMachine.ManualLight = null;
-            testMachine.AllowScheduleOverrides = true;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.CONSTANT;
 
             result = testMachine.DetermineState(new DateTime(2017, 7, 4, 19, 0, 0), 65000);
+            Assert.IsTrue(result == GreenhouseState.NO_CHANGE);
+            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.WAITING_FOR_DATA);
+
+            // Test case: lighting in automation mode,
+            // coming from wait state, BLOCKED scheduletype
+            // Light values should be irrelevant
+            // Result: WAITING/NO CHANGE
+            testMachine.CurrentState = GreenhouseState.WAITING_FOR_DATA;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.BLOCKED;
+
+            result = testMachine.DetermineState(currentTime, 45000);
             Assert.IsTrue(result == GreenhouseState.NO_CHANGE);
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.WAITING_FOR_DATA);
             #endregion
@@ -104,7 +115,7 @@ namespace GreenhouseUnitTests
             // Result: LIGHTING/NO CHANGE
             testMachine.CurrentState = GreenhouseState.LIGHTING;
             testMachine.ManualLight = null;
-            testMachine.AllowScheduleOverrides = false;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.CONSTANT;
 
             result = testMachine.DetermineState(currentTime, lightAvg);
             Assert.IsTrue(result == GreenhouseState.NO_CHANGE);
@@ -117,7 +128,7 @@ namespace GreenhouseUnitTests
             // Result: LIGHTING/NO CHANGE
             testMachine.CurrentState = GreenhouseState.LIGHTING;
             testMachine.ManualLight = null;
-            testMachine.AllowScheduleOverrides = false;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.CONSTANT;
 
             result = testMachine.DetermineState(currentTime, 65000);
             Assert.IsTrue(result == GreenhouseState.NO_CHANGE);
@@ -130,7 +141,7 @@ namespace GreenhouseUnitTests
             // Result: WAITING
             testMachine.CurrentState = GreenhouseState.LIGHTING;
             testMachine.ManualLight = null;
-            testMachine.AllowScheduleOverrides = false;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.CONSTANT;
 
             result = testMachine.DetermineState(new DateTime(2017, 7, 4, 20, 0, 0), lightAvg);
             Assert.IsTrue(result == GreenhouseState.WAITING_FOR_DATA);
@@ -142,7 +153,7 @@ namespace GreenhouseUnitTests
             // Result: WAITING
             testMachine.CurrentState = GreenhouseState.LIGHTING;
             testMachine.ManualLight = null;
-            testMachine.AllowScheduleOverrides = false;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.CONSTANT;
 
             result = testMachine.DetermineState(new DateTime(2017, 7, 4, 20, 0, 0), 65000);
             Assert.IsTrue(result == GreenhouseState.WAITING_FOR_DATA);
@@ -154,7 +165,7 @@ namespace GreenhouseUnitTests
             // Result: LIGHTING/NO CHANGE
             testMachine.CurrentState = GreenhouseState.LIGHTING;
             testMachine.ManualLight = null;
-            testMachine.AllowScheduleOverrides = true;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.SENSORS;
 
             result = testMachine.DetermineState(currentTime, lightAvg);
             Assert.IsTrue(result == GreenhouseState.NO_CHANGE);
@@ -167,7 +178,7 @@ namespace GreenhouseUnitTests
             // Result: WAITING
             testMachine.CurrentState = GreenhouseState.LIGHTING;
             testMachine.ManualLight = null;
-            testMachine.AllowScheduleOverrides = true;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.SENSORS;
 
             result = testMachine.DetermineState(currentTime, 65000);
             Assert.IsTrue(result == GreenhouseState.WAITING_FOR_DATA);
@@ -179,7 +190,7 @@ namespace GreenhouseUnitTests
             // Result: WAITING
             testMachine.CurrentState = GreenhouseState.LIGHTING;
             testMachine.ManualLight = null;
-            testMachine.AllowScheduleOverrides = true;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.SENSORS;
 
             result = testMachine.DetermineState(new DateTime(2017, 7, 4, 20, 0, 0), lightAvg);
             Assert.IsTrue(result == GreenhouseState.WAITING_FOR_DATA);
@@ -191,9 +202,20 @@ namespace GreenhouseUnitTests
             // Result: WAITING
             testMachine.CurrentState = GreenhouseState.LIGHTING;
             testMachine.ManualLight = null;
-            testMachine.AllowScheduleOverrides = true;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.SENSORS;
 
             result = testMachine.DetermineState(new DateTime(2017, 7, 4, 20, 0, 0), 65000);
+            Assert.IsTrue(result == GreenhouseState.WAITING_FOR_DATA);
+
+            // Test case: lighting is in automated mode
+            // coming from lighting state, BLOCKED scheduletype
+            // Light values are irrelevant
+            // WITHIN scheduled time
+            // Result: WAITING
+            testMachine.CurrentState = GreenhouseState.LIGHTING;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.BLOCKED;
+
+            result = testMachine.DetermineState(currentTime, 60000);
             Assert.IsTrue(result == GreenhouseState.WAITING_FOR_DATA);
             #endregion
             #endregion

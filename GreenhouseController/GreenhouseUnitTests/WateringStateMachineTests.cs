@@ -36,7 +36,7 @@ namespace GreenhouseUnitTests
             // Result: watering
             testMachine.CurrentState = GreenhouseState.WAITING_FOR_DATA;
             testMachine.ManualWater = null;
-            testMachine.AllowScheduleOverrides = false;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.CONSTANT;
 
             result = testMachine.DetermineState(currentTime, moisture);
             Assert.IsTrue(result == GreenhouseState.WATERING);
@@ -50,7 +50,7 @@ namespace GreenhouseUnitTests
             testMachine.CurrentState = GreenhouseState.WAITING_FOR_DATA;
             testMachine.ManualWater = null;
             testMachine.OverrideThreshold = 70;
-            testMachine.AllowScheduleOverrides = true;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.SENSORS;
 
             result = testMachine.DetermineState(currentTime, moisture);
             Assert.IsTrue(result == GreenhouseState.WATERING);
@@ -64,7 +64,7 @@ namespace GreenhouseUnitTests
             testMachine.CurrentState = GreenhouseState.WAITING_FOR_DATA;
             testMachine.ManualWater = null;
             testMachine.OverrideThreshold = 70;
-            testMachine.AllowScheduleOverrides = true;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.SENSORS;
 
             result = testMachine.DetermineState(currentTime, 90);
             Assert.IsTrue(result == GreenhouseState.NO_CHANGE);
@@ -80,6 +80,17 @@ namespace GreenhouseUnitTests
             result = testMachine.DetermineState(new DateTime(2017, 7, 4, 20, 0, 0), moisture);
             Assert.IsTrue(result == GreenhouseState.NO_CHANGE);
             Assert.IsTrue(testMachine.CurrentState == GreenhouseState.WAITING_FOR_DATA);
+
+            // Test case:
+            // coming from wait state
+            // scheduletype BLOCKED
+            // Result: waiting/no change
+            testMachine.CurrentState = GreenhouseState.WAITING_FOR_DATA;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.BLOCKED;
+
+            result = testMachine.DetermineState(currentTime, 55);
+            Assert.IsTrue(result == GreenhouseState.NO_CHANGE);
+            Assert.IsTrue(testMachine.CurrentState == GreenhouseState.WAITING_FOR_DATA);
             #endregion
             #region Processing_Water Tests
             // Test case: coming from watering state,
@@ -87,7 +98,7 @@ namespace GreenhouseUnitTests
             // without overrides
             // Result: keep water on
             testMachine.CurrentState = GreenhouseState.WATERING;
-            testMachine.AllowScheduleOverrides = false;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.CONSTANT;
 
             result = testMachine.DetermineState(currentTime, moisture);
             Assert.IsTrue(result == GreenhouseState.NO_CHANGE);
@@ -99,7 +110,7 @@ namespace GreenhouseUnitTests
             // value below threshold
             // Result: keep water on
             testMachine.CurrentState = GreenhouseState.WATERING;
-            testMachine.AllowScheduleOverrides = true;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.SENSORS;
             testMachine.OverrideThreshold = 70;
 
             result = testMachine.DetermineState(currentTime, moisture);
@@ -112,7 +123,7 @@ namespace GreenhouseUnitTests
             // value above threshold
             // Result: turn water off
             testMachine.CurrentState = GreenhouseState.WATERING;
-            testMachine.AllowScheduleOverrides = true;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.SENSORS;
             testMachine.OverrideThreshold = 70;
 
             result = testMachine.DetermineState(currentTime, 90);
@@ -124,6 +135,15 @@ namespace GreenhouseUnitTests
             testMachine.CurrentState = GreenhouseState.WATERING;
 
             result = testMachine.DetermineState(new DateTime(2017, 7, 4, 20, 0, 0), moisture);
+            Assert.IsTrue(result == GreenhouseState.WAITING_FOR_DATA);
+
+            // Test case: coming from watering state
+            // scheduletype BLOCKED
+            // Result: turn water off
+            testMachine.CurrentState = GreenhouseState.WATERING;
+            testMachine.ScheduleType = GreenhouseController.Limits.ScheduleTypes.BLOCKED;
+
+            result = testMachine.DetermineState(currentTime, 45);
             Assert.IsTrue(result == GreenhouseState.WAITING_FOR_DATA);
             #endregion
             #endregion

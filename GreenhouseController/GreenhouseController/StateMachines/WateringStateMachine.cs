@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GreenhouseController.Limits;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,6 @@ namespace GreenhouseController
 {
     public class WateringStateMachine : ITimeBasedStateMachine
     {
-        // TODO: add moisture sensor override stuff
         private const int _emergencyMoist = 0;
 
         private GreenhouseState _currentState;
@@ -35,19 +35,17 @@ namespace GreenhouseController
 
         public bool? ManualWater { get; set; }
 
-        public double MoistureThreshold { get; set; }
+        public double? OverrideThreshold { get; set; }
 
-        public double OverrideThreshold { get; set; }
-
-        public bool AllowScheduleOverrides { get; set; }
+        public ScheduleTypes ScheduleType { get; set;}
 
         /// <summary>
         /// Initialize the state machine
         /// </summary>
         public WateringStateMachine(int zone)
         {
-            MoistureThreshold = 70;
             CurrentState = GreenhouseState.WAITING_FOR_DATA;
+            ScheduleType = ScheduleTypes.CONSTANT;
             Zone = zone;
         }
 
@@ -80,7 +78,7 @@ namespace GreenhouseController
                     if (currentTime.TimeOfDay >= Begin.TimeOfDay && currentTime.TimeOfDay <= End.TimeOfDay)
                     {
                         // If the user wants the sensors to override the schedule
-                        if (AllowScheduleOverrides)
+                        if (ScheduleType == ScheduleTypes.SENSORS)
                         {
                             // Check if we're above the override threshold
                             // If so, don't turn the water on
@@ -95,10 +93,21 @@ namespace GreenhouseController
                                 return GreenhouseState.WATERING;
                             }
                         }
-                        // Otherwise just turn the water on
-                        else
+                        // Otherwise check if we need to just turn the water on
+                        // If we're not blocked out of the scheduled time, don't do anything
+                        else if (ScheduleType == ScheduleTypes.BLOCKED)
+                        {
+                            CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                            return GreenhouseState.NO_CHANGE;
+                        }
+                        else if (ScheduleType == ScheduleTypes.CONSTANT)
                         {
                             return GreenhouseState.WATERING;
+                        }
+                        // If we somehow didn't hit any of these conditions, error
+                        else
+                        {
+                            return GreenhouseState.ERROR;
                         }
                     }
                     // If we're outside of the scheduled time, 
@@ -116,7 +125,7 @@ namespace GreenhouseController
                     if (currentTime.TimeOfDay >= Begin.TimeOfDay && currentTime.TimeOfDay <= End.TimeOfDay)
                     {
                         // If the user wants the sensors to override the schedule
-                        if (AllowScheduleOverrides)
+                        if (ScheduleType == ScheduleTypes.SENSORS)
                         {
                             // Check if the moisture if past the override threshold
                             // If so, turn the water off
@@ -131,11 +140,19 @@ namespace GreenhouseController
                                 return GreenhouseState.NO_CHANGE;
                             }
                         }
+                        else if (ScheduleType == ScheduleTypes.BLOCKED)
+                        {
+                            return GreenhouseState.WAITING_FOR_DATA;
+                        }
                         // Otherwise, just keep the water on
-                        else
+                        else if (ScheduleType == ScheduleTypes.CONSTANT)
                         {
                             CurrentState = GreenhouseState.WATERING;
                             return GreenhouseState.NO_CHANGE;
+                        }
+                        else
+                        {
+                            return GreenhouseState.ERROR;
                         }
                     }
                     // If we're outside the scheduled time,

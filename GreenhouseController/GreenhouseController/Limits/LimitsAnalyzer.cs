@@ -36,50 +36,29 @@ namespace GreenhouseController
                     case 1:
                         StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].Begin = schedule.Start;
                         StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].End = schedule.End;
+                        StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].OverrideThreshold = schedule.Threshold;
+                        StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].ScheduleType = schedule.Type;
                         break;
                     case 2:
                         StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].Begin = schedule.Start;
                         StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].End = schedule.End;
+                        StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].OverrideThreshold = schedule.Threshold;
+                        StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].ScheduleType = schedule.Type;
                         break;
                     case 3:
                         StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].Begin = schedule.Start;
                         StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].End = schedule.End;
-                        break;
-                    default:
+                        StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].OverrideThreshold = schedule.Threshold;
+                        StateMachineContainer.Instance.LightStateMachines[schedule.Zone - 1].ScheduleType = schedule.Type;
                         break;
                 }
             }
             foreach(ZoneSchedule schedule in limits.Water)
             {
-                switch (schedule.Zone)
-                {
-                    case 1:
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].End = schedule.End;
-                        break;
-                    case 2:
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].End = schedule.End;
-                        break;
-                    case 3:
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].End = schedule.End;
-                        break;
-                    case 4:
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].End = schedule.End;
-                        break;
-                    case 5:
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].End = schedule.End;
-                        break;
-                    case 6:
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
-                        StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].End = schedule.End;
-                        break;
-                    default:
-                        break;
-                }
+                StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].Begin = schedule.Start;
+                StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].End = schedule.End;
+                StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].OverrideThreshold = schedule.Threshold;
+                StateMachineContainer.Instance.WateringStateMachines[schedule.Zone - 1].ScheduleType = schedule.Type;
             }
 
             Console.WriteLine($"Temperature High Limit: {StateMachineContainer.Instance.Temperature.HighLimit}");

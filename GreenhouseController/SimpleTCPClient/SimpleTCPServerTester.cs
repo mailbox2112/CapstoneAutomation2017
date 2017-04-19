@@ -76,7 +76,7 @@ namespace ConsoleApplication1
             else if (key == "R" || key == "r")
             {
                 #region Random Data
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[10024];
                 while(true)
                 {
                     Console.WriteLine("Accepting connection...");

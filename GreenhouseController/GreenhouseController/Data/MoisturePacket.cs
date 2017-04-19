@@ -8,7 +8,6 @@ namespace GreenhouseController
 {
     public class MoisturePacket
     {
-        public int Type = 1;
         public int ID;
         public double Probe1;
         public double Probe2;

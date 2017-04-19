@@ -16,8 +16,9 @@ namespace GreenhouseController
         private const string IP = "192.168.1.103";
         private const int PORT = 8888;
         
-        private byte[] _buffer = new byte[1024];
-        private byte[] _tempBuffer = new byte[1024];
+        // Big byte arrays because there's the potential for the limit packet to go past a kilobyte :O
+        private byte[] _buffer = new byte[10024];
+        private byte[] _tempBuffer = new byte[10024];
         private NetworkStream _dataStream;
         private TcpClient _client = new TcpClient();
         private List<string> _requests = new List<string>() { "TLH", "MOISTURE", "LIMITS", "MANUAL" };
