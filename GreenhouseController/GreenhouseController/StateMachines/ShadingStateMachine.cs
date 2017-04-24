@@ -55,7 +55,7 @@ namespace GreenhouseController.StateMachines
             }
 
             // If we don't have a manual shading command
-            if (ManualShade == null)
+            if (ManualShade != true)
             {
                 // If we're coming from the wait state
                 if (CurrentState == GreenhouseState.PROCESSING_DATA)
@@ -105,19 +105,19 @@ namespace GreenhouseController.StateMachines
                     return GreenhouseState.SHADING;
                 }
             }
-            else if (ManualShade == false)
-            {
-                ManualShade = null;
-                if (CurrentState == GreenhouseState.PROCESSING_DATA)
-                {
-                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                    return GreenhouseState.NO_CHANGE;
-                }
-                else
-                {
-                    return GreenhouseState.WAITING_FOR_DATA;
-                }
-            }
+            //else if (ManualShade == false)
+            //{
+            //    ManualShade = null;
+            //    if (CurrentState == GreenhouseState.PROCESSING_DATA)
+            //    {
+            //        CurrentState = GreenhouseState.WAITING_FOR_DATA;
+            //        return GreenhouseState.NO_CHANGE;
+            //    }
+            //    else
+            //    {
+            //        return GreenhouseState.WAITING_FOR_DATA;
+            //    }
+            //}
             else
             {
                 return GreenhouseState.ERROR;

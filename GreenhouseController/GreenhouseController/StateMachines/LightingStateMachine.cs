@@ -67,7 +67,7 @@ namespace GreenhouseController
             }
 
             // If we don't have a manual lighting command
-            if (ManualLight == null)
+            if (ManualLight != true)
             {
                 /* Process data and take into account if we were already lighting when we received the data
                    If we're coming from the wait state and processing data */
@@ -182,20 +182,20 @@ namespace GreenhouseController
                 }
             }
             // TURN THOSE LIGHTS OFF, NO, NO, TURN THOSE LIGHTS OFF!
-            else if (ManualLight == false)
-            {
-                // If the lights are already off, don't do anything
-                if (CurrentState == GreenhouseState.PROCESSING_DATA)
-                {
-                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                    return GreenhouseState.NO_CHANGE;
-                }
-                // If the lights aren't off already, send the command to turn them off
-                else
-                {
-                    return GreenhouseState.WAITING_FOR_DATA;
-                }
-            }
+            //else if (ManualLight == false)
+            //{
+            //    // If the lights are already off, don't do anything
+            //    if (CurrentState == GreenhouseState.PROCESSING_DATA)
+            //    {
+            //        CurrentState = GreenhouseState.WAITING_FOR_DATA;
+            //        return GreenhouseState.NO_CHANGE;
+            //    }
+            //    // If the lights aren't off already, send the command to turn them off
+            //    else
+            //    {
+            //        return GreenhouseState.WAITING_FOR_DATA;
+            //    }
+            //}
             // If somehow we don't meet the above criteria, return an error
             else
             {

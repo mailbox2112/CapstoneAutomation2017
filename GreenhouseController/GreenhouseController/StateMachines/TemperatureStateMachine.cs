@@ -73,7 +73,7 @@ namespace GreenhouseController
             }
            
             // If the state machine isn't in manual control mode
-            if (ManualHeat == null && ManualCool == null)
+            if (ManualHeat != true && ManualCool != true)
             {
                 // If we're coming from the wait state
                 if (CurrentState == GreenhouseState.PROCESSING_DATA)
@@ -193,27 +193,27 @@ namespace GreenhouseController
                     return GreenhouseState.HEATING;
                 }
             }
-            //If ManualHeat is off
-            else if (ManualHeat == false)
-            {
-                // If we're heating currently, turn it off
-                if (CurrentState == GreenhouseState.PROCESSING_HEATING)
-                {
-                    return GreenhouseState.WAITING_FOR_DATA;
-                }
-                // If we're cooling currently, don't do anything
-                else if (CurrentState == GreenhouseState.PROCESSING_COOLING)
-                {
-                    CurrentState = GreenhouseState.COOLING;
-                    return GreenhouseState.NO_CHANGE;
-                }
-                // If we're doing nothing currently, continue to do nothing
-                else
-                {
-                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                    return GreenhouseState.NO_CHANGE;
-                }
-            }
+            ////If ManualHeat is off
+            //else if (ManualHeat == false)
+            //{
+            //    // If we're heating currently, turn it off
+            //    if (CurrentState == GreenhouseState.PROCESSING_HEATING)
+            //    {
+            //        return GreenhouseState.WAITING_FOR_DATA;
+            //    }
+            //    // If we're cooling currently, don't do anything
+            //    else if (CurrentState == GreenhouseState.PROCESSING_COOLING)
+            //    {
+            //        CurrentState = GreenhouseState.COOLING;
+            //        return GreenhouseState.NO_CHANGE;
+            //    }
+            //    // If we're doing nothing currently, continue to do nothing
+            //    else
+            //    {
+            //        CurrentState = GreenhouseState.WAITING_FOR_DATA;
+            //        return GreenhouseState.NO_CHANGE;
+            //    }
+            //}
             //If ManualCool is on
             else if (ManualCool == true && ManualHeat != true)
             {
@@ -230,39 +230,39 @@ namespace GreenhouseController
                 }
             }
             // If ManualCool is off
-            else if (ManualCool == false)
-            {
-                // If we're cooling currently, go back to waiting
-                if (CurrentState == GreenhouseState.PROCESSING_COOLING)
-                {
-                    return GreenhouseState.WAITING_FOR_DATA;
-                }
-                // If we're heating right now, don't do anything
-                else if (CurrentState == GreenhouseState.PROCESSING_HEATING)
-                {
-                    CurrentState = GreenhouseState.HEATING;
-                    return GreenhouseState.NO_CHANGE;
-                }
-                // If we're doing nothing right now, continue to do nothing
-                else
-                {
-                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                    return GreenhouseState.NO_CHANGE;
-                }
-            }
+            //else if (ManualCool == false)
+            //{
+            //    // If we're cooling currently, go back to waiting
+            //    if (CurrentState == GreenhouseState.PROCESSING_COOLING)
+            //    {
+            //        return GreenhouseState.WAITING_FOR_DATA;
+            //    }
+            //    // If we're heating right now, don't do anything
+            //    else if (CurrentState == GreenhouseState.PROCESSING_HEATING)
+            //    {
+            //        CurrentState = GreenhouseState.HEATING;
+            //        return GreenhouseState.NO_CHANGE;
+            //    }
+            //    // If we're doing nothing right now, continue to do nothing
+            //    else
+            //    {
+            //        CurrentState = GreenhouseState.WAITING_FOR_DATA;
+            //        return GreenhouseState.NO_CHANGE;
+            //    }
+            //}
             // If both were set to off, go to the waiting state
-            else if (ManualCool == false && ManualHeat == false)
-            {
-                if (CurrentState == GreenhouseState.PROCESSING_DATA)
-                {
-                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                    return GreenhouseState.NO_CHANGE;
-                }
-                else
-                {
-                    return GreenhouseState.WAITING_FOR_DATA;
-                }
-            }
+            //else if (ManualCool == false && ManualHeat == false)
+            //{
+            //    if (CurrentState == GreenhouseState.PROCESSING_DATA)
+            //    {
+            //        CurrentState = GreenhouseState.WAITING_FOR_DATA;
+            //        return GreenhouseState.NO_CHANGE;
+            //    }
+            //    else
+            //    {
+            //        return GreenhouseState.WAITING_FOR_DATA;
+            //    }
+            //}
             // If we don't meet any of those criteria, return an error state
             // Such as both heating AND cooling are turn on
             else

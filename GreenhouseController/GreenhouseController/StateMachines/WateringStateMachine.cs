@@ -69,7 +69,7 @@ namespace GreenhouseController
             }
 
             // If we have no manual water commands
-            if (ManualWater == null)
+            if (ManualWater != true)
             {
                 // If we're coming from the wait state
                 if (CurrentState == GreenhouseState.PROCESSING_DATA)
@@ -186,20 +186,20 @@ namespace GreenhouseController
                 }
             }
             // If we have a manual water OFF command
-            else if (ManualWater == false)
-            {
-                // If we're coming from the wait state, don't do anything differently
-                if (CurrentState == GreenhouseState.PROCESSING_DATA)
-                {
-                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                    return GreenhouseState.NO_CHANGE;
-                }
-                // Otherwise, we force the water off
-                else
-                {
-                    return GreenhouseState.WAITING_FOR_DATA;
-                }
-            }
+            //else if (ManualWater == false)
+            //{
+            //    // If we're coming from the wait state, don't do anything differently
+            //    if (CurrentState == GreenhouseState.PROCESSING_DATA)
+            //    {
+            //        CurrentState = GreenhouseState.WAITING_FOR_DATA;
+            //        return GreenhouseState.NO_CHANGE;
+            //    }
+            //    // Otherwise, we force the water off
+            //    else
+            //    {
+            //        return GreenhouseState.WAITING_FOR_DATA;
+            //    }
+            //}
             // If out ManualWater field is somehow none of the three, we throw an error
             else
             {

@@ -32,8 +32,6 @@ namespace GreenhouseController
         /// <param name="limits">Packet containng the greenhouse automation limits</param>
         public void ExecuteActions(TLHPacket[] temperature, MoisturePacket[] moisture, ManualPacket manual, LimitPacket limits)
         {
-            // TODO: Change packet structure to support sensor overrides for the lighting and watering
-            // TODO: Add a sensor override field, and a sensor override threshold. Probably to the limit packet, would be my best guess
             ArduinoControlSender.Instance.CheckArduinoStatus();
             // Process limit changes
             LimitsAnalyzer limitAnalyzer = new LimitsAnalyzer();
@@ -56,21 +54,8 @@ namespace GreenhouseController
             // Get the approximate current time from the packets
             _currentTime = GetCurrentTime(tlhData);
 
-            // Try to connect to the Arduino if we aren't already
-            ArduinoControlSender.Instance.TryConnect();
-
             // Make sure the Arduino is there
-            bool result = ArduinoControlSender.Instance.CheckArduinoStatus();
-
-            // Do something if there's a problem with the Arduino
-            if (!result)
-            {
-                // TODO: reconnect to arduino
-                // TODO: resend commands that come from current state machine states
-                // TODO: proceed normally, or if we can't reconnect, throw some sort of error
-            }
-
-            List<GreenhouseState> statesToSend = new List<GreenhouseState>();
+            ArduinoControlSender.Instance.CheckArduinoStatus();
 
             #region Automation Decision Making
             // Get the averages of greenhouse readings

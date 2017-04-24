@@ -14,7 +14,7 @@ namespace GreenhouseController
         static void Main(string[] args)
         {
             // Connect to the Arduino. Connecting here prevents a 2 second delay before the first commands are sent
-            ArduinoControlSender.Instance.TryConnect();
+            ArduinoControlSender.Instance.TryConnect(createNewPort: true);
             ArduinoControlSender.Instance.CheckArduinoStatus();
 
             // Print out the state of the state machine at the start of the program
