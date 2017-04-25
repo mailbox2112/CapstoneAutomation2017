@@ -29,7 +29,7 @@ namespace GreenhouseController
         public event EventHandler<DataEventArgs> ItemInQueue;
 
         /// <summary>
-        /// Private constructor for singleton pattern
+        /// Constructor
         /// </summary>
         /// <param name="hostEndpoint">Endpoint to be reached</param>
         /// <param name="hostAddress">IP address we're trying to connect to</param>
@@ -61,7 +61,6 @@ namespace GreenhouseController
                 }
             }
             _dataStream = _client.GetStream();
-            _dataStream.ReadTimeout = 500;
         }
 
         /// <summary>
@@ -73,8 +72,6 @@ namespace GreenhouseController
             _timer.Stop();
             foreach(string request in _requests)
             {
-                int retryCount = 0;
-                bool success = false;
                 // Try connecting to the socket
                 TryConnect();
                 ArduinoControlSender.Instance.CheckArduinoStatus();
@@ -86,12 +83,11 @@ namespace GreenhouseController
                 _dataStream.Flush();
                 Console.WriteLine("Request sent!\n");
 
-                // Read the incoming data, then close the socket
-                while (retryCount != 5 && success == false)
-                {
-                    success = ReadGreenhouseData(request);
-                    retryCount++;
-                }
+                // Read the incoming data, try 5 times if need be, then close the socket
+                //while (retryCount != 5 && success == false)
+                //{
+                ReadGreenhouseData(request);
+                //}
                 
                 // Make sure we're still connected to the socket before trying to close it
                 if (_client.Connected)
@@ -114,7 +110,7 @@ namespace GreenhouseController
         /// <summary>
         /// Read greenhouse data from the server
         /// </summary>
-        public bool ReadGreenhouseData(string type)
+        public void ReadGreenhouseData(string type)
         {
             // Read the data in response the request for data
             try
@@ -123,6 +119,7 @@ namespace GreenhouseController
                 {
                     // Read data and copy it to a temporary array/buffer
                     _dataStream.Read(_buffer, 0, _buffer.Length);
+                    Console.WriteLine("Data received.");
                     Array.Copy(sourceArray: _buffer, destinationArray: _tempBuffer, length: _buffer.Length);
 
                     // Try to add it to the blocking collection
@@ -134,12 +131,6 @@ namespace GreenhouseController
 
                     // Clear the buffer
                     Array.Clear(_buffer, 0, _buffer.Length);
-
-                    return true;
-                } 
-                else
-                {
-                    return false;
                 }
             }
             // Should we lose the connection, we get rid of the socket, try to start a new one,
@@ -152,8 +143,6 @@ namespace GreenhouseController
                 // Close the connection and create a new client
                 _client.Close();
                 TryConnect();
-
-                return false;
             }
         }
 

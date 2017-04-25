@@ -12,8 +12,6 @@ namespace GreenhouseController
 {
     public class ArduinoControlSender
     {
-        // TODO: resend commands if we disconnected from the arduino!
-        // TODO: fix arduino reconnect code!
         // Constants for setting up serial ports
         private const int _BAUD = 9600;
         private const Parity _PARITY = Parity.None;
