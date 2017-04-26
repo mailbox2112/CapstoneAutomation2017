@@ -20,18 +20,18 @@ namespace GreenhouseController.API
 
         public void RequestDataFromAPI()
         {
-            SensorPacket[] sensorData;
-            ManualControlPacket manualControls;
-            AutomationPacket automationData;
             try
             {
+                SensorPacket[] sensorData = new SensorPacket[6];
+                ManualControlPacket manualControls = new ManualControlPacket();
+                AutomationPacket automationData = new AutomationPacket();
                 foreach (string path in _apiPaths)
                 {
                     string result = _apiCaller.GetGreenhouseData(path);
                     switch (path)
                     {
                         case "/api/sensors":
-                            sensorData= JsonConvert.DeserializeObject<SensorPacket[]>(result);
+                            sensorData = JsonConvert.DeserializeObject<SensorPacket[]>(result);
                             break;
                         case "/api/manualcontrols":
                             manualControls = JsonConvert.DeserializeObject<ManualControlPacket>(result);
@@ -51,7 +51,8 @@ namespace GreenhouseController.API
                     }
                 }
 
-                // TODO: pass new packets into the DataAnalyzer
+                DataAnalyzer analyzer = new DataAnalyzer();
+                analyzer.ExecuteActions(sensorData, manualControls, automationData);
             }
             catch (Exception ex)
             {

@@ -73,20 +73,20 @@ namespace GreenhouseController
                 {
                     try
                     {
+                        _output = new SerialPort("COM4", _BAUD, _PARITY, _DATABITS, _STOPBITS);
                         if (!success)
                         {
-                            if(File.Exists(port))
-                            {
-                                _output = new SerialPort(port, _BAUD, _PARITY, _DATABITS, _STOPBITS);
-                                //_output = new SerialPort("COM4", _BAUD, _PARITY, _DATABITS, _STOPBITS);
-
-                                // Open the serial port
-                                _output.Open();
-                                Thread.Sleep(2000);
-                                _output.ReadTimeout = 500;
-                                _output.RtsEnable = true;
-                                success = true;
-                            }
+                            //if(File.Exists(port))
+                            //{
+                            //    _output = new SerialPort(port, _BAUD, _PARITY, _DATABITS, _STOPBITS);
+                            //
+                            //    // Open the serial port
+                            //    //_output.Open();
+                            //    //Thread.Sleep(2000);
+                            //    _output.ReadTimeout = 500;
+                            //    _output.RtsEnable = true;
+                            //    success = true;
+                            //}
                         }
                         else
                         {
@@ -112,11 +112,11 @@ namespace GreenhouseController
             try
             {
                 // Send the "Are you there?" command
-                _output.Write(_AWAKE, 0, _AWAKE.Length);
+                //_output.Write(_AWAKE, 0, _AWAKE.Length);
 
                 // Read the response;
-                _output.Read(buffer, 0, buffer.Length);
-                //buffer = _ACK;
+                //_output.Read(buffer, 0, buffer.Length);
+                buffer = _ACK;
 
                 // Set the return value to true
                 if (buffer.SequenceEqual(_ACK))
@@ -165,7 +165,7 @@ namespace GreenhouseController
                 try
                 {
                     //Console.WriteLine($"Attempting to send command {command}");
-                    _output.Write(convertedCommandBytes, 0, convertedCommandBytes.Length);
+                    //_output.Write(convertedCommandBytes, 0, convertedCommandBytes.Length);
                     //Console.WriteLine("Send finished.");
 
                     // Change states based on the key/value pair we passed in
@@ -181,10 +181,10 @@ namespace GreenhouseController
                     }
                     // Wait for response
                     //Console.WriteLine($"Waiting for response...");
-                    _output.Read(buffer, 0, buffer.Length);
+                    //_output.Read(buffer, 0, buffer.Length);
                     //Console.WriteLine($"{buffer.GetValue(0)} received.");
                     
-                    //buffer = _ACK;
+                    buffer = _ACK;
                 }
                 catch (Exception ex)
                 {
@@ -272,7 +272,7 @@ namespace GreenhouseController
                 try
                 {
                     //Console.WriteLine($"Attempting to send command {command}");
-                    _output.Write(convertedCommandBytes, 0, convertedCommandBytes.Length);
+                    //_output.Write(convertedCommandBytes, 0, convertedCommandBytes.Length);
                     //Console.WriteLine("Send finished.");
 
                     // Change states based on the key/value pair we passed in
@@ -280,10 +280,10 @@ namespace GreenhouseController
 
                     // Wait for response
                     //Console.WriteLine($"Waiting for response...");
-                    _output.Read(buffer, 0, buffer.Length);
+                    //_output.Read(buffer, 0, buffer.Length);
                     //Console.WriteLine($"{buffer.GetValue(0)} received.");
 
-                    //buffer = _ACK;
+                    buffer = _ACK;
                 }
                 catch (Exception ex)
                 {

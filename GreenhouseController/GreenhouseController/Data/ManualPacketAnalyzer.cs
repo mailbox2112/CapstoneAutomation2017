@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GreenhouseController.API;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -44,6 +45,36 @@ namespace GreenhouseController.Data
                 if (packet.ManualWater != StateMachineContainer.Instance.WateringStateMachines[i].ManualWater)
                 {
                     StateMachineContainer.Instance.WateringStateMachines[i].ManualWater = packet.ManualWater;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Set the manual values received from the API
+        /// </summary>
+        /// <param name="packet"></param>
+        public void SetManualValues(ManualControlPacket packet)
+        {
+            if (packet.Fans != StateMachineContainer.Instance.Temperature.ManualCool)
+            {
+                StateMachineContainer.Instance.Temperature.ManualCool = packet.Fans;
+            }
+            if (packet.Shades != StateMachineContainer.Instance.Shading.ManualShade)
+            {
+                StateMachineContainer.Instance.Shading.ManualShade = packet.Shades;
+            }
+            foreach (LightingStateMachine stateMachine in StateMachineContainer.Instance.LightStateMachines)
+            {
+                if (packet.Lights != stateMachine.ManualLight)
+                {
+                    stateMachine.ManualLight = packet.Lights;
+                }
+            }
+            foreach (WateringStateMachine stateMachine in StateMachineContainer.Instance.WateringStateMachines)
+            {
+                if (packet.Water != stateMachine.ManualWater)
+                {
+                    stateMachine.ManualWater = packet.Water;
                 }
             }
         }

@@ -8,10 +8,10 @@ namespace GreenhouseController.Limits
 {
     public class ZoneSchedule
     {
-        public int Zone;
-        public DateTime Start;
-        public DateTime End;
-        public double? Threshold;
-        public ScheduleTypes Type;
+        public int zone;
+        public DateTime start;
+        public DateTime end;
+        public double? threshold;
+        public ScheduleTypes type;
     }
 }

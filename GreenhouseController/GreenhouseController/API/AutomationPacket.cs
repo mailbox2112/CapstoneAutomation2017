@@ -14,7 +14,7 @@ namespace GreenhouseController.API
         public int TempHigh;
         public int humiditiy;
         public int moisture;
-        public ZoneSchedule LightSchedule;
-        public ZoneSchedule WaterSchedule;
+        public List<ZoneSchedule> LightSchedules;
+        public List<ZoneSchedule> WaterSchedules;
     }
 }

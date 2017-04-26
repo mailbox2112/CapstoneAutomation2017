@@ -35,9 +35,9 @@ namespace ConsoleApplication1
             {
                 Light.Add(new ZoneSchedule()
                 {
-                    Zone = zone,
-                    Start = new DateTime(2017, 4, 5, 18, 0, 0),
-                    End = new DateTime(2017, 4, 5, 18, 0, 0)
+                    zone = zone,
+                    start = new DateTime(2017, 4, 5, 18, 0, 0),
+                    end = new DateTime(2017, 4, 5, 18, 0, 0)
                 });
             }
 
@@ -45,9 +45,9 @@ namespace ConsoleApplication1
             {
                 Water.Add(new ZoneSchedule()
                 {
-                    Zone = zone,
-                    Start = new DateTime(2017, 4, 5, 18, 0, 0),
-                    End = new DateTime(2017, 4, 5, 18, 0, 0)
+                    zone = zone,
+                    start = new DateTime(2017, 4, 5, 18, 0, 0),
+                    end = new DateTime(2017, 4, 5, 18, 0, 0)
                 });
             }
             

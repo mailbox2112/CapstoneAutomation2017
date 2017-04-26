@@ -107,20 +107,22 @@ namespace GreenhouseController.APICallers
                 greenhouseState.lights = false.ToString();
             }
             #endregion
-            string greenhouseStateJson = JsonConvert.SerializeObject(greenhouseState);
+            string greenhouseStateText = $"heater={greenhouseState.heater}&apikey={greenhouseState.apikey}"+
+                $"&shades={greenhouseState.shades}&fans={greenhouseState.fans}&lights={greenhouseState.lights}&pump={greenhouseState.pump}&vents={greenhouseState.vents}";
 
             try
             {
                 // Create the request and set the correct properties
                 HttpWebRequest req = (HttpWebRequest)WebRequest.Create(_baseUrl + path);
-                req.ContentType = "application/json; charset=utf-8";
+                //req.ContentType = "application/json; charset=utf-8";
+                req.ContentType = "application/x-www-form-urlencoded";
                 req.Method = "POST";
 
                 // Write the JSON to the stream
                 using (StreamWriter writer = new StreamWriter(req.GetRequestStream()))
                 {
-                    Console.WriteLine(greenhouseStateJson);
-                    writer.Write(greenhouseStateJson);
+                    //Console.WriteLine(greenhouseStateJson);
+                    writer.Write(greenhouseStateText);
                     writer.Flush();
                 }
 
@@ -128,7 +130,6 @@ namespace GreenhouseController.APICallers
                 using (var streamReader = new StreamReader(resp.GetResponseStream()))
                 {
                     string result = streamReader.ReadToEnd();
-                    Console.WriteLine(result);
                 }
 
                 return true;
