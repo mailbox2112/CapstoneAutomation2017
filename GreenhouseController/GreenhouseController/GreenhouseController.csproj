@@ -50,8 +50,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="APICallers\APICaller.cs" />
-    <Compile Include="APICallers\SensorPacket.cs" />
+    <Compile Include="API\APICaller.cs" />
+    <Compile Include="API\APIDataHandler.cs" />
+    <Compile Include="API\AutomationPacket.cs" />
+    <Compile Include="API\ManualControlPacket.cs" />
+    <Compile Include="API\SensorPacket.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="Data\HardwareStatePacket.cs" />
     <Compile Include="Data\ManualPacketAnalyzer.cs" />

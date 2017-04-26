@@ -8,12 +8,13 @@ namespace GreenhouseController.Data
 {
     public class HardwareStatePacket
     {
-        public int Type = 4;
+        //public int Type = 4;
         public string heater;
         public string lights;
         public string pump;
         public string fans;
         public string vents;
         public string shades;
+        public string apikey;
     }
 }

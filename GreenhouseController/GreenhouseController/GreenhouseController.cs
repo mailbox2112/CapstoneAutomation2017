@@ -1,4 +1,7 @@
-﻿using System;
+﻿using GreenhouseController.API;
+using GreenhouseController.APICallers;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +16,12 @@ namespace GreenhouseController
         // TODO: RESET BUTTON?
         static void Main(string[] args)
         {
-            // Connect to the Arduino. Connecting here prevents a 2 second delay before the first commands are sent
+            APICaller apiCaller = new APICaller();
+            APIDataHandler dataHandler = new APIDataHandler(apiCaller);
+            dataHandler.RequestDataFromAPI();
+            
+            
+            /*// Connect to the Arduino. Connecting here prevents a 2 second delay before the first commands are sent
             ArduinoControlSender.Instance.TryConnect(createNewPort: true);
             ArduinoControlSender.Instance.CheckArduinoStatus();
 
@@ -68,7 +76,7 @@ namespace GreenhouseController
             time.Start();
             GC.KeepAlive(time);
 
-            // Just keeps the program from ending. Really not the best way, but hey, it works
+            // Just keeps the program from ending. Really not the best way, but hey, it works*/
             Console.ReadLine();
         }
     }
