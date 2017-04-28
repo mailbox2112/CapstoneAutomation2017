@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GreenhouseController.Limits;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,6 @@ namespace GreenhouseController
 {
     public class WateringStateMachine : ITimeBasedStateMachine
     {
-        // TODO: add moisture sensor override stuff
         private const int _emergencyMoist = 0;
 
         private GreenhouseState _currentState;
@@ -35,15 +35,17 @@ namespace GreenhouseController
 
         public bool? ManualWater { get; set; }
 
-        public double MoistureThreshold { get; set; }
+        public double? OverrideThreshold { get; set; }
+
+        public ScheduleTypes ScheduleType { get; set;}
 
         /// <summary>
         /// Initialize the state machine
         /// </summary>
         public WateringStateMachine(int zone)
         {
-            MoistureThreshold = 70;
             CurrentState = GreenhouseState.WAITING_FOR_DATA;
+            ScheduleType = ScheduleTypes.CONSTANT;
             Zone = zone;
         }
 
@@ -54,6 +56,9 @@ namespace GreenhouseController
         /// <returns></returns>
         public GreenhouseState DetermineState(DateTime currentTime, double value)
         {
+            // Figure out which processing state we're in. If we were watering,
+            // we go to the Processing_water state
+            // Otherwise, we just go to Processing_data
             if (CurrentState == GreenhouseState.WATERING)
             {
                 CurrentState = GreenhouseState.PROCESSING_WATER;
@@ -63,62 +68,139 @@ namespace GreenhouseController
                 CurrentState = GreenhouseState.PROCESSING_DATA;
             }
 
+            // If we have no manual water commands
             if (ManualWater != true)
             {
-                // Check the states based on data, and if we were already watering take that into account
-                if (value > MoistureThreshold && CurrentState == GreenhouseState.PROCESSING_DATA)
+                // If we're coming from the wait state
+                if (CurrentState == GreenhouseState.PROCESSING_DATA)
                 {
-                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                    return GreenhouseState.NO_CHANGE;
+                    // If we're within the scheduled time
+                    if (currentTime.TimeOfDay >= Begin.TimeOfDay && currentTime.TimeOfDay <= End.TimeOfDay)
+                    {
+                        // If the user wants the sensors to override the schedule
+                        if (ScheduleType == ScheduleTypes.SENSORS)
+                        {
+                            // Check if we're above the override threshold
+                            // If so, don't turn the water on
+                            if (value >= OverrideThreshold)
+                            {
+                                CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                                return GreenhouseState.NO_CHANGE;
+                            }
+                            // If not, turn the water on
+                            else
+                            {
+                                return GreenhouseState.WATERING;
+                            }
+                        }
+                        // Otherwise check if we need to just turn the water on
+                        // If we're not blocked out of the scheduled time, don't do anything
+                        else if (ScheduleType == ScheduleTypes.BLOCKED)
+                        {
+                            CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                            return GreenhouseState.NO_CHANGE;
+                        }
+                        else if (ScheduleType == ScheduleTypes.CONSTANT)
+                        {
+                            return GreenhouseState.WATERING;
+                        }
+                        // If we somehow didn't hit any of these conditions, error
+                        else
+                        {
+                            return GreenhouseState.ERROR;
+                        }
+                    }
+                    // If we're outside of the scheduled time, 
+                    // since we're coming from the wait state, we just don't change anything
+                    else
+                    {
+                        CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                        return GreenhouseState.NO_CHANGE;
+                    }
                 }
-                else if (value > MoistureThreshold && CurrentState == GreenhouseState.PROCESSING_WATER)
+                // If we're coming from the watering state
+                else if (CurrentState == GreenhouseState.PROCESSING_WATER)
                 {
-                    return GreenhouseState.WAITING_FOR_DATA;
+                    // If we're within the scheduled time
+                    if (currentTime.TimeOfDay >= Begin.TimeOfDay && currentTime.TimeOfDay <= End.TimeOfDay)
+                    {
+                        // If the user wants the sensors to override the schedule
+                        if (ScheduleType == ScheduleTypes.SENSORS)
+                        {
+                            // Check if the moisture if past the override threshold
+                            // If so, turn the water off
+                            if (value >= OverrideThreshold)
+                            {
+                                return GreenhouseState.WAITING_FOR_DATA;
+                            }
+                            // If not, keep it on
+                            else
+                            {
+                                CurrentState = GreenhouseState.WATERING;
+                                return GreenhouseState.NO_CHANGE;
+                            }
+                        }
+                        else if (ScheduleType == ScheduleTypes.BLOCKED)
+                        {
+                            return GreenhouseState.WAITING_FOR_DATA;
+                        }
+                        // Otherwise, just keep the water on
+                        else if (ScheduleType == ScheduleTypes.CONSTANT)
+                        {
+                            CurrentState = GreenhouseState.WATERING;
+                            return GreenhouseState.NO_CHANGE;
+                        }
+                        else
+                        {
+                            return GreenhouseState.ERROR;
+                        }
+                    }
+                    // If we're outside the scheduled time,
+                    // turn the water off
+                    else
+                    {
+                        return GreenhouseState.WAITING_FOR_DATA;
+                    }
                 }
-                else if (currentTime < End && currentTime > Begin && CurrentState != GreenhouseState.PROCESSING_WATER)
-                {
-                    return GreenhouseState.WATERING;
-                }
-                else if (currentTime < End && currentTime > Begin && CurrentState == GreenhouseState.PROCESSING_WATER)
-                {
-                    CurrentState = GreenhouseState.WATERING;
-                    return GreenhouseState.NO_CHANGE;
-                }
-                else if ((currentTime > End || currentTime < Begin) && CurrentState == GreenhouseState.PROCESSING_DATA)
-                {
-                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                    return GreenhouseState.NO_CHANGE;
-                }
+                // If we're not in either of those states, something has gone wrong
                 else
                 {
-                    return GreenhouseState.WAITING_FOR_DATA;
+                    return GreenhouseState.ERROR;
                 }
+                    
             }
+            // If we have a manual water ON command
             else if (ManualWater == true)
             {
+                // If we're coming from the watering state, the water is already on
+                // so we just don't change anything
                 if (CurrentState == GreenhouseState.PROCESSING_WATER)
                 {
                     CurrentState = GreenhouseState.WATERING;
                     return GreenhouseState.NO_CHANGE;
                 }
+                // Otherwise, we turn the water on
                 else
                 {
                     return GreenhouseState.WATERING;
                 }
             }
+            // If we have a manual water OFF command
             //else if (ManualWater == false)
             //{
-            //    ManualWater = null;
+            //    // If we're coming from the wait state, don't do anything differently
             //    if (CurrentState == GreenhouseState.PROCESSING_DATA)
             //    {
             //        CurrentState = GreenhouseState.WAITING_FOR_DATA;
             //        return GreenhouseState.NO_CHANGE;
             //    }
+            //    // Otherwise, we force the water off
             //    else
             //    {
             //        return GreenhouseState.WAITING_FOR_DATA;
             //    }
             //}
+            // If out ManualWater field is somehow none of the three, we throw an error
             else
             {
                 return GreenhouseState.ERROR;
@@ -132,7 +214,8 @@ namespace GreenhouseController
         /// <returns></returns>
         public List<Commands> ConvertStateToCommands(GreenhouseState state)
         {
-            // check the state of the solenoids
+            // Check the zone of the state machine calling this
+            // and return the appropriate command
             List<Commands> commandsToSend = new List<Commands>();
             if (state == GreenhouseState.WATERING)
             { 

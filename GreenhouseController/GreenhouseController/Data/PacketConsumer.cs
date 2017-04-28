@@ -47,7 +47,7 @@ namespace GreenhouseController
 
             // Take the string to a JObject and deserialize according to the appropriate Type value
             JObject received = JObject.Parse(json);
-            //Console.WriteLine(received.ToString());
+            Console.WriteLine(received.ToString());
             switch (received["Type"].Value<int>())
             {
                 case 0:

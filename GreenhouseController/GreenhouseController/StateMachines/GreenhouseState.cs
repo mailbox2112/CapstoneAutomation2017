@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace GreenhouseController
 {
     /// <summary>
-    /// Enum of possible states that could be combined in our NFA
+    /// Enum of the states our state machines could be in
     /// </summary>
     public enum GreenhouseState
     {

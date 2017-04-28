@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 namespace GreenhouseController
 {
     public class TLHPacket
-    {
-        public int Type = 0;
+    { 
         public int ID;
         public double Temperature;
         public double Light;

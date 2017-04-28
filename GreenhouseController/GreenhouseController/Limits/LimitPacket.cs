@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GreenhouseController.Limits;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,10 +12,8 @@ namespace GreenhouseController
         public int Type = 2;
         public int TempHi;
         public int TempLo;
-        public Dictionary<int, DateTime> WaterStarts;
-        public Dictionary<int, DateTime> WaterEnds;
-        public Dictionary<int, DateTime> LightStarts;
-        public Dictionary<int, DateTime> LightEnds;
+        public List<ZoneSchedule> Water;
+        public List<ZoneSchedule> Light;
         public int ShadeLim;
     }
 }

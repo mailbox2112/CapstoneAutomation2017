@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using GreenhouseController;
 using GreenhouseController.Data;
 using GreenhouseController.Packets;
+using GreenhouseController.Limits;
 
 namespace ConsoleApplication1
 {
@@ -28,32 +29,40 @@ namespace ConsoleApplication1
             int[] tlhZones = new int[] { 1, 2, 3, 4, 5 };
             int[] mZones = new int[] { 1, 2, 3, 4, 5, 6 };
 
-            Dictionary<int, DateTime> waterStart = new Dictionary<int, DateTime>();
-            Dictionary<int, DateTime> waterEnd = new Dictionary<int, DateTime>();
-            Dictionary<int, DateTime> lightStart = new Dictionary<int, DateTime>();
-            Dictionary<int, DateTime> lightEnd = new Dictionary<int, DateTime>();
+            List<ZoneSchedule> Light = new List<ZoneSchedule>();
+            List<ZoneSchedule> Water = new List<ZoneSchedule>();
             foreach(int zone in tlhZones)
             {
-                lightStart.Add(zone, new DateTime(2017, 4, 5, 18, 0, 0));
-                lightEnd.Add(zone, new DateTime(2017, 4, 5, 18, 45, 0));
+                Light.Add(new ZoneSchedule()
+                {
+                    zone = zone,
+                    start = new DateTime(2017, 4, 5, 18, 0, 0),
+                    end = new DateTime(2017, 4, 5, 18, 0, 0)
+                });
             }
 
             foreach(int zone in mZones)
             {
-                waterStart.Add(zone, new DateTime(2017, 4, 5, 18, 0, 0));
-                waterEnd.Add(zone, new DateTime(2017, 4, 5, 18, 45, 0));
+                Water.Add(new ZoneSchedule()
+                {
+                    zone = zone,
+                    start = new DateTime(2017, 4, 5, 18, 0, 0),
+                    end = new DateTime(2017, 4, 5, 18, 0, 0)
+                });
             }
             
-            byte[] limitsToSend = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(new LimitPacket()
+            string limits = JsonConvert.SerializeObject(new LimitPacket()
             {
                 TempHi = 80,
                 TempLo = 65,
-                WaterStarts = waterStart,
-                WaterEnds = waterEnd,
-                LightStarts = lightStart,
-                LightEnds = lightEnd,
+                Water = Water,
+                Light = Light,
                 ShadeLim = 50000
-            }, Formatting.Indented));
+            }).Normalize();
+
+            Console.WriteLine(limits);
+
+            byte[] limitsToSend = Encoding.ASCII.GetBytes(limits);
 
             // TODO: add ability to change greenhouse limits
             Console.WriteLine("Would you like to use manual or random mode? Press M for manual, R for random.");
@@ -67,7 +76,7 @@ namespace ConsoleApplication1
             else if (key == "R" || key == "r")
             {
                 #region Random Data
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[10024];
                 while(true)
                 {
                     Console.WriteLine("Accepting connection...");
@@ -138,10 +147,11 @@ namespace ConsoleApplication1
                     {
                         ManualPacket packet = new ManualPacket()
                         {
-                            ManualCool = null,
+                            ManualCool = true,
                             ManualHeat = null,
-                            ManualLight = null,
-                            ManualWater = null
+                            ManualLight = true,
+                            ManualWater = true,
+                            ManualShade = null
                         };
                         string manual = JsonConvert.SerializeObject(packet);
                         byte[] manualBytes = Encoding.ASCII.GetBytes(manual);
@@ -173,8 +183,8 @@ namespace ConsoleApplication1
             public JsonSpoof() { }
             public TLHPacket TLHData(int zone)
             {
-                int tempMin = 60;
-                int tempMax = 90;
+                int tempMin = 30;
+                int tempMax = 40;
                 int humidMin = 0;
                 int humidMax = 100;
                 TLHPacket packet = new TLHPacket()

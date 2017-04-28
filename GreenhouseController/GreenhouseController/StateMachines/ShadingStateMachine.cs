@@ -38,31 +38,13 @@ namespace GreenhouseController.StateMachines
         }
 
         /// <summary>
-        /// Converts a greenhouse state into a set of commands
-        /// </summary>
-        /// <param name="state"></param>
-        /// <returns></returns>
-        public List<Commands> ConvertStateToCommands(GreenhouseState state)
-        {
-            List<Commands> commandsToSend = new List<Commands>();
-            if (state == GreenhouseState.SHADING)
-            {
-                commandsToSend.Add(Commands.SHADE_EXTEND);
-            }
-            else
-            {
-                commandsToSend.Add(Commands.SHADE_RETRACT);
-            }
-            return commandsToSend;
-        }
-
-        /// <summary>
         /// Determines the state of the shading state machine based on lighting sensor value
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public GreenhouseState DetermineState(double value = 0)
+        public GreenhouseState DetermineState(double value)
         {
+            // TODO: revamp!
             if (CurrentState == GreenhouseState.SHADING)
             {
                 CurrentState = GreenhouseState.PROCESSING_SHADING;
@@ -72,25 +54,43 @@ namespace GreenhouseController.StateMachines
                 CurrentState = GreenhouseState.PROCESSING_DATA;
             }
 
+            // If we don't have a manual shading command
             if (ManualShade != true)
             {
-                if (value >= HighLimit && CurrentState != GreenhouseState.PROCESSING_SHADING)
+                // If we're coming from the wait state
+                if (CurrentState == GreenhouseState.PROCESSING_DATA)
                 {
-                    return GreenhouseState.SHADING;
+                    // If we're above the temperature limit, extend the shade
+                    // Otherwise, the shade stays retracted
+                    if (value >= HighLimit)
+                    {
+                        return GreenhouseState.SHADING;
+                    }
+                    else
+                    {
+                        CurrentState = GreenhouseState.WAITING_FOR_DATA;
+                        return GreenhouseState.NO_CHANGE;
+                    }
                 }
-                else if (value >= HighLimit && CurrentState == GreenhouseState.PROCESSING_SHADING)
+                // If we're already shading
+                else if (CurrentState == GreenhouseState.PROCESSING_SHADING)
                 {
-                    CurrentState = GreenhouseState.SHADING;
-                    return GreenhouseState.NO_CHANGE;
+                    // If we're 10 degrees below the high limit now, retract the shade
+                    if (value < HighLimit - 10)
+                    {
+                        return GreenhouseState.WAITING_FOR_DATA;
+                    }
+                    // Otherwise, keep the shade extended
+                    else
+                    {
+                        CurrentState = GreenhouseState.SHADING;
+                        return GreenhouseState.NO_CHANGE;
+                    }
                 }
-                else if (value < HighLimit && CurrentState == GreenhouseState.PROCESSING_DATA)
-                {
-                    CurrentState = GreenhouseState.WAITING_FOR_DATA;
-                    return GreenhouseState.NO_CHANGE;
-                }
+                // If we're in neither processing state, throw an error
                 else
                 {
-                    return GreenhouseState.WAITING_FOR_DATA;
+                    return GreenhouseState.ERROR;
                 }
             }
             else if (ManualShade == true)
@@ -122,6 +122,25 @@ namespace GreenhouseController.StateMachines
             {
                 return GreenhouseState.ERROR;
             }
+        }
+
+        /// <summary>
+        /// Converts a greenhouse state into a set of commands
+        /// </summary>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        public List<Commands> ConvertStateToCommands(GreenhouseState state)
+        {
+            List<Commands> commandsToSend = new List<Commands>();
+            if (state == GreenhouseState.SHADING)
+            {
+                commandsToSend.Add(Commands.SHADE_EXTEND);
+            }
+            else
+            {
+                commandsToSend.Add(Commands.SHADE_RETRACT);
+            }
+            return commandsToSend;
         }
 
         /// <summary>

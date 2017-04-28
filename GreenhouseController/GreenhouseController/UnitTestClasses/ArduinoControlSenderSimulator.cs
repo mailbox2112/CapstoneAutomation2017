@@ -7,11 +7,9 @@ using System.Threading.Tasks;
 
 namespace GreenhouseController
 {
-    public class ArduinoControlSenderSimulator : IDisposable
+    public class ArduinoControlSenderSimulator
     {
         public ArduinoControlSenderSimulator() { }
-
-        public void Dispose() { }
 
         /// <summary>
         /// Takes a list of commands to be sent to the arduino and sends them over the pi's serial port

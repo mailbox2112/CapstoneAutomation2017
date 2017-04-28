@@ -1,6 +1,7 @@
 ﻿using GreenhouseController.StateMachines;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,6 @@ namespace GreenhouseController
 {
     public class ArduinoControlSender
     {
-        // TODO: make this use a queue and event-based!
         // Constants for setting up serial ports
         private const int _BAUD = 9600;
         private const Parity _PARITY = Parity.None;
@@ -22,8 +22,10 @@ namespace GreenhouseController
         private SerialPort _output;
         private byte[] _ACK = new byte[] { 0x20 };
         private byte[] _NACK = new byte[] { 0x21 };
+        private byte[] _AWAKE = new byte[] { 0x22 };
         private bool _success = false;
         private int _retryCount = 0;
+        private string[] _serialPorts = new string[] { "/dev/ttyACM0", "/dev/ttyACM1", "/dev/ttyACM2", "/dev/ttyACM3" };
 
         // Singleton pattern items
         private static volatile ArduinoControlSender _instance;
@@ -61,34 +63,86 @@ namespace GreenhouseController
         /// If the port is already open, it checks to make sure that the's still communications
         /// available on the port.
         /// </summary>
-        public void TryConnect()
+        public void TryConnect(bool createNewPort)
         {
-            // TODO: loop through to find serial ports, and establish the fact we're connected
-            // We might need to start an external script to do this properly in linux,
-            // SerialPort.GetPortNames() only ever returns ttyS0
-            // Find ports
-            string[] ports = SerialPort.GetPortNames();
-            foreach(string port in ports)
+            // Create the serial port, looping through all possible ports until we get the irght one
+            bool success = false;
+            if(createNewPort)
             {
-                Console.WriteLine($"{port} available.");
+                foreach(string port in _serialPorts)
+                {
+                    try
+                    {
+                        _output = new SerialPort("COM4", _BAUD, _PARITY, _DATABITS, _STOPBITS);
+                        if (!success)
+                        {
+                            //if(File.Exists(port))
+                            //{
+                            //    _output = new SerialPort(port, _BAUD, _PARITY, _DATABITS, _STOPBITS);
+                            //
+                            //    // Open the serial port
+                            //    //_output.Open();
+                            //    //Thread.Sleep(2000);
+                            //    _output.ReadTimeout = 500;
+                            //    _output.RtsEnable = true;
+                            //    success = true;
+                            //}
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        Console.WriteLine("Could not open serial port.");
+                    }
+                }
             }
+        }
 
-            // Create the serial port
-            if (_output == null)
+        /// <summary>
+        /// Sends the Arduino a check-in message. No response means that the Arduino is no longer connected/functioning
+        /// </summary>
+        public bool CheckArduinoStatus()
+        {
+            bool response = false;
+            byte[] buffer = new byte[1];
+            try
             {
-                //_output = new SerialPort("/dev/ttyACM0", _BAUD, _PARITY, _DATABITS, _STOPBITS);
-                _output = new SerialPort("COM3", _BAUD, _PARITY, _DATABITS, _STOPBITS);
-            }
+                // Send the "Are you there?" command
+                //_output.Write(_AWAKE, 0, _AWAKE.Length);
 
-            // Open the serial port
-            if (_output.IsOpen != true)
-            {
-                _output.Open();
-                Thread.Sleep(2000);
-                _output.ReadTimeout = 500;
-                _output.RtsEnable = true;
+                // Read the response;
+                //_output.Read(buffer, 0, buffer.Length);
+                buffer = _ACK;
+
+                // Set the return value to true
+                if (buffer.SequenceEqual(_ACK))
+                {
+                    response = true;
+                }
+                else
+                {
+                    // Wait for the watchdog timer to reset
+                    Thread.Sleep(8250);
+                    // Reconnect to the arduino
+                    TryConnect(createNewPort: true);
+                    ResendStates();
+                }
             }
-            // TODO: add task down here to periodically poll for the arduino to make sure everything is okay
+            catch (Exception ex)
+            {
+                // Write the exception and create a new port
+                Console.WriteLine(ex.Message);
+                Thread.Sleep(8250);
+                TryConnect(createNewPort: true);
+                ResendStates();
+            }
+            
+            // Return the result
+            return response;
         }
 
         /// <summary>
@@ -110,25 +164,25 @@ namespace GreenhouseController
                 // Send commands
                 try
                 {
-                    Console.WriteLine($"Attempting to send command {command}");
-                    _output.Write(convertedCommandBytes, 0, convertedCommandBytes.Length);
-                    Console.WriteLine("Send finished.");
+                    //Console.WriteLine($"Attempting to send command {command}");
+                    //_output.Write(convertedCommandBytes, 0, convertedCommandBytes.Length);
+                    //Console.WriteLine("Send finished.");
 
                     // Change states based on the key/value pair we passed in
                     statePair.Key.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
 
                     if (command == Commands.SHADE_EXTEND || command == Commands.SHADE_RETRACT)
                     {
-                        _output.ReadTimeout = 10000;
+                        _output.ReadTimeout = 15000;
                     }
                     else
                     {
                         _output.ReadTimeout = 500;
                     }
                     // Wait for response
-                    Console.WriteLine($"Waiting for response...");
-                    _output.Read(buffer, 0, buffer.Length);
-                    Console.WriteLine($"{buffer.GetValue(0)} received.");
+                    //Console.WriteLine($"Waiting for response...");
+                    //_output.Read(buffer, 0, buffer.Length);
+                    //Console.WriteLine($"{buffer.GetValue(0)} received.");
                     
                     buffer = _ACK;
                 }
@@ -141,7 +195,7 @@ namespace GreenhouseController
                 // ACK = success
                 if (buffer.SequenceEqual(_ACK))
                 {
-                    Console.WriteLine($"Command {command} sent successfully");
+                    //Console.WriteLine($"Command {command} sent successfully");
                     _success = true;
                 }
                 // NACK = command wasn't acknowledged
@@ -161,7 +215,7 @@ namespace GreenhouseController
                             
                             _output.Read(buffer, 0, buffer.Length);
                             Console.WriteLine($"{buffer.GetValue(0)} received");
-                            //buffer = ACK;
+                            //buffer = _ACK;
                         }
                         catch (Exception ex)
                         {
@@ -193,7 +247,7 @@ namespace GreenhouseController
                 else if (_success == true)
                 {
                     statePair.Key.CurrentState = statePair.Value;
-                    Console.WriteLine($"State change {statePair.Value} executed successfully\n");
+                    //Console.WriteLine($"State change {statePair.Value} executed successfully\n");
                 }
                 _retryCount = 0;
                 _success = false;
@@ -217,17 +271,17 @@ namespace GreenhouseController
                 // Send commands
                 try
                 {
-                    Console.WriteLine($"Attempting to send command {command}");
-                    _output.Write(convertedCommandBytes, 0, convertedCommandBytes.Length);
-                    Console.WriteLine("Send finished.");
+                    //Console.WriteLine($"Attempting to send command {command}");
+                    //_output.Write(convertedCommandBytes, 0, convertedCommandBytes.Length);
+                    //Console.WriteLine("Send finished.");
 
                     // Change states based on the key/value pair we passed in
                     statePair.Key.CurrentState = GreenhouseState.WAITING_FOR_RESPONSE;
 
                     // Wait for response
-                    Console.WriteLine($"Waiting for response...");
-                    _output.Read(buffer, 0, buffer.Length);
-                    Console.WriteLine($"{buffer.GetValue(0)} received.");
+                    //Console.WriteLine($"Waiting for response...");
+                    //_output.Read(buffer, 0, buffer.Length);
+                    //Console.WriteLine($"{buffer.GetValue(0)} received.");
 
                     buffer = _ACK;
                 }
@@ -240,7 +294,7 @@ namespace GreenhouseController
                 // ACK = success
                 if (buffer.SequenceEqual(_ACK))
                 {
-                    Console.WriteLine($"Command {command} sent successfully");
+                    //Console.WriteLine($"Command {command} sent successfully");
                     _success = true;
                 }
                 // NACK = command wasn't acknowledged
@@ -260,7 +314,7 @@ namespace GreenhouseController
 
                             _output.Read(buffer, 0, buffer.Length);
                             Console.WriteLine($"{buffer.GetValue(0)} received");
-                            //buffer = ACK;
+                            //buffer = _ACK;
                         }
                         catch (Exception ex)
                         {
@@ -386,6 +440,95 @@ namespace GreenhouseController
                     break;
             }
             return byteValue;
+        }
+
+        /// <summary>
+        /// If we lost connection to the arduino, calling this method will set all the relays back the way they should be
+        /// </summary>
+        /// <returns></returns>
+        private bool ResendStates()
+        {
+            bool result = false;
+
+            // First, resend the temperature state machine state
+            KeyValuePair<IStateMachine, GreenhouseState> tempAndShadeStates = new KeyValuePair<IStateMachine, GreenhouseState>();
+            switch(StateMachineContainer.Instance.Temperature.CurrentState)
+            {
+                case GreenhouseState.PROCESSING_DATA:
+                    tempAndShadeStates = new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, GreenhouseState.WAITING_FOR_DATA);
+                    break;
+                case GreenhouseState.PROCESSING_HEATING:
+                    tempAndShadeStates = new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, GreenhouseState.HEATING);
+                    break;
+                case GreenhouseState.PROCESSING_COOLING:
+                    tempAndShadeStates = new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, GreenhouseState.COOLING);
+                    break;
+                case GreenhouseState.WAITING_FOR_DATA:
+                    tempAndShadeStates = new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, GreenhouseState.WAITING_FOR_DATA);
+                    break;
+                case GreenhouseState.HEATING:
+                    tempAndShadeStates = new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, GreenhouseState.HEATING);
+                    break;
+                case GreenhouseState.COOLING:
+                    tempAndShadeStates = new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, GreenhouseState.COOLING);
+                    break;
+                default:
+                    tempAndShadeStates = new KeyValuePair<IStateMachine, GreenhouseState>(StateMachineContainer.Instance.Temperature, GreenhouseState.WAITING_FOR_DATA);
+                    break;
+            }
+            SendCommand(tempAndShadeStates);
+
+            // Then resend the water states
+            KeyValuePair<ITimeBasedStateMachine, GreenhouseState> waterAndShadeStates = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>();
+            foreach(WateringStateMachine stateMachine in StateMachineContainer.Instance.WateringStateMachines)
+            {
+                switch(stateMachine.CurrentState)
+                {
+                    case GreenhouseState.WAITING_FOR_DATA:
+                        waterAndShadeStates = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(stateMachine, GreenhouseState.WAITING_FOR_DATA);
+                        break;
+                    case GreenhouseState.WATERING:
+                        waterAndShadeStates = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(stateMachine, GreenhouseState.WATERING);
+                        break;
+                    case GreenhouseState.PROCESSING_DATA:
+                        waterAndShadeStates = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(stateMachine, GreenhouseState.WAITING_FOR_DATA);
+                        break;
+                    case GreenhouseState.PROCESSING_WATER:
+                        waterAndShadeStates = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(stateMachine, GreenhouseState.WATERING);
+                        break;
+                    default:
+                        waterAndShadeStates = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(stateMachine, GreenhouseState.WAITING_FOR_DATA);
+                        break;
+                }
+                SendCommand(waterAndShadeStates);
+            }
+
+            // Lastly, resend the lighting states
+            foreach(LightingStateMachine stateMachine in StateMachineContainer.Instance.LightStateMachines)
+            {
+                switch(stateMachine.CurrentState)
+                {
+                    case GreenhouseState.WAITING_FOR_DATA:
+                        waterAndShadeStates = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(stateMachine, GreenhouseState.WAITING_FOR_DATA);
+                        break;
+                    case GreenhouseState.LIGHTING:
+                        waterAndShadeStates = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(stateMachine, GreenhouseState.LIGHTING);
+                        break;
+                    case GreenhouseState.PROCESSING_DATA:
+                        waterAndShadeStates = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(stateMachine, GreenhouseState.WAITING_FOR_DATA);
+                        break;
+                    case GreenhouseState.PROCESSING_LIGHTING:
+                        waterAndShadeStates = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(stateMachine, GreenhouseState.LIGHTING);
+                        break;
+                    default:
+                        waterAndShadeStates = new KeyValuePair<ITimeBasedStateMachine, GreenhouseState>(stateMachine, GreenhouseState.WAITING_FOR_DATA);
+                        break;
+                }
+                SendCommand(waterAndShadeStates);
+            }
+
+
+            return result;
         }
     }
 }

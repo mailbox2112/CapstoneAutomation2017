@@ -8,7 +8,8 @@
 
 /*
   Connect 5V on Arduino to VCC on Relay Module
-  Connect GND on Arduino to GND on Relay Module  */
+  Connect 5V from external supply to JD-VCC
+  Connect GND from external supply to GND */
 #include <AccelStepper.h>
 #include <avr/wdt.h>
 
@@ -96,8 +97,9 @@ void setup() {
   digitalWrite(SHADE_CLK, HIGH);
   digitalWrite(SHADE_DIR, HIGH);
 
-  stepper.setMaxSpeed(150);
-  stepper.setSpeed(100);
+  stepper.setMaxSpeed(1000);
+  stepper.setSpeed(700);
+  stepper.setAcceleration(10);
 
   // wait to connect to Serial
   Serial.begin(9600);
@@ -110,8 +112,6 @@ void setup() {
 }
 
 void loop() {
-  // Reset watchdog timer
-  wdt_reset();
   if (Serial.available()) {
     process_command();
   }
@@ -119,18 +119,20 @@ void loop() {
 
 void process_command() {
   // turn on heat relay, fan relay, vent relay, etc...
-  digitalWrite(DEBUG_LIGHT, LOW);
   command = Serial.read(); // read command string
-  digitalWrite(DEBUG_LIGHT, HIGH);
-
+  ///////////////////////////////////////////////////////
+  // ERROR CONTROL
+  // RESET WDT WHEN WE GET "ARE YOU THERE?" COMMANDS
+  ///////////////////////////////////////////////////////
+  if (command == 0x22) {
+    wdt_reset();
+  }
   ///////////////////////////////////////////////////////
   // HEATING
   ///////////////////////////////////////////////////////
-  if (command == 0x00) {
-    digitalWrite(DEBUG_LIGHT, LOW);
+  else if (command == 0x00) {
     digitalWrite(HEAT1, LOW);
     digitalWrite(HEAT2, LOW);
-    digitalWrite(DEBUG_LIGHT, HIGH);
   }
 
   else if (command == 0x01) {
@@ -238,17 +240,23 @@ void process_command() {
   else if (command == 0x16) {
     wdt_reset();
     stepper.moveTo(500);
-    while (stepper.currentPosition() != 300) stepper.run(); // Full speed up to position 300
+    while (stepper.currentPosition() != 300){
+      wdt_reset();
+      stepper.run(); // Full speed up to position 300
+    }
     stepper.stop(); // Stop as fast as possible
-    stepper.runToPosition();
+    //stepper.runToPosition();
   }
 
   else if (command == 0x17) {
     wdt_reset();
     stepper.moveTo(-500);
-    while (stepper.currentPosition() != 0) stepper.run(); // Full speed up to position 0
+    while (stepper.currentPosition() != -300){
+      wdt_reset();
+      stepper.run(); // Full speed up to position 0
+    }
     stepper.stop(); // Stop as fast as possible
-    stepper.runToPosition();
+    //stepper.runToPosition();
   }
 
   // received command does not match possible commands
